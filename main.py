@@ -29,8 +29,8 @@ recorder = None
 wav_file = None
 
 GPT_model = "gpt-3.5-turbo"
-openai.api_key = "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"
-pv_access_key= "sHITVqSmiib/WHnJvel8s0Op3PoeKrkim4YmP/j4xHa6oErKe7odlw=="
+openai.api_key = ""
+pv_access_key= ""
 
 prompt = ["How may I assist you?",
     "How may I help?",
@@ -42,7 +42,7 @@ prompt = ["How may I assist you?",
     "What would you like me to do?"]
 
 chat_log=[
-    {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant."},
+    {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
     ]
 
 def ChatGPT(query):
@@ -72,7 +72,7 @@ def append_clear_countdown():
     global chat_log
     chat_log.clear()
     chat_log=[
-        {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant."},
+        {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
         ]    
     global count
     count = 0
@@ -94,10 +94,12 @@ def voice(chat):
     sleep(0.2)
 
 def wake_word():
-    porcupine = pvporcupine.create(keywords=["computer",],
-                            access_key=pv_access_key,
-                            sensitivities=[0.1],
-                                   )
+    keyword_path = os.path.join(os.path.dirname(__file__), 'Merlin_en_linux_v2_2_0.ppn')
+    
+    porcupine = pvporcupine.create(
+        access_key=pv_access_key,
+        keyword_paths=[keyword_path]
+    )
     devnull = os.open(os.devnull, os.O_WRONLY)
     old_stderr = os.dup(2)
     sys.stderr.flush()
