@@ -1,137 +1,315 @@
-import sys
-import os
-import wave
-import pyaudio
-import whisper
-import openai
-import time
-import threading
-import datetime
 from gtts import gTTS
-from io import BytesIO
-from pydub import AudioSegment
-import simpleaudio as sa
+import openai
+import os
+import pvcobra
+import pvporcupine
+import pyaudio
+import random
+import struct
+import sys
+import textwrap
+import threading
+import time
 
-from PyQt5.QtCore import Qt, QCoreApplication
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame
 
-openai.api_key = "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"
+from colorama import Fore, Style
+from pvleopard import *
+from pvrecorder import PvRecorder
+from threading import Thread, Event
+from time import sleep
 
-history = [
+audio_stream = None
+cobra = None
+pa = None
+porcupine = None
+recorder = None
+wav_file = None
+
+GPT_model = "gpt-3.5-turbo"
+openai.api_key = "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"
+pv_access_key= "sHITVqSmiib/WHnJvel8s0Op3PoeKrkim4YmP/j4xHa6oErKe7odlw=="
+
+prompt = ["How may I assist you?",
+    "How may I help?",
+    "What can I do for you?",
+    "Ask me anything.",
+    "Yes?",
+    "I'm here.",
+    "I'm listening.",
+    "What would you like me to do?"]
+
+chat_log=[
     {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant."},
-]
+    ]
 
-class Recorder(QMainWindow):
+def ChatGPT(query):
+    user_query=[
+        {"role": "user", "content": query},
+        ]
+    send_query = (chat_log + user_query)
+    response = openai.ChatCompletion.create(
+    model=GPT_model,
+    messages=send_query
+    )
+    answer = response.choices[0]['message']['content']
+    chat_log.append({"role": "assistant", "content": answer})
+    return str.strip(response['choices'][0]['message']['content'])
+
+def responseprinter(chat):
+    wrapper = textwrap.TextWrapper(width=70)
+    paragraphs = chat.split('\n')
+    wrapped_chat = "\n".join([wrapper.fill(p) for p in paragraphs])
+    for word in wrapped_chat:
+       time.sleep(0.055)
+       print(word, end="", flush=True)
+    print()
+
+def append_clear_countdown():
+    sleep(300)
+    global chat_log
+    chat_log.clear()
+    chat_log=[
+        {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant."},
+        ]    
+    global count
+    count = 0
+    t_count.join
+
+def voice(chat):
+    try:
+        tts = gTTS(text=chat, lang='en')  # You can specify other languages by changing the 'lang' parameter
+        output_file = "speech.mp3"
+        tts.save(output_file)
+    except Exception as error:
+        print("Error:", error)
+    
+    pygame.mixer.init()     
+    pygame.mixer.music.load(output_file)
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pass
+    sleep(0.2)
+
+def wake_word():
+    porcupine = pvporcupine.create(keywords=["computer",],
+                            access_key=pv_access_key,
+                            sensitivities=[0.1],
+                                   )
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    old_stderr = os.dup(2)
+    sys.stderr.flush()
+    os.dup2(devnull, 2)
+    os.close(devnull)
+    
+    wake_pa = pyaudio.PyAudio()
+
+    porcupine_audio_stream = wake_pa.open(
+                    rate=porcupine.sample_rate,
+                    channels=1,
+                    format=pyaudio.paInt16,
+                    input=True,
+                    frames_per_buffer=porcupine.frame_length)
+    
+    Detect = True
+
+    while Detect:
+        porcupine_pcm = porcupine_audio_stream.read(porcupine.frame_length)
+        porcupine_pcm = struct.unpack_from("h" * porcupine.frame_length, porcupine_pcm)
+
+        porcupine_keyword_index = porcupine.process(porcupine_pcm)
+
+        if porcupine_keyword_index >= 0:
+            print(Fore.GREEN + "\nWake word detected\n")
+            porcupine_audio_stream.stop_stream
+            porcupine_audio_stream.close()
+            porcupine.delete()         
+            os.dup2(old_stderr, 2)
+            os.close(old_stderr)
+            Detect = False
+
+def listen():
+    cobra = pvcobra.create(access_key=pv_access_key)
+
+    listen_pa = pyaudio.PyAudio()
+
+    listen_audio_stream = listen_pa.open(
+                rate=cobra.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=cobra.frame_length)
+
+    print("Listening...")
+
+    while True:
+        listen_pcm = listen_audio_stream.read(cobra.frame_length)
+        listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
+           
+        if cobra.process(listen_pcm) > 0.3:
+            print("Voice detected")
+            listen_audio_stream.stop_stream
+            listen_audio_stream.close()
+            cobra.delete()
+            break
+
+def detect_silence():
+    cobra = pvcobra.create(access_key=pv_access_key)
+
+    silence_pa = pyaudio.PyAudio()
+
+    cobra_audio_stream = silence_pa.open(
+                    rate=cobra.sample_rate,
+                    channels=1,
+                    format=pyaudio.paInt16,
+                    input=True,
+                    frames_per_buffer=cobra.frame_length)
+
+    last_voice_time = time.time()
+
+    while True:
+        cobra_pcm = cobra_audio_stream.read(cobra.frame_length)
+        cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
+           
+        if cobra.process(cobra_pcm) > 0.2:
+            last_voice_time = time.time()
+        else:
+            silence_duration = time.time() - last_voice_time
+            if silence_duration > 1.3:
+                print("End of query detected\n")
+                cobra_audio_stream.stop_stream                
+                cobra_audio_stream.close()
+                cobra.delete()
+                last_voice_time=None
+                break
+
+class Recorder(Thread):
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self._pcm = list()
+        self._is_recording = False
+        self._stop = False
 
-    def initUI(self):
-        self.setGeometry(100, 100, 300, 300)
-        self.setWindowTitle('Voice Note Recorder')
-        self.setWindowIcon(QIcon('icon.png'))
+    def is_recording(self):
+        return self._is_recording
 
-        self.button = QPushButton('Record', self)
-        self.button.setGeometry(75, 100, 150, 100)
-        self.button.clicked.connect(self.on_button_click)
+    def run(self):
+        self._is_recording = True
 
-        self.audio = pyaudio.PyAudio()
-        self.frames = []
-        self.recording = False
-        self.rate = 44100
-        self.chunk = 1024
-        self.format = pyaudio.paInt16
-        self.channels = 1
+        recorder = PvRecorder(device_index=-1, frame_length=512)
+        recorder.start()
 
-    def on_button_click(self):
-        if not self.recording:
-            self.start_recording()
-        else:
-            self.stop_recording()
+        while not self._stop:
+            self._pcm.extend(recorder.read())
+        recorder.stop()
 
-    def start_recording(self):
-        self.audio = pyaudio.PyAudio()
-        self.recording = True
-        self.button.setText('Stop')
-        self.stream = self.audio.open(format=self.format, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
-        self.frames = []
+        self._is_recording = False
 
-        while self.recording:
-            data = self.stream.read(self.chunk)
-            self.frames.append(data)
-            QCoreApplication.processEvents()
+    def stop(self):
+        self._stop = True
+        while self._is_recording:
+            pass
 
-    def stop_recording(self):
-        self.recording = False
-        self.button.setText('Record')
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio.terminate()
+        return self._pcm
 
-        filename = 'recorded_audio.wav'
-        if os.path.exists(filename):
-            os.remove(filename)
+try:
 
-        wf = wave.open(filename, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(self.audio.get_sample_size(self.format))
-        wf.setframerate(self.rate)
+    o = create(
+        access_key=pv_access_key,
+        enable_automatic_punctuation=True,
+    )
 
-        frames_copy = self.frames[:]
-        wf.writeframes(b''.join(frames_copy))
-        wf.close()
+    event = threading.Event()
 
-        self.frames = []
+    count = 0
 
-        model = whisper.load_model("base")
-        result = model.transcribe(filename)
-        print(result["text"])
-        os.remove(filename)        
+    while True:
 
-        def get_current_time():
-            now = datetime.datetime.now()
-            return now.strftime("%Y-%m-%d %H:%M:%S")
+        try:
 
-        global history
-        question = result["text"]
-        history.append({"role": "user", "content": question})
+            if count == 0:
+                t_count = threading.Thread(target=append_clear_countdown)
+                t_count.start()
+            else:
+                pass
+            count += 1
+            wake_word()
+  #          voice(random.choice(prompt))
+            recorder = Recorder()
+            recorder.start()
+            listen()
+            detect_silence()
+            transcript, words = o.process(recorder.stop())
+            print(transcript)
+            res = ChatGPT(transcript)
+            print("\nChatGPT's response is:\n")
+            t1 = threading.Thread(target=voice, args=(res,))
+            t2 = threading.Thread(target=responseprinter, args=(res,))
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=history,
-            functions=[{
-                "name": "get_current_time",
-                "description": "Gets the current time",
-                "result_type": {"type": "string"},
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }
-            }]
-        )
+        except openai.error.APIError as e:
+            print("\nThere was an API error.  Please try again in a few minutes.")
+            voice("\nThere was an A P I error.  Please try again in a few minutes.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            sleep(1)
 
-        assistant_response = response.choices[0].message['content']
-        if response.choices[0].message.get('function_call'):
-            function_name = response.choices[0].message['function_call']['name']
-            if function_name == 'get_current_time':
-                # call your actual get_current_time function here
-                assistant_response = get_current_time()
+        except openai.error.Timeout as e:
+            print("\nYour request timed out.  Please try again in a few minutes.")
+            voice("\nYour request timed out.  Please try again in a few minutes.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            sleep(1)
 
-        history.append({"role": "assistant", "content": assistant_response})
+        except openai.error.RateLimitError as e:
+            print("\nYou have hit your assigned rate limit.")
+            voice("\nYou have hit your assigned rate limit.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            sleep(1)
 
-        print(assistant_response)
+        except openai.error.APIConnectionError as e:
+            print("\nI am having trouble connecting to the API.  Please check your network connection and then try again.")
+            voice("\nI am having trouble connecting to the A P I.  Please check your network connection and try again.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            sleep(1)
 
-        tts = gTTS(text=assistant_response, lang='en')
-        tts.save("speech.mp3")
-        audio_segment = AudioSegment.from_mp3("speech.mp3")
-        playback = sa.play_buffer(audio_segment.raw_data, num_channels=audio_segment.channels, bytes_per_sample=audio_segment.sample_width, sample_rate=audio_segment.frame_rate)
-        playback.wait_done()
-        os.remove("speech.mp3")
+        except openai.error.AuthenticationError as e:
+            print("\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program.")
+            voice("\nYour Open A I A P I key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            break
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = Recorder()
-    ex.show()
-    sys.exit(app.exec_())
+        except openai.error.ServiceUnavailableError as e:
+            print("\nThere is an issue with OpenAI’s servers.  Please try again later.")
+            voice("\nThere is an issue with Open A I’s servers.  Please try again later.")
+            event.set()
+            recorder.stop()
+            o.delete
+            recorder = None
+            sleep(1)
+
+except KeyboardInterrupt:
+    print("\nExiting ChatGPT Virtual Assistant")
+    o.delete
