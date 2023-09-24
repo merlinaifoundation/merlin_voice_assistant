@@ -1,0 +1,10 @@
+gtts
+openai
+pvcobra
+pvporcupine
+pyaudio
+pygame
+colorama
+pvleopard
+pvrecorder
+textwrap3
