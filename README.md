@@ -1,2 +1,75 @@
 # merlin_voice_assistant
 A virtual voice assistant that listens to your voice commands and responds interactively.
+
+Merlin is a voice-activated assistant powered by OpenAI's GPT-3.5 model. It listens for a wake word, captures the user's voice query, and then fetches a response from GPT-3.5, which it then speaks out loud.
+
+## Features
+
+- **Wake Word Detection**: Uses Picovoice's Porcupine for efficient wake word detection.
+- **Voice Activity Detection**: Uses Picovoice's Cobra to detect when the user starts and stops speaking.
+- **Speech-to-Text**: Converts the user's voice query into text.
+- **Text-to-Speech**: Converts GPT-3.5's text response into speech using Google's Text-to-Speech.
+
+## Prerequisites
+
+- Python 3.x
+- OpenAI API Key
+- Picovoice Access Key (https://picovoice.ai/)
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+cd <repository-directory>
+git clone https://github.com/eliastsoukatos/merlin_voice_assistant.git>
+```
+
+2. Install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+1. Set your OpenAI API key and Picovoice Access Key in the script:
+
+```python
+openai.api_key = "YOUR_OPENAI_API_KEY"
+pv_access_key= "YOUR_PICOVOICE_ACCESS_KEY"
+```
+
+2. Run the script:
+
+```bash
+python3 main.py
+```
+
+3. Say the wake word "Merlin" to activate the assistant and then speak your query.
+
+## Customization
+
+- **Wake Word**: You can change the wake word by replacing the `Merlin_en_linux_v2_2_0.ppn` file with another Porcupine keyword file and updating the `keyword_path` in the `wake_word()` function.
+  
+- **Prompts**: Customize the assistant's prompts by modifying the `prompt` list.
+
+- **Assistant's Personality**: Adjust the assistant's behavior by changing the system message in the `chat_log`.
+
+## Troubleshooting
+
+If you encounter any API-related errors, ensure that:
+
+- Your OpenAI API key is valid and has not exceeded its rate limits.
+- Your Picovoice Access Key is valid.
+- You have a stable internet connection.
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and create a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
