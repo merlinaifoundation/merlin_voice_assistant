@@ -22,6 +22,9 @@ Merlin is a voice-activated assistant powered by OpenAI's GPT-3.5 model. It list
 
 ```bash
 cd <repository-directory>
+```
+
+```bash
 git clone https://github.com/eliastsoukatos/merlin_voice_assistant.git>
 ```
 
