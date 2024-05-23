@@ -28,7 +28,38 @@ cd <repository-directory>
 git clone https://github.com/eliastsoukatos/merlin_voice_assistant.git>
 ```
 
-2. Install the required packages:
+2. Install Python version 3.10.* if you don't have it:
+
+```bash
+
+# Update your system
+sudo apt update && sudo apt upgrade -y
+
+# Install required dependencies
+sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+
+# Download Python 3.10 tarball
+wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
+
+# Extract the tarball
+tar -xf Python-3.10.*.tgz
+
+# Navigate into the extracted directory
+cd Python-3.10.*/
+
+# Configure and optimize
+./configure --prefix=/usr/local --enable-optimizations --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+
+# Build Python
+make -j$(nproc)
+sudo make altinstall
+
+# Verify installation
+python3.10 --version
+
+```
+
+3. Install the required packages:
 
 ```bash
 pip install -r requirements.txt
