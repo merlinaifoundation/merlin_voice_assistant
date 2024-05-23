@@ -11,7 +11,7 @@ gTTS==2.4.0
 idna==3.4
 multidict==6.0.4
 openai==0.28.1
-pvcobra==1.2.2
+pvcobra==2.0.2
 pvleopard==1.2.2
 pvporcupine==2.2.1
 pvrecorder==1.2.1
