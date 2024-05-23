@@ -1,12 +1,5 @@
-from os import environ
-from time import sleep
-from threading import Thread, Event
-from pvrecorder import PvRecorder
-from pvleopard import *
-from colorama import Fore, Style
-import pygame
 from gtts import gTTS
-import openai
+from openai import OpenAI
 import os
 import pvcobra
 import pvporcupine
@@ -17,10 +10,17 @@ import sys
 import textwrap
 import threading
 import time
-from dotenv import load_dotenv
 
-load_dotenv()
+from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame
+
+from colorama import Fore, Style
+from pvleopard import *
+from pvrecorder import PvRecorder
+from threading import Thread, Event
+from time import sleep
+
 audio_stream = None
 cobra = None
 pa = None
@@ -28,107 +28,107 @@ porcupine = None
 recorder = None
 wav_file = None
 
-GPT_model = "gpt-3.5-turbo"
-openai.api_key = os.getenv("OPENAI_API_KEY")
+GPT_model = "gpt-4o"
+
 pv_access_key = os.getenv("PV_ACCESS_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
+
 
 prompt = ["How may I assist you?",
-          "How may I help?",
-          "What can I do for you?",
-          "Ask me anything.",
-          "Yes?",
-          "I'm here.",
-          "I'm listening.",
-          "What would you like me to do?"]
+    "How may I help?",
+    "What can I do for you?",
+    "Ask me anything.",
+    "Yes?",
+    "I'm here.",
+    "I'm listening.",
+    "What would you like me to do?"]
 
-chat_log = [
+chat_log=[
     {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
-]
-
+    ]
 
 def ChatGPT(query):
-    user_query = [
+    #create a query object
+    user_query=[
         {"role": "user", "content": query},
-    ]
+        ]
+    #create the query to be sent
     send_query = (chat_log + user_query)
-    response = openai.ChatCompletion.create(
-        model=GPT_model,
-        messages=send_query
+    # make a OpenAI connection client
+    client = OpenAI(api_key)
+    # construct a response object for the query message
+    response = client.chat.completions.create(
+    model=GPT_model,
+    messages=send_query
     )
-    answer = response.choices[0]['message']['content']
+    #get OpenAI answer!
+    answer = response.choices[0].message.content
     chat_log.append({"role": "assistant", "content": answer})
-    return str.strip(response['choices'][0]['message']['content'])
-
+    #return the answer trimmed
+    return str.strip(answer)
 
 def responseprinter(chat):
     wrapper = textwrap.TextWrapper(width=70)
     paragraphs = chat.split('\n')
     wrapped_chat = "\n".join([wrapper.fill(p) for p in paragraphs])
     for word in wrapped_chat:
-        time.sleep(0.055)
-        print(word, end="", flush=True)
+       time.sleep(0.055)
+       print(word, end="", flush=True)
     print()
-
 
 def append_clear_countdown():
     sleep(300)
     global chat_log
     chat_log.clear()
-    chat_log = [
+    chat_log=[
         {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
-    ]
+        ]    
     global count
     count = 0
     t_count.join
 
-
 def voice(chat):
     try:
-        # You can specify other languages by changing the 'lang' parameter
-        tts = gTTS(text=chat, lang='en')
+        tts = gTTS(text=chat, lang='en')  # You can specify other languages by changing the 'lang' parameter
         output_file = "speech.mp3"
         tts.save(output_file)
     except Exception as error:
         print("Error:", error)
-
-    pygame.mixer.init()
+    
+    pygame.mixer.init()     
     pygame.mixer.music.load(output_file)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         pass
     sleep(0.2)
 
-
 def wake_word():
-    # keyword_path = os.path.join(os.path.dirname(
-    #     __file__), os.getenv("WAKE_WORD_FILE"))
-    # porcupine = pvporcupine.create(
-    #     access_key=pv_access_key,
-    #     keyword_paths=[keyword_path]
-    # )
+    keyword_path = os.path.join(os.path.dirname(__file__), 'Merlin_en_linux_v2_2_0.ppn')
+    
     porcupine = pvporcupine.create(
-        access_key=pv_access_key, keywords=['picovoice'])
+        access_key=pv_access_key,
+        keyword_paths=[keyword_path]
+    )
     devnull = os.open(os.devnull, os.O_WRONLY)
     old_stderr = os.dup(2)
     sys.stderr.flush()
     os.dup2(devnull, 2)
     os.close(devnull)
-
+    
     wake_pa = pyaudio.PyAudio()
 
     porcupine_audio_stream = wake_pa.open(
-        rate=porcupine.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=porcupine.frame_length)
-
+                    rate=porcupine.sample_rate,
+                    channels=1,
+                    format=pyaudio.paInt16,
+                    input=True,
+                    frames_per_buffer=porcupine.frame_length)
+    
     Detect = True
 
     while Detect:
         porcupine_pcm = porcupine_audio_stream.read(porcupine.frame_length)
-        porcupine_pcm = struct.unpack_from(
-            "h" * porcupine.frame_length, porcupine_pcm)
+        porcupine_pcm = struct.unpack_from("h" * porcupine.frame_length, porcupine_pcm)
 
         porcupine_keyword_index = porcupine.process(porcupine_pcm)
 
@@ -136,11 +136,10 @@ def wake_word():
             print(Fore.GREEN + "\nWake word detected\n")
             porcupine_audio_stream.stop_stream
             porcupine_audio_stream.close()
-            porcupine.delete()
+            porcupine.delete()         
             os.dup2(old_stderr, 2)
             os.close(old_stderr)
             Detect = False
-
 
 def listen():
     cobra = pvcobra.create(access_key=pv_access_key)
@@ -148,18 +147,18 @@ def listen():
     listen_pa = pyaudio.PyAudio()
 
     listen_audio_stream = listen_pa.open(
-        rate=cobra.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=cobra.frame_length)
+                rate=cobra.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=cobra.frame_length)
 
     print("Listening...")
 
     while True:
         listen_pcm = listen_audio_stream.read(cobra.frame_length)
         listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
-
+           
         if cobra.process(listen_pcm) > 0.3:
             print("Voice detected")
             listen_audio_stream.stop_stream
@@ -167,37 +166,35 @@ def listen():
             cobra.delete()
             break
 
-
 def detect_silence():
     cobra = pvcobra.create(access_key=pv_access_key)
 
     silence_pa = pyaudio.PyAudio()
 
     cobra_audio_stream = silence_pa.open(
-        rate=cobra.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=cobra.frame_length)
+                    rate=cobra.sample_rate,
+                    channels=1,
+                    format=pyaudio.paInt16,
+                    input=True,
+                    frames_per_buffer=cobra.frame_length)
 
     last_voice_time = time.time()
 
     while True:
         cobra_pcm = cobra_audio_stream.read(cobra.frame_length)
         cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
-
+           
         if cobra.process(cobra_pcm) > 0.2:
             last_voice_time = time.time()
         else:
             silence_duration = time.time() - last_voice_time
             if silence_duration > 1.3:
                 print("End of query detected\n")
-                cobra_audio_stream.stop_stream
+                cobra_audio_stream.stop_stream                
                 cobra_audio_stream.close()
                 cobra.delete()
-                last_voice_time = None
+                last_voice_time=None
                 break
-
 
 class Recorder(Thread):
     def __init__(self):
@@ -227,7 +224,6 @@ class Recorder(Thread):
             pass
 
         return self._pcm
-
 
 try:
 
@@ -317,8 +313,8 @@ try:
             break
 
         except openai.error.ServiceUnavailableError as e:
-            print("\nThere is an issue with OpenAI’s servers.  Please try again later.")
-            voice("\nThere is an issue with Open A I’s servers.  Please try again later.")
+            print("\nThere is an issue with OpenAI's servers.  Please try again later.")
+            voice("\nThere is an issue with Open A I's servers.  Please try again later.")
             event.set()
             recorder.stop()
             o.delete
