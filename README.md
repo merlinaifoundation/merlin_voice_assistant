@@ -61,11 +61,54 @@ python3.10 --version
 
 3. Install the required packages:
 
+If you’re using Linux (specifically Debian/Ubuntu), you can install the Python 3 bindings for PyAudio with the following command:
+
 ```bash
+
+sudo apt update && sudo apt install python3-pyaudio
+
+```
+
+Additionally, make sure you have the PortAudio library installed. On Debian/Ubuntu, you can do this with:
+
+```bash
+
+sudo apt install portaudio19-dev
+
+```
+
+4. Create a new Python 3.10 environment:
+
+```bash
+python3.10 -m venv myenv
+
+```
+
+5. Activate the enviroment:
+
+
+```bash
+source myenv/bin/activate
+
+```
+
+6. Upgrade pip if necessary:
+
+```bash
+pip install --upgrade pip
+
+```
+
+7. Now install the requierements for the repo:
+
+```bash
+
 pip install -r requirements.txt
+
 ```
 
 ## Usage
+
 
 1. Set your OpenAI API key and Picovoice Access Key in the script:
 
