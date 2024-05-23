@@ -61,8 +61,28 @@ python3.10 --version
 
 3. Install the required packages:
 
+If you’re using Linux (specifically Debian/Ubuntu), you can install the Python 3 bindings for PyAudio with the following command:
+
 ```bash
+
+sudo apt update && sudo apt install python3-pyaudio
+
+```
+
+Additionally, make sure you have the PortAudio library installed. On Debian/Ubuntu, you can do this with:
+
+```bash
+
+sudo apt install portaudio19-dev
+
+```
+
+Now install the requierements for the repo:
+
+```bash
+
 pip install -r requirements.txt
+
 ```
 
 ## Usage
