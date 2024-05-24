@@ -97,19 +97,27 @@ def append_clear_countdown():
     t_count.join
 
 def voice(chat):
+    output_file = "speech.mp3"
+
     try:
         tts = gTTS(text=chat, lang='en')  # You can specify other languages by changing the 'lang' parameter
-        output_file = "speech.mp3"
+        os.remove(output_file)
         tts.save(output_file)
+
+        pygame.mixer.init()     
+        pygame.mixer.music.load(output_file)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pass
+            sleep(0.2)
+        pygame.mixer.quit()
+
     except Exception as error:
+        pygame.mixer.quit()
+        
         print("Error:", error)
-    
-    pygame.mixer.init()     
-    pygame.mixer.music.load(output_file)
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pass
-    sleep(0.2)
+        os.remove(output_file)
+
 
 def wake_word():
     keyword_path = os.path.join(os.path.dirname(__file__), wakeWord)
@@ -172,7 +180,7 @@ def listen():
            
         if cobra.process(listen_pcm) > 0.3:
             print("Voice detected")
-            listen_audio_stream.stop_stream
+            listen_audio_stream.stop_stream()
             listen_audio_stream.close()
             cobra.delete()
             break
@@ -201,7 +209,7 @@ def detect_silence():
             silence_duration = time.time() - last_voice_time
             if silence_duration > 1.3:
                 print("End of query detected\n")
-                cobra_audio_stream.stop_stream                
+                cobra_audio_stream.stop_stream()               
                 cobra_audio_stream.close()
                 cobra.delete()
                 last_voice_time=None
