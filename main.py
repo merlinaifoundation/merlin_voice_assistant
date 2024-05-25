@@ -3,6 +3,7 @@ import openai
 import pvcobra
 import pvporcupine
 import pyaudio
+from colorama import Fore
 import random
 import struct
 import sys
@@ -10,15 +11,13 @@ import textwrap
 import threading
 import time
 from gtts import gTTS
-from openai import OpenAI
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import pygame
 
-from colorama import Fore, Style
+from recorder import Recorder
 from pvleopard import *
-from pvrecorder import PvRecorder
-from threading import Thread, Event
 from time import sleep
 from decouple import config
 from gpt import ChatGPT
@@ -27,46 +26,49 @@ audio_stream = None
 cobra = None
 pa = None
 porcupine = None
-recorder = None
 wav_file = None
 
 pv_access_key = config("PV_ACCESS_KEY")
-wakeWord =  config("WAKE_WORD_FILE")
+wakeWord = config("WAKE_WORD_FILE")
 
-print('Using PV KEY', pv_access_key)
-print('Using WAKE WORD', wakeWord)
+print("Using PV KEY", pv_access_key)
+print("Using WAKE WORD", wakeWord)
 
 chatGPT = ChatGPT()
 
 
 def responseprinter(chat):
     wrapper = textwrap.TextWrapper(width=70)
-    paragraphs = chat.split('\n')
+    paragraphs = chat.split("\n")
     wrapped_chat = "\n".join([wrapper.fill(p) for p in paragraphs])
     for word in wrapped_chat:
-       time.sleep(0.055)
-       print(word, end="", flush=True)
+        time.sleep(0.055)
+        print(word, end="", flush=True)
     print()
+
 
 def append_clear_countdown():
     sleep(300)
-   
+
     chatGPT.ClearCummulativeAnswers()
     chatGPT.SwitchModel()
-    
+
     global count
     count = 0
     t_count.join
+
 
 def voice(chat):
     output_file = "speech.mp3"
 
     try:
-        tts = gTTS(text=chat, lang='en')  # You can specify other languages by changing the 'lang' parameter
+        tts = gTTS(
+            text=chat, lang="en"
+        )  # You can specify other languages by changing the 'lang' parameter
         os.remove(output_file)
         tts.save(output_file)
 
-        pygame.mixer.init()     
+        pygame.mixer.init()
         pygame.mixer.music.load(output_file)
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
@@ -76,33 +78,33 @@ def voice(chat):
 
     except Exception as error:
         pygame.mixer.quit()
-        
+
         print("Error:", error)
         os.remove(output_file)
 
 
 def wake_word():
     keyword_path = os.path.join(os.path.dirname(__file__), wakeWord)
-    
+
     porcupine = pvporcupine.create(
-        access_key=pv_access_key,
-        keyword_paths=[keyword_path]
+        access_key=pv_access_key, keyword_paths=[keyword_path]
     )
     devnull = os.open(os.devnull, os.O_WRONLY)
     old_stderr = os.dup(2)
     sys.stderr.flush()
     os.dup2(devnull, 2)
     os.close(devnull)
-    
+
     wake_pa = pyaudio.PyAudio()
 
     porcupine_audio_stream = wake_pa.open(
-                    rate=porcupine.sample_rate,
-                    channels=1,
-                    format=pyaudio.paInt16,
-                    input=True,
-                    frames_per_buffer=porcupine.frame_length)
-    
+        rate=porcupine.sample_rate,
+        channels=1,
+        format=pyaudio.paInt16,
+        input=True,
+        frames_per_buffer=porcupine.frame_length,
+    )
+
     Detect = True
 
     while Detect:
@@ -115,31 +117,33 @@ def wake_word():
             print(Fore.GREEN + "\nWake word detected\n")
             porcupine_audio_stream.stop_stream
             porcupine_audio_stream.close()
-            porcupine.delete()         
+            porcupine.delete()
             os.dup2(old_stderr, 2)
             os.close(old_stderr)
             Detect = False
 
+
 def listen():
 
-    print('starting Listen function')
+    print("starting Listen function")
     cobra = pvcobra.create(access_key=pv_access_key)
 
     listen_pa = pyaudio.PyAudio()
 
     listen_audio_stream = listen_pa.open(
-                rate=cobra.sample_rate,
-                channels=1,
-                format=pyaudio.paInt16,
-                input=True,
-                frames_per_buffer=cobra.frame_length)
+        rate=cobra.sample_rate,
+        channels=1,
+        format=pyaudio.paInt16,
+        input=True,
+        frames_per_buffer=cobra.frame_length,
+    )
 
     print("Listening...")
 
     while True:
         listen_pcm = listen_audio_stream.read(cobra.frame_length)
         listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
-           
+
         if cobra.process(listen_pcm) > 0.3:
             print("Voice detected")
             listen_audio_stream.stop_stream()
@@ -147,77 +151,53 @@ def listen():
             cobra.delete()
             break
 
+
 def detect_silence():
     cobra = pvcobra.create(access_key=pv_access_key)
 
     silence_pa = pyaudio.PyAudio()
 
     cobra_audio_stream = silence_pa.open(
-                    rate=cobra.sample_rate,
-                    channels=1,
-                    format=pyaudio.paInt16,
-                    input=True,
-                    frames_per_buffer=cobra.frame_length)
+        rate=cobra.sample_rate,
+        channels=1,
+        format=pyaudio.paInt16,
+        input=True,
+        frames_per_buffer=cobra.frame_length,
+    )
 
     last_voice_time = time.time()
 
     while True:
         cobra_pcm = cobra_audio_stream.read(cobra.frame_length)
         cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
-           
+
         if cobra.process(cobra_pcm) > 0.2:
             last_voice_time = time.time()
         else:
             silence_duration = time.time() - last_voice_time
             if silence_duration > 1.3:
                 print("End of query detected\n")
-                cobra_audio_stream.stop_stream()               
+                cobra_audio_stream.stop_stream()
                 cobra_audio_stream.close()
                 cobra.delete()
-                last_voice_time=None
+                last_voice_time = None
                 break
 
-class Recorder(Thread):
-    def __init__(self):
-        super().__init__()
-        self._pcm = list()
-        self._is_recording = False
-        self._stop = False
 
-    def is_recording(self):
-        return self._is_recording
-
-    def run(self):
-        self._is_recording = True
-
-        recorder = PvRecorder(device_index=-1, frame_length=512)
-        recorder.start()
-
-        while not self._stop:
-            self._pcm.extend(recorder.read())
-        recorder.stop()
-
-        self._is_recording = False
-
-    def stop(self):
-        self._stop = True
-        while self._is_recording:
-            pass
-
-        return self._pcm
+leopardClient = create(
+    access_key=pv_access_key,
+    enable_automatic_punctuation=True,
+)
 
 try:
 
-    o = create(
-        access_key=pv_access_key,
-        enable_automatic_punctuation=True,
-    )
-
     event = threading.Event()
-
     count = 0
 
     while True:
+
+        answerRecorder = Recorder()
+        error = None
 
         try:
 
@@ -227,85 +207,58 @@ try:
             else:
                 pass
             count += 1
+
             wake_word()
+
             # voice(random.choice(chatGPT.prompt))
-            recorder = Recorder()
-            recorder.start()
+
+            answerRecorder.StartRecording()
+
             listen()
+
             detect_silence()
-            transcript, words = o.process(recorder.stop())
+
+            userRecordedInput = answerRecorder.StopRecording()
+
+            transcript, words = leopardClient.process(userRecordedInput)
+
             print(transcript)
-            
-            res = chatGPT.Query(transcript)
-            
-            chatGPT.AppendAnswer(res)
-            
+
+            chatGPTResponse = chatGPT.Query(transcript)
+
+            chatGPT.AppendAnswer(chatGPTResponse)
+
             print("\nChatGPT's response is:\n")
-            t1 = threading.Thread(target=voice, args=(res,))
-            t2 = threading.Thread(target=responseprinter, args=(res,))
+            t1 = threading.Thread(target=voice, args=(chatGPTResponse,))
+            t2 = threading.Thread(target=responseprinter, args=(chatGPTResponse,))
             t1.start()
             t2.start()
             t1.join()
             t2.join()
-            event.set()
-            recorder.stop()
-            o.delete()
-            recorder = None
 
         except openai.error.APIError as e:
-            print("\nThere was an API error.  Please try again in a few minutes.")
-            voice("\nThere was an A P I error.  Please try again in a few minutes.")
-            event.set()
-            recorder.stop()
-            o.delete()
-            recorder = None
-            sleep(1)
-
+            error = "\nThere was an API error.  Please try again in a few minutes."
         except openai.error.Timeout as e:
-            print("\nYour request timed out.  Please try again in a few minutes.")
-            voice("\nYour request timed out.  Please try again in a few minutes.")
-            event.set()
-            recorder.stop()
-            o.delete()
-            recorder = None
-            sleep(1)
-
+            error = "\nYour request timed out.  Please try again in a few minutes."
         except openai.error.RateLimitError as e:
-            print("\nYou have hit your assigned rate limit.")
-            voice("\nYou have hit your assigned rate limit.")
-            event.set()
-            recorder.stop()
-            o.delete()
-            recorder = None
-            sleep(1)
-
+            error = "\nYou have hit your assigned rate limit."
         except openai.error.APIConnectionError as e:
-            print("\nI am having trouble connecting to the API.  Please check your network connection and then try again.")
-            voice("\nI am having trouble connecting to the A P I.  Please check your network connection and try again.")
-            event.set()
-            recorder.stop()
-            o.delete
-            recorder = None
-            sleep(1)
-
+            error = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
         except openai.error.AuthenticationError as e:
-            print("\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program.")
-            voice("\nYour Open A I A P I key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program.")
-            event.set()
-            recorder.stop()
-            o.delete()
-            recorder = None
+            error = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
             break
-
         except openai.error.ServiceUnavailableError as e:
-            print("\nThere is an issue with OpenAI's servers.  Please try again later.")
-            voice("\nThere is an issue with Open A I's servers.  Please try again later.")
+            error = "\nThere is an issue with OpenAI's servers.  Please try again later."
+
+        answerRecorder.StopRecording()
+        sleep(1)
+
+        if error is not None:
             event.set()
-            recorder.stop()
-            o.delete
-            recorder = None
+            voice(error)
             sleep(1)
+
 
 except KeyboardInterrupt:
     print("\nExiting ChatGPT Virtual Assistant")
-    o.delete
+    leopardClient.delete
