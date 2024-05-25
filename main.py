@@ -1,7 +1,6 @@
 import os
 import struct
 import sys
-import textwrap
 import threading
 import time
 from time import sleep
@@ -18,6 +17,7 @@ import pyaudio
 import pvleopard
 
 #NEW LIBS
+from textResponder import TextDisplay
 from textToSpeech import TextToSpeech
 from recorder import Recorder
 from gpt import ChatGPT
@@ -35,14 +35,6 @@ print("Using WAKE WORD", wakeWord)
 chatGPT = ChatGPT()
 
 
-def responseprinter(chat):
-    wrapper = textwrap.TextWrapper(width=70)
-    paragraphs = chat.split("\n")
-    wrapped_chat = "\n".join([wrapper.fill(p) for p in paragraphs])
-    for word in wrapped_chat:
-        time.sleep(0.055)
-        print(word, end="", flush=True)
-    print()
 
 
 def append_clear_countdown():
@@ -59,7 +51,7 @@ def append_clear_countdown():
 def wake_word():
     rootPath = os.path.dirname(__file__)
     keyword_path = os.path.join(rootPath, wakeWord)
-
+    
     porcupine = pvporcupine.create(
         access_key=pv_access_key, keyword_paths=[keyword_path]
     )
@@ -172,8 +164,7 @@ try:
 
         answerRecorder = Recorder()
         voice = TextToSpeech()
-
-        error = None
+        txtDisplay = TextDisplay()
 
         try:
 
@@ -200,44 +191,34 @@ try:
 
             print(transcript)
 
-            chatGPTResponse = chatGPT.Query(transcript)
-
-            chatGPT.AppendAnswer(chatGPTResponse)
-
-            print("\nChatGPT's response is:\n")
-
-            voice.Tell(chatGPTResponse)
-
-            t2 = threading.Thread(target=responseprinter, args=(chatGPTResponse,))
-            # t1.start()
-            t2.start()
-            # t1.join()
-            t2.join()
+            response = chatGPT.Query(transcript)
+            chatGPT.AppendAnswer(response)
 
         except openai.error.APIError as e:
-            error = "\nThere was an API error.  Please try again in a few minutes."
+            response = "\nThere was an API error.  Please try again in a few minutes."
         except openai.error.Timeout as e:
-            error = "\nYour request timed out.  Please try again in a few minutes."
+            response = "\nYour request timed out.  Please try again in a few minutes."
         except openai.error.RateLimitError as e:
-            error = "\nYou have hit your assigned rate limit."
+            response = "\nYou have hit your assigned rate limit."
         except openai.error.APIConnectionError as e:
-            error = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
+            response = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
         except openai.error.AuthenticationError as e:
-            error = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
+            response = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
             break
         except openai.error.ServiceUnavailableError as e:
-            error = (
+            response = (
                 "\nThere is an issue with OpenAI's servers.  Please try again later."
             )
 
         answerRecorder.StopRecording()
+        event.set()
+        print("\nMerlin response is:\n")
+
+        voice.Tell(response)
+        txtDisplay.Tell(response)
         sleep(1)
-
-        if error is not None:
-            event.set()
-            voice.Tell(error)
-            sleep(1)
-
+        
+        
 
 except KeyboardInterrupt:
     print("\nExiting ChatGPT Virtual Assistant")
