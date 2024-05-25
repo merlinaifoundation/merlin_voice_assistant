@@ -21,6 +21,7 @@ from pvrecorder import PvRecorder
 from threading import Thread, Event
 from time import sleep
 from decouple import config
+from gpt import ChatGPT
 
 audio_stream = None
 cobra = None
@@ -29,52 +30,14 @@ porcupine = None
 recorder = None
 wav_file = None
 
-GPT_model = config("GPT_MODEL")
-
 pv_access_key = config("PV_ACCESS_KEY")
-openai_api_key = config("OPENAI_API_KEY")
 wakeWord =  config("WAKE_WORD_FILE")
 
 print('Using PV KEY', pv_access_key)
-print('Using OPENAI KEY', openai_api_key)
 print('Using WAKE WORD', wakeWord)
-print('Using GPT_MODEL', GPT_model)
 
-client = OpenAI(api_key = openai_api_key)
+chatGPT = ChatGPT()
 
-prompt = ["How may I assist you?",
-    "How may I help?",
-    "What can I do for you?",
-    "Ask me anything.",
-    "Yes?",
-    "I'm here.",
-    "I'm listening.",
-    "What would you like me to do?"]
-
-chat_log=[
-    {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
-    ]
-
-def ChatGPT(query):
-
-
-    #create a query object
-    user_query=[
-        {"role": "user", "content": query},
-        ]
-    #create the query to be sent
-    send_query = (chat_log + user_query)
-    # make a OpenAI connection client
-    # construct a response object for the query message
-    response = client.chat.completions.create(
-    model=GPT_model,
-    messages=send_query
-    )
-    #get OpenAI answer!
-    answer = response.choices[0].message.content
-    chat_log.append({"role": "assistant", "content": answer})
-    #return the answer trimmed
-    return str.strip(answer)
 
 def responseprinter(chat):
     wrapper = textwrap.TextWrapper(width=70)
@@ -87,11 +50,10 @@ def responseprinter(chat):
 
 def append_clear_countdown():
     sleep(300)
-    global chat_log
-    chat_log.clear()
-    chat_log=[
-        {"role": "system", "content": "You are Merlin the Wizard, a helpful assistant. You give short and precise answers. You don't like to talk more than necesary."},
-        ]    
+   
+    chatGPT.ClearCummulativeAnswers()
+    chatGPT.SwitchModel()
+    
     global count
     count = 0
     t_count.join
@@ -266,14 +228,18 @@ try:
                 pass
             count += 1
             wake_word()
-  #          voice(random.choice(prompt))
+            # voice(random.choice(chatGPT.prompt))
             recorder = Recorder()
             recorder.start()
             listen()
             detect_silence()
             transcript, words = o.process(recorder.stop())
             print(transcript)
-            res = ChatGPT(transcript)
+            
+            res = chatGPT.Query(transcript)
+            
+            chatGPT.AppendAnswer(res)
+            
             print("\nChatGPT's response is:\n")
             t1 = threading.Thread(target=voice, args=(res,))
             t2 = threading.Thread(target=responseprinter, args=(res,))
@@ -283,7 +249,7 @@ try:
             t2.join()
             event.set()
             recorder.stop()
-            o.delete
+            o.delete()
             recorder = None
 
         except openai.error.APIError as e:
@@ -291,7 +257,7 @@ try:
             voice("\nThere was an A P I error.  Please try again in a few minutes.")
             event.set()
             recorder.stop()
-            o.delete
+            o.delete()
             recorder = None
             sleep(1)
 
@@ -300,7 +266,7 @@ try:
             voice("\nYour request timed out.  Please try again in a few minutes.")
             event.set()
             recorder.stop()
-            o.delete
+            o.delete()
             recorder = None
             sleep(1)
 
@@ -309,7 +275,7 @@ try:
             voice("\nYou have hit your assigned rate limit.")
             event.set()
             recorder.stop()
-            o.delete
+            o.delete()
             recorder = None
             sleep(1)
 
@@ -327,7 +293,7 @@ try:
             voice("\nYour Open A I A P I key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program.")
             event.set()
             recorder.stop()
-            o.delete
+            o.delete()
             recorder = None
             break
 
