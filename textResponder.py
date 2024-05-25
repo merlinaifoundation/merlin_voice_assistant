@@ -8,11 +8,7 @@ class TextDisplay(Thread):
         super().__init__()
         self.chat = None
 
-        self._stop = False
-
-    def Tell(self, chat):
-        self.chat = chat
-        self.start()
+        self._stop = True
 
     def run(self):
 
@@ -25,11 +21,21 @@ class TextDisplay(Thread):
                 for word in wrapped_chat:
                     sleep(0.055)
                     print(word, end="", flush=True)
-                print()
+                print('\n')
+                
 
         except Exception as error:
             print("Error:", error)
 
         self._stop = True
-        self.chat = None
+        
+        
 
+    def Tell(self, chat):
+        if (self._stop) and (chat is not None):
+            self._stop = False
+            self.chat = chat
+            self.start()
+
+    def Finished(self):
+        return (self._stop) and (self.chat is not None)

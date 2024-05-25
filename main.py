@@ -1,6 +1,4 @@
-import os
 import struct
-import sys
 import threading
 import time
 from time import sleep
@@ -11,82 +9,27 @@ import random
 import openai
 
 import pvcobra
-import pvporcupine
+
 import pyaudio
 
 import pvleopard
 
-#NEW LIBS
+# NEW LIBS
 from textResponder import TextDisplay
 from textToSpeech import TextToSpeech
 from recorder import Recorder
 from gpt import ChatGPT
+from actions import Actions
 
 audio_stream = None
 pa = None
 wav_file = None
 
-pv_access_key = config("PV_ACCESS_KEY")
-wakeWord = config("WAKE_WORD_FILE")
+pv_access_key = str(config("PV_ACCESS_KEY"))
 
 print("Using PV KEY", pv_access_key)
-print("Using WAKE WORD", wakeWord)
 
 chatGPT = ChatGPT()
-
-
-
-
-def append_clear_countdown():
-    sleep(300)
-
-    chatGPT.ClearCummulativeAnswers()
-    chatGPT.SwitchModel()
-
-    global count
-    count = 0
-    t_count.join
-
-
-def wake_word():
-    rootPath = os.path.dirname(__file__)
-    keyword_path = os.path.join(rootPath, wakeWord)
-    
-    porcupine = pvporcupine.create(
-        access_key=pv_access_key, keyword_paths=[keyword_path]
-    )
-    devnull = os.open(os.devnull, os.O_WRONLY)
-    old_stderr = os.dup(2)
-    sys.stderr.flush()
-    os.dup2(devnull, 2)
-    os.close(devnull)
-
-    wake_pa = pyaudio.PyAudio()
-
-    porcupine_audio_stream = wake_pa.open(
-        rate=porcupine.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=porcupine.frame_length,
-    )
-
-    Detect = True
-
-    while Detect:
-        porcupine_pcm = porcupine_audio_stream.read(porcupine.frame_length)
-        porcupine_pcm = struct.unpack_from("h" * porcupine.frame_length, porcupine_pcm)
-
-        porcupine_keyword_index = porcupine.process(porcupine_pcm)
-
-        if porcupine_keyword_index >= 0:
-            print(Fore.GREEN + "\nWake word detected\n")
-            porcupine_audio_stream.stop_stream
-            porcupine_audio_stream.close()
-            porcupine.delete()
-            os.dup2(old_stderr, 2)
-            os.close(old_stderr)
-            Detect = False
 
 
 def listen():
@@ -155,70 +98,113 @@ leopardClient = pvleopard.create(
     enable_automatic_punctuation=True,
 )
 
+
 try:
 
-    event = threading.Event()
     count = 0
+
+    actionWake = None
+    actionStop = None
+    answerRecorder = None
+    voice = None
+    firstTime = True
 
     while True:
 
-        answerRecorder = Recorder()
-        voice = TextToSpeech()
-        txtDisplay = TextDisplay()
+        if actionWake is None:
+            actionWake = Actions("WAKE_WORD_FILE")
+            actionWake.Activate()
 
-        try:
+        if actionStop is None:
+            actionStop = Actions("STOP_WORD_FILE")
+            actionStop.Activate()
 
-            if count == 0:
-                t_count = threading.Thread(target=append_clear_countdown)
-                t_count.start()
+        if answerRecorder is None:
+            answerRecorder = Recorder()
+
+        if voice is None:
+            voice = TextToSpeech()
+
+        count += 1
+        sleep(0.01)
+
+        if answerRecorder.IsRecording():
+            answerRecorder.StopRecording()
+
+        else:
+
+            userRecordedInput = answerRecorder.HasRecording()
+            transcriptRawSize = len(userRecordedInput)
+            # print("Iter: ", count, " Idle")
+
+            if transcriptRawSize > 0:
+
+                response = None
+                try:
+                    print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
+
+                    transcript, words = leopardClient.process(userRecordedInput)
+                    print("Has Transcript ", transcript)
+
+                    if len(transcript) > 0:
+
+                        response = chatGPT.Query(transcript)
+                        chatGPT.AppendAnswer(response)
+                        
+                    
+                except openai.error.APIError as e:
+                    response = (
+                        "\nThere was an API error.  Please try again in a few minutes."
+                    )
+                except openai.error.Timeout as e:
+                    response = (
+                        "\nYour request timed out.  Please try again in a few minutes."
+                    )
+                except openai.error.RateLimitError as e:
+                    response = "\nYou have hit your assigned rate limit."
+                except openai.error.APIConnectionError as e:
+                    response = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
+                except openai.error.AuthenticationError as e:
+                    response = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
+                except openai.error.ServiceUnavailableError as e:
+                    response = "\nThere is an issue with OpenAI's servers.  Please try again later."
+
+                answerRecorder.CleanRecording()
+                
+                if response is not None:
+                    print("\nMerlin response is:\n")
+                    voice.Tell(response)
+                    txtDisplay = TextDisplay()
+                    txtDisplay.Tell(response)
+
             else:
-                pass
-            count += 1
 
-            wake_word()
+                if actionWake.IsActivated():
 
-            # voice.Tell(random.choice(chatGPT.prompt))
+                    if firstTime:
+                        firstTime = False
+                        voice2 = TextToSpeech()
+                        voice2.Tell("I'm here")
+                        sleep(1)
 
-            answerRecorder.StartRecording()
+                    if answerRecorder.IsNew():
+                        answerRecorder.StartRecording()
+                        listen()
+                        detect_silence()
+                    else:
+                        if voice.Finished():
+                            print("Voice Finished!")
+                            voice = None
+                            answerRecorder = None
 
-            listen()
+                if actionStop.IsActivated():
+                    voice2 = TextToSpeech()
+                    voice2.Tell("Ok, I'll stop!")
+                    actionStop = None
+                    actionWake = None
+                    firstTime = True
+                    answerRecorder = None
 
-            detect_silence()
-
-            userRecordedInput = answerRecorder.StopRecording()
-
-            transcript, words = leopardClient.process(userRecordedInput)
-
-            print(transcript)
-
-            response = chatGPT.Query(transcript)
-            chatGPT.AppendAnswer(response)
-
-        except openai.error.APIError as e:
-            response = "\nThere was an API error.  Please try again in a few minutes."
-        except openai.error.Timeout as e:
-            response = "\nYour request timed out.  Please try again in a few minutes."
-        except openai.error.RateLimitError as e:
-            response = "\nYou have hit your assigned rate limit."
-        except openai.error.APIConnectionError as e:
-            response = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
-        except openai.error.AuthenticationError as e:
-            response = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
-            break
-        except openai.error.ServiceUnavailableError as e:
-            response = (
-                "\nThere is an issue with OpenAI's servers.  Please try again later."
-            )
-
-        answerRecorder.StopRecording()
-        event.set()
-        print("\nMerlin response is:\n")
-
-        voice.Tell(response)
-        txtDisplay.Tell(response)
-        sleep(1)
-        
-        
 
 except KeyboardInterrupt:
     print("\nExiting ChatGPT Virtual Assistant")
