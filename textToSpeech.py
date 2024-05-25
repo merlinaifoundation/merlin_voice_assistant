@@ -44,3 +44,4 @@ class TextToSpeech(Thread):
         pygame.mixer.quit()
         tts = None
         self._stop = True
+        self.chat = None
