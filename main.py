@@ -1,31 +1,29 @@
 import os
-import openai
-import pvcobra
-import pvporcupine
-import pyaudio
-from colorama import Fore
-import random
 import struct
 import sys
 import textwrap
 import threading
 import time
-from gtts import gTTS
-from os import environ
-
-environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-import pygame
-
-from recorder import Recorder
-from pvleopard import *
 from time import sleep
 from decouple import config
+from colorama import Fore
+import random
+
+import openai
+
+import pvcobra
+import pvporcupine
+import pyaudio
+
+import pvleopard
+
+#NEW LIBS
+from textToSpeech import TextToSpeech
+from recorder import Recorder
 from gpt import ChatGPT
 
 audio_stream = None
-cobra = None
 pa = None
-porcupine = None
 wav_file = None
 
 pv_access_key = config("PV_ACCESS_KEY")
@@ -58,33 +56,9 @@ def append_clear_countdown():
     t_count.join
 
 
-def voice(chat):
-    output_file = "speech.mp3"
-
-    try:
-        tts = gTTS(
-            text=chat, lang="en"
-        )  # You can specify other languages by changing the 'lang' parameter
-        os.remove(output_file)
-        tts.save(output_file)
-
-        pygame.mixer.init()
-        pygame.mixer.music.load(output_file)
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            pass
-            sleep(0.2)
-        pygame.mixer.quit()
-
-    except Exception as error:
-        pygame.mixer.quit()
-
-        print("Error:", error)
-        os.remove(output_file)
-
-
 def wake_word():
-    keyword_path = os.path.join(os.path.dirname(__file__), wakeWord)
+    rootPath = os.path.dirname(__file__)
+    keyword_path = os.path.join(rootPath, wakeWord)
 
     porcupine = pvporcupine.create(
         access_key=pv_access_key, keyword_paths=[keyword_path]
@@ -184,7 +158,7 @@ def detect_silence():
                 break
 
 
-leopardClient = create(
+leopardClient = pvleopard.create(
     access_key=pv_access_key,
     enable_automatic_punctuation=True,
 )
@@ -197,6 +171,8 @@ try:
     while True:
 
         answerRecorder = Recorder()
+        voice = TextToSpeech()
+
         error = None
 
         try:
@@ -210,7 +186,7 @@ try:
 
             wake_word()
 
-            # voice(random.choice(chatGPT.prompt))
+            # voice.Tell(random.choice(chatGPT.prompt))
 
             answerRecorder.StartRecording()
 
@@ -229,11 +205,13 @@ try:
             chatGPT.AppendAnswer(chatGPTResponse)
 
             print("\nChatGPT's response is:\n")
-            t1 = threading.Thread(target=voice, args=(chatGPTResponse,))
+
+            voice.Tell(chatGPTResponse)
+
             t2 = threading.Thread(target=responseprinter, args=(chatGPTResponse,))
-            t1.start()
+            # t1.start()
             t2.start()
-            t1.join()
+            # t1.join()
             t2.join()
 
         except openai.error.APIError as e:
@@ -248,14 +226,16 @@ try:
             error = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
             break
         except openai.error.ServiceUnavailableError as e:
-            error = "\nThere is an issue with OpenAI's servers.  Please try again later."
+            error = (
+                "\nThere is an issue with OpenAI's servers.  Please try again later."
+            )
 
         answerRecorder.StopRecording()
         sleep(1)
 
         if error is not None:
             event.set()
-            voice(error)
+            voice.Tell(error)
             sleep(1)
 
 
