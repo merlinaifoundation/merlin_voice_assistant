@@ -79,8 +79,13 @@ class ChatGPT(Thread):
         print("Using Default Model", model, "from length", len(self.GPT_MODELS))
 
     def Query(self, query):
+        
         response = None
+        hastranscriptLen = len(query)
 
+        if hastranscriptLen == 0:
+            return response
+            
         try:
             model = self.getModel()
             queryToSend = self.makeQueryObj(query)

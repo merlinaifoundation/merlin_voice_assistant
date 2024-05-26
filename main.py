@@ -143,22 +143,21 @@ try:
                 print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
 
                 answerRecorder.CleanRecording()
-                
-                transcript, words = leopardClient.process(userRecordedInput)
-                print("Has Transcript: ", transcript)
-                hastranscriptLen = len(transcript)
 
-                if hastranscriptLen > 0:
-                    
-                    response = chatGPT.Query(transcript)
+                transcript, words = leopardClient.process(userRecordedInput)
+                print("Transcript: ", transcript)
+
+                response = chatGPT.Query(transcript)
+                
+                if response is None:
+                    answerRecorder = None
+                else :
                     chatGPT.AppendAnswer(response)
-                    
                     voice.Tell(response)
                     txtDisplay = TextDisplay()
                     txtDisplay.Tell(response)
-                else:
-                    answerRecorder = None
 
+                
             else:
 
                 if actionWake.IsEnabled():
