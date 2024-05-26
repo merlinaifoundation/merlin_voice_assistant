@@ -83,7 +83,7 @@ def detect_silence():
         else:
             silence_duration = time.time() - last_voice_time
             if silence_duration > 1.3:
-                print("End of query detected\n")
+                print("Text interpreted\n")
                 cobra_audio_stream.stop_stream()
                 cobra_audio_stream.close()
                 cobra.delete()
@@ -105,6 +105,7 @@ try:
     actionStop = None
     questionsRecorder = None
     voice = None
+    welcome = True
     firstTime = True
 
     while True:
@@ -148,26 +149,31 @@ try:
                 print("Transcript: ", transcript)
 
                 response = chatGPT.Query(transcript)
-                
+
                 if response is None:
                     questionsRecorder = None
-                else :
+                else:
                     chatGPT.AppendAnswer(response)
                     voice.Tell(response)
                     txtDisplay = TextDisplay()
                     txtDisplay.Tell(response)
 
-                
             else:
+
+                
+
+                if firstTime:
+                    firstTime = False
+                    actionWake.SetEnabled(True)
 
                 if actionWake.IsEnabled():
 
-                    if firstTime:
-                        firstTime = False
-                        actionStop.AwakeVoice()
-                        sleep(1)
-
-                    if not questionsRecorder.Finished() :
+                    if welcome:
+                        welcome = False
+                        actionWake.AwakeVoice()
+                        sleep(5)
+                    
+                    if not questionsRecorder.Finished():
                         questionsRecorder.StartRecording()
                         listen()
                         detect_silence()
@@ -183,7 +189,7 @@ try:
                     print("Sleeping...")
                     actionStop = None
                     actionWake = None
-                    firstTime = True
+                    welcome = True
                     questionsRecorder = None
 
 

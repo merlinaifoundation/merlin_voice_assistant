@@ -23,6 +23,9 @@ class Actions(Thread):
         self.porcupine = None
         self.porcupine_audio_stream =None
         pv_access_key = config("PV_ACCESS_KEY")
+        self.sleepingVoice = config("SLEEPING_VOICE")
+        self.awakeVoice = config("AWAKE_VOICE")
+
         wakeWordFile = config(wordTag)
       
         rootPath = os.path.dirname(__file__)
@@ -50,13 +53,14 @@ class Actions(Thread):
 
     def IsEnabled(self):
         return self._finalized
-        
+    def SetEnabled(self, boolState):
+        self._finalized = boolState
     def SleepingVoice(self):
         voice2 = TextToSpeech()
-        voice2.Tell("Ok, I'll stop!")
+        voice2.Tell(self.sleepingVoice)
     def AwakeVoice(self):
         voice2 = TextToSpeech()
-        voice2.Tell("I'm here!")
+        voice2.Tell(self.awakeVoice)
         
 
     def run(self):
