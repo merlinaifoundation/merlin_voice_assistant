@@ -142,10 +142,11 @@ try:
 
                 print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
 
+                answerRecorder.CleanRecording()
+                
                 transcript, words = leopardClient.process(userRecordedInput)
                 print("Has Transcript: ", transcript)
                 hastranscriptLen = len(transcript)
-                answerRecorder.CleanRecording()
 
                 if hastranscriptLen > 0:
                     
