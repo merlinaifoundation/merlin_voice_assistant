@@ -10,11 +10,11 @@ import pyaudio
 import pvleopard
 
 # NEW LIBS
-from textResponder import TextDisplay
-from textToSpeech import TextToSpeech
-from recorder import Recorder
-from gpt import ChatGPT
-from actions import Actions
+from libs.textResponder import TextDisplay
+from libs.textToSpeech import TextToSpeech
+from libs.recorder import Recorder
+from libs.gpt import ChatGPT
+from libs.actions import Actions
 
 audio_stream = None
 pa = None
@@ -25,7 +25,6 @@ pv_access_key = str(config("PV_ACCESS_KEY"))
 print("Using PV KEY", pv_access_key)
 
 chatGPT = ChatGPT()
-
 
 def listen():
 
