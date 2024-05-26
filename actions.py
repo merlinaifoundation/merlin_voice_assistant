@@ -9,17 +9,22 @@ import pvporcupine
 
 import pyaudio
 
+from textToSpeech import TextToSpeech
+
 
 class Actions(Thread):
 
     def __init__(self, wordTag):
         super().__init__()
+        self.wordTag = wordTag
         self.wake_pa = pyaudio.PyAudio()
         self._stop = True
+        self._finalized = False
         self.porcupine = None
         self.porcupine_audio_stream =None
         pv_access_key = config("PV_ACCESS_KEY")
         wakeWordFile = config(wordTag)
+      
         rootPath = os.path.dirname(__file__)
         keyword_path = os.path.join(rootPath, wakeWordFile)
 
@@ -37,20 +42,28 @@ class Actions(Thread):
             frames_per_buffer=self.porcupine.frame_length,
         )
 
-    def Activate(self):
+    def Enable(self):
         
-        if self._stop:
+        if not self._finalized:
             self._stop = False
             self.start()
 
-    def IsActivated(self):
-        return self._stop
+    def IsEnabled(self):
+        return self._finalized
+        
+    def SleepingVoice(self):
+        voice2 = TextToSpeech()
+        voice2.Tell("Ok, I'll stop!")
+    def AwakeVoice(self):
+        voice2 = TextToSpeech()
+        voice2.Tell("I'm here!")
+        
 
     def run(self):
 
         try:
 
-            print(Fore.GREEN + "\nWake Word Routine Initiated\n")
+            print(Fore.GREEN + "\nWakeWord Routine: ", self.wordTag)
 
             devnull = os.open(os.devnull, os.O_WRONLY)
             old_stderr = os.dup(2)
@@ -59,6 +72,7 @@ class Actions(Thread):
             os.close(devnull)
 
             while self._stop != True:
+                
                 porcupine_pcm = self.porcupine_audio_stream.read(
                     self.porcupine.frame_length
                 )
@@ -80,3 +94,5 @@ class Actions(Thread):
 
         except Exception as error:
             print("Error:", error)
+            
+        self._finalized = True

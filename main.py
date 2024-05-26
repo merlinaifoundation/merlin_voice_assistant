@@ -111,13 +111,15 @@ try:
 
     while True:
 
+        sleep(0.01)
+
         if actionWake is None:
             actionWake = Actions("WAKE_WORD_FILE")
-            actionWake.Activate()
+            actionWake.Enable()
 
         if actionStop is None:
             actionStop = Actions("STOP_WORD_FILE")
-            actionStop.Activate()
+            actionStop.Enable()
 
         if answerRecorder is None:
             answerRecorder = Recorder()
@@ -126,7 +128,6 @@ try:
             voice = TextToSpeech()
 
         count += 1
-        sleep(0.01)
 
         if answerRecorder.IsRecording():
             answerRecorder.StopRecording()
@@ -140,66 +141,45 @@ try:
             if transcriptRawSize > 0:
 
                 response = None
-                try:
-                    print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
 
-                    transcript, words = leopardClient.process(userRecordedInput)
-                    print("Has Transcript ", transcript)
+                print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
 
-                    if len(transcript) > 0:
+                transcript, words = leopardClient.process(userRecordedInput)
+                print("Has Transcript: ", transcript)
 
-                        response = chatGPT.Query(transcript)
-                        chatGPT.AppendAnswer(response)
-                        
-                    
-                except openai.error.APIError as e:
-                    response = (
-                        "\nThere was an API error.  Please try again in a few minutes."
-                    )
-                except openai.error.Timeout as e:
-                    response = (
-                        "\nYour request timed out.  Please try again in a few minutes."
-                    )
-                except openai.error.RateLimitError as e:
-                    response = "\nYou have hit your assigned rate limit."
-                except openai.error.APIConnectionError as e:
-                    response = "\nI am having trouble connecting to the API.  Please check your network connection and then try again."
-                except openai.error.AuthenticationError as e:
-                    response = "\nYour OpenAI API key or token is invalid, expired, or revoked.  Please fix this issue and then restart my program."
-                except openai.error.ServiceUnavailableError as e:
-                    response = "\nThere is an issue with OpenAI's servers.  Please try again later."
+                if len(transcript) > 0:
+                    response = chatGPT.Query(transcript)
+                    chatGPT.AppendAnswer(response)
 
                 answerRecorder.CleanRecording()
-                
-                if response is not None:
-                    print("\nMerlin response is:\n")
-                    voice.Tell(response)
-                    txtDisplay = TextDisplay()
-                    txtDisplay.Tell(response)
+
+                voice.Tell(response)
+                txtDisplay = TextDisplay()
+                txtDisplay.Tell(response)
 
             else:
 
-                if actionWake.IsActivated():
+                if actionWake.IsEnabled():
 
                     if firstTime:
                         firstTime = False
-                        voice2 = TextToSpeech()
-                        voice2.Tell("I'm here")
+                        actionStop.AwakeVoice()
                         sleep(1)
 
                     if answerRecorder.IsNew():
                         answerRecorder.StartRecording()
                         listen()
                         detect_silence()
-                    else:
-                        if voice.Finished():
-                            print("Voice Finished!")
-                            voice = None
-                            answerRecorder = None
 
-                if actionStop.IsActivated():
-                    voice2 = TextToSpeech()
-                    voice2.Tell("Ok, I'll stop!")
+                    if voice.Finished():
+                        print("Voice Finished!")
+                        voice = None
+                        answerRecorder = None
+
+                if actionStop.IsEnabled():
+
+                    actionStop.SleepingVoice()
+                    print("Sleeping...")
                     actionStop = None
                     actionWake = None
                     firstTime = True
