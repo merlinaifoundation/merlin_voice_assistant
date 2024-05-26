@@ -15,6 +15,7 @@ from libs.textToSpeech import TextToSpeech
 from libs.recorder import Recorder
 from libs.gpt import ChatGPT
 from libs.actions import Actions
+from libs.greeter import Greeter
 
 audio_stream = None
 pa = None
@@ -101,6 +102,7 @@ try:
     voice = None
     welcome = True
     firstTime = True
+    greeter = Greeter()
 
     while True:
 
@@ -160,9 +162,8 @@ try:
 
                 if actionWake.IsEnabled():
 
-                    if welcome:
-                        welcome = False
-                        actionWake.AwakeVoice()
+                    if greeter.Idle():
+                        greeter.AwakeVoice()                    
                         sleep(5)
                     
                     if not questionsRecorder.Finished():
@@ -178,13 +179,13 @@ try:
                 if actionStop.IsEnabled():
 
                     print("Sleeping...")
-                    actionStop.SleepingVoice()
+                    greeter.SleepingVoice()
                     
                     print("Flushing...")
-                    actionStop = None
+                   
                     actionWake = None
-                    welcome = True
                     questionsRecorder = None
+                    actionStop = None
 
 
 except KeyboardInterrupt:
