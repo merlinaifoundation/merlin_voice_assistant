@@ -11,18 +11,18 @@ class Recorder(Thread):
         self._stop = True
     
         cfgLimit = config("REC_BUFFER_LIMIT")
-        self._bufferLimit = bufferLimit or int(cfgLimit) or 1e6
+        self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
         print("Recording Buffer Limit set at: ", self._bufferLimit)
         self._finalized = False
-        self.recorder = PvRecorder(device_index=-1, frame_length=512)
+        self._recorder = PvRecorder(device_index=-1, frame_length=512)
 
     def run(self):
         #start recording
-        self.recorder.start()
+        self._recorder.start()
         print("Recording...")
         while not self._stop:
             #read
-            reading = self.recorder.read()
+            reading = self._recorder.read()
             #if more data than limit, clean buffer
             if (len(self._buffer) > self._bufferLimit):
                 print('Recorder Buffer Limit was Hit', len(self._buffer), ". Flushing...")
@@ -31,7 +31,7 @@ class Recorder(Thread):
             if (len(reading)>0):
                 self._buffer.extend(reading)
         #stop recording
-        self.recorder.stop()
+        self._recorder.stop()
         #append result to final variable
         self._result = self._buffer.copy()
         

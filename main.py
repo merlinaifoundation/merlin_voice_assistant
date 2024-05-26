@@ -10,10 +10,9 @@ import pyaudio
 import pvleopard
 
 # NEW LIBS
-from libs.textToSpeech import TextToSpeech
+from libs.greeter import Greeter
 from libs.recorder import Recorder
 from libs.gpt import ChatGPT
-from libs.greeter import Greeter
 
 audio_stream = None
 pa = None
@@ -22,8 +21,6 @@ wav_file = None
 pv_access_key = str(config("PV_ACCESS_KEY"))
 
 print("Using PV KEY", pv_access_key)
-
-chatGPT = ChatGPT()
 
 
 def listen():
@@ -95,99 +92,89 @@ try:
 
     count = 0
 
-   
     questionsRecorder = None
-    voice = None
-    welcome = True
     firstTimeLoading = True
     greeter = Greeter()
+    chatGPT = ChatGPT()
 
     while True:
 
-        sleep(0.01)
+        sleep(0.1)
+
+        greeter.InitActions()
 
         if questionsRecorder is None:
             questionsRecorder = Recorder(None)
 
-      
-        greeter.InitActions()
-
         count += 1
 
         if questionsRecorder.IsRecording():
+            print("Stopping Recording...")
             questionsRecorder.StopRecording()
+
+        userRecordedInput = questionsRecorder.HasRecording()
+        transcriptRawSize = len(userRecordedInput)
+        # print("Iter: ", count, " Idle")
+
+        if transcriptRawSize > 0:
+
+            response = None
+
+            print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
+
+            questionsRecorder.CleanRecording()
+
+            transcript, words = leopardClient.process(userRecordedInput)
+            print("Transcript: ", transcript)
+
+            response = chatGPT.Query(transcript)
+
+            if response is None:
+                questionsRecorder = None
+            else:
+
+                chatGPT.AppendAnswer(response)
+
+                greeter.UseVoice(response)
+
+                greeter.UseDisplay(response)
 
         else:
 
-            userRecordedInput = questionsRecorder.HasRecording()
-            transcriptRawSize = len(userRecordedInput)
-            # print("Iter: ", count, " Idle")
+            if firstTimeLoading:
+                firstTimeLoading = False
+                if greeter.wakeAction:
+                    greeter.wakeAction.SetInvoked(True)
 
-            if transcriptRawSize > 0:
+            if greeter.wakeAction and greeter.wakeAction.IsInvoked():
+                # check if has welcomed the user
+                if not greeter.HasGreeted():
+                    print("Welcoming...")
+                    greeter.AwakeVoice()
+                    greeter.SetHasGreeted(True)
+                    sleep(3)
 
-                response = None
+                if questionsRecorder and not questionsRecorder.Finished():
+                    questionsRecorder.StartRecording()
+                    listen()
+                    detect_silence()
 
-                print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
+            # check if voice finished to start recording again
+            if greeter.IsIdle():
+                print("GreeterVoice Finished. Flushing...")
+                greeter.ResetVoice()
+                questionsRecorder = None
 
-                questionsRecorder.CleanRecording()
+            # checks if user asked to Stop
+            if greeter.stopAction and greeter.stopAction.IsInvoked():
 
-                transcript, words = leopardClient.process(userRecordedInput)
-                print("Transcript: ", transcript)
-
-                response = chatGPT.Query(transcript)
-
-                if response is None:
-                    questionsRecorder = None
-                else:
-                    
-                    chatGPT.AppendAnswer(response)
-
-                    if voice is None:
-                        voice = TextToSpeech()
-                        voice.Tell(response)
-
-                    greeter.ShowText(response)
-
-            else:
-
-                if firstTimeLoading:
-                    firstTimeLoading = False
-                    if greeter.wakeAction:
-                        greeter.wakeAction.SetInvoked(True)
-
-                if greeter.wakeAction and greeter.wakeAction.IsInvoked():
-
-                    #check if has welcomed the user
-                    if not greeter.HasGreeted():
-                        print("Welcoming...")
-                        greeter.AwakeVoice()
-                        greeter.SetHasGreeted(True)
-                        sleep(5)
-
-                    if not questionsRecorder.Finished():
-                        questionsRecorder.StartRecording()
-                        listen()
-                        detect_silence()
-
-                    #check if voice finished to start recording again
-                    if (voice is not None) and voice.Finished():
-                        print("Voice Finished. Flushing...")
-                        voice = None
-                        questionsRecorder = None
-
-                #checks if user asked to Stop
-                if greeter.stopAction and greeter.stopAction.IsInvoked():
-
-                    print("Sleeping...")
-                    greeter.ResetActions()
-                    greeter.SleepingVoice()
-                    greeter.SetHasGreeted(False)
-                    
-                    print("Flushing...")
-                    voice = None    
-                    questionsRecorder = None
-                
-                    
+                print("Sleeping...")
+                greeter.ResetVoice()
+                greeter.ResetActions()
+                greeter.SleepingVoice()
+                greeter.SetHasGreeted(False)
+                print("Flushing...")
+                questionsRecorder = None
 
 
 except KeyboardInterrupt:
