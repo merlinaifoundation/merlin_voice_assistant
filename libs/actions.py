@@ -6,7 +6,7 @@ import pvporcupine
 import pyaudio
 
 
-class Actions(Thread):
+class Action(Thread):
 
     def __init__(self, pv_access_key , wakeWordFile ):
         super().__init__()
@@ -29,7 +29,7 @@ class Actions(Thread):
             frames_per_buffer=self.porcupine.frame_length,
         )
 
-    def Enable(self):
+    def Start(self):
         
         if not self._invoked:
             self._stop = False
@@ -37,8 +37,11 @@ class Actions(Thread):
 
     def IsInvoked(self):
         return self._invoked
+    
     def SetInvoked(self, finalized):
         self._invoked = finalized
+        if (finalized):
+            self._stop = True
   
 
     def run(self):
@@ -68,10 +71,10 @@ class Actions(Thread):
                     os.dup2(old_stderr, 2)
                     os.close(old_stderr)
                     
-                    print("\nAction Phrase Detected\n")
-                    self._stop = True
+                    print("\nAction Phrase Detected as in file: ",  self.wakeWordFile)
+                    self.SetInvoked(True)
 
         except Exception as error:
             print("Error:", error)
             
-        self._invoked = True
+        

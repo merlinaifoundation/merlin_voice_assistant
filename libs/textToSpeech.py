@@ -22,30 +22,44 @@ class TextToSpeech(Thread):
             "tmp",
             internalPath,
         )
+        self.mixer = pygame.mixer
+        self.mixer.init()
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
 
-    def run(self):
-
-        pygame.mixer.init()
-        tts = gTTS(
-            text=self.chat, lang=self.lang
-        )  # You can specify other languages by changing the 'lang' parameter
+    def Stop(self):
         try:
-
-            tts.save(self.output_file)
-
-            pygame.mixer.music.load(self.output_file)
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                sleep(0.2)
+            
+            self.mixer.quit()
 
         except Exception as error:
             print("Error:", error)
 
-        pygame.mixer.quit()
-        os.remove(self.output_file)
-        tts = None
+        try:
+            os.remove(self.output_file)
+
+        except Exception as error:
+            print("Error:", error)
+
+        
         self._stop = True
+    
+    def run(self):
+
+        try:
+            
+            tts = gTTS(text=self.chat, lang=self.lang)
+            # You can specify other languages by changing the 'lang' parameter
+            tts.save(self.output_file)
+            self.mixer.music.load(self.output_file)
+            self.mixer.music.play()
+            while self.mixer.music.get_busy():
+                sleep(0.1)
+            self.mixer.music.stop()
+
+        except Exception as error:
+            print("Error:", error)
+
+        self.Stop()
 
     def Tell(self, chat):
         if (self._stop) and (chat is not None):

@@ -19,7 +19,7 @@ class ChatGPT(Thread):
             config("GPT_MODEL2"),
         ]
 
-        print("Using OPENAI KEY", OPENAI_API_KEY)
+        #print("Using OPENAI KEY", OPENAI_API_KEY)
         print("Using Chat Log", self.CHAT_LOG)
 
         self.prompt = [
@@ -81,7 +81,8 @@ class ChatGPT(Thread):
     def Query(self, query):
         
         response = None
-        
+        if query is None or not query:
+            return response
         if len(query) == 0:
             return response
             

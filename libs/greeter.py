@@ -1,7 +1,7 @@
 from threading import Thread
 from decouple import config
 
-from libs.actions import Actions
+from libs.actions import Action
 from libs.textToSpeech import TextToSpeech
 from libs.textResponder import TextDisplay
 
@@ -46,12 +46,12 @@ class Greeter(Thread):
 
     def InitActions(self):
         if self.wakeAction is None:
-            self.wakeAction = Actions(self.pv_access_key, self.wakeWordFile)
-            self.wakeAction.Enable()
+            self.wakeAction = Action(self.pv_access_key, self.wakeWordFile)
+            self.wakeAction.Start()
 
         if self.stopAction is None:
-            self.stopAction = Actions(self.pv_access_key, self.stopWordFile)
-            self.stopAction.Enable()
+            self.stopAction = Action(self.pv_access_key, self.stopWordFile)
+            self.stopAction.Start()
 
     def AwakeVoice(self):
         awakeVoiceObj = TextToSpeech()

@@ -1,91 +1,12 @@
-import struct
-import time
+
 from time import sleep
-from decouple import config
-
-import pvcobra
-
-import pyaudio
-
-import pvleopard
 
 # NEW LIBS
 from libs.greeter import Greeter
 from libs.recorder import Recorder
 from libs.gpt import ChatGPT
-
-audio_stream = None
-pa = None
-wav_file = None
-
-pv_access_key = str(config("PV_ACCESS_KEY"))
-
-print("Using PV KEY", pv_access_key)
-
-
-def listen():
-
-    print("Listening...")
-    cobra = pvcobra.create(access_key=pv_access_key)
-
-    listen_pa = pyaudio.PyAudio()
-
-    listen_audio_stream = listen_pa.open(
-        rate=cobra.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=cobra.frame_length,
-    )
-
-    while True:
-        listen_pcm = listen_audio_stream.read(cobra.frame_length)
-        listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
-
-        if cobra.process(listen_pcm) > 0.3:
-            print("Voice detected")
-            listen_audio_stream.stop_stream()
-            listen_audio_stream.close()
-            cobra.delete()
-            break
-
-
-def detect_silence():
-    cobra = pvcobra.create(access_key=pv_access_key)
-
-    silence_pa = pyaudio.PyAudio()
-
-    cobra_audio_stream = silence_pa.open(
-        rate=cobra.sample_rate,
-        channels=1,
-        format=pyaudio.paInt16,
-        input=True,
-        frames_per_buffer=cobra.frame_length,
-    )
-
-    last_voice_time = time.time()
-
-    while True:
-        cobra_pcm = cobra_audio_stream.read(cobra.frame_length)
-        cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
-
-        if cobra.process(cobra_pcm) > 0.2:
-            last_voice_time = time.time()
-        else:
-            silence_duration = time.time() - last_voice_time
-            if silence_duration > 1.3:
-                print("Text interpreted\n")
-                cobra_audio_stream.stop_stream()
-                cobra_audio_stream.close()
-                cobra.delete()
-                last_voice_time = None
-                break
-
-
-leopardClient = pvleopard.create(
-    access_key=pv_access_key,
-    enable_automatic_punctuation=True,
-)
+from libs.listener import Listener
+from libs.interpreter import Interpreter
 
 
 try:
@@ -96,13 +17,26 @@ try:
     firstTimeLoading = True
     greeter = Greeter()
     chatGPT = ChatGPT()
-
+    interpreter = Interpreter()
+    
+                    
     while True:
 
         sleep(0.1)
 
         greeter.InitActions()
+        
+        if firstTimeLoading:
+            firstTimeLoading = False
+            if greeter.wakeAction:
+                greeter.wakeAction.SetInvoked(True)
 
+        # check if voice finished to start recording again
+        if greeter.IsIdle():
+            print("GreeterVoice Finished. Flushing...")
+            greeter.ResetVoice()
+            questionsRecorder = None
+        
         if questionsRecorder is None:
             questionsRecorder = Recorder(None)
 
@@ -121,18 +55,16 @@ try:
             response = None
 
             print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
-
+            
             questionsRecorder.CleanRecording()
-
-            transcript, words = leopardClient.process(userRecordedInput)
-            print("Transcript: ", transcript)
-
+            transcript  = interpreter.SpeechToText(userRecordedInput)
+            
             response = chatGPT.Query(transcript)
 
             if response is None:
                 questionsRecorder = None
             else:
-
+                
                 chatGPT.AppendAnswer(response)
 
                 greeter.UseVoice(response)
@@ -141,11 +73,6 @@ try:
 
         else:
 
-            if firstTimeLoading:
-                firstTimeLoading = False
-                if greeter.wakeAction:
-                    greeter.wakeAction.SetInvoked(True)
-
             if greeter.wakeAction and greeter.wakeAction.IsInvoked():
                 # check if has welcomed the user
                 if not greeter.HasGreeted():
@@ -153,30 +80,25 @@ try:
                     greeter.AwakeVoice()
                     greeter.SetHasGreeted(True)
                     sleep(3)
-
                 if questionsRecorder and not questionsRecorder.Finished():
                     questionsRecorder.StartRecording()
-                    listen()
-                    detect_silence()
-
-            # check if voice finished to start recording again
-            if greeter.IsIdle():
-                print("GreeterVoice Finished. Flushing...")
-                greeter.ResetVoice()
-                questionsRecorder = None
+                    listener = Listener()
+                    listener.Trigger()
 
             # checks if user asked to Stop
             if greeter.stopAction and greeter.stopAction.IsInvoked():
 
-                print("Sleeping...")
-                greeter.ResetVoice()
                 greeter.ResetActions()
+                greeter.ResetVoice()
+                questionsRecorder = None
+                
+                print("Sleeping...")
                 greeter.SleepingVoice()
                 greeter.SetHasGreeted(False)
                 print("Flushing...")
-                questionsRecorder = None
+                
+                
 
 
 except KeyboardInterrupt:
     print("\nExiting ChatGPT Virtual Assistant")
-    leopardClient.delete
