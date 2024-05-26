@@ -1,12 +1,7 @@
 import struct
-import threading
 import time
 from time import sleep
 from decouple import config
-from colorama import Fore
-import random
-
-import openai
 
 import pvcobra
 
@@ -160,8 +155,6 @@ try:
 
             else:
 
-                
-
                 if firstTime:
                     firstTime = False
                     actionWake.SetEnabled(True)
@@ -179,14 +172,16 @@ try:
                         detect_silence()
 
                     if voice.Finished():
-                        print("Voice Finished!")
+                        print("Voice Finished. Flushing...")
                         voice = None
                         questionsRecorder = None
 
                 if actionStop.IsEnabled():
 
-                    actionStop.SleepingVoice()
                     print("Sleeping...")
+                    actionStop.SleepingVoice()
+                    
+                    print("Flushing...")
                     actionStop = None
                     actionWake = None
                     welcome = True
