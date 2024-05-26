@@ -34,7 +34,7 @@ chatGPT = ChatGPT()
 
 def listen():
 
-    print("starting Listen function")
+    print("Listening...")
     cobra = pvcobra.create(access_key=pv_access_key)
 
     listen_pa = pyaudio.PyAudio()
@@ -46,8 +46,6 @@ def listen():
         input=True,
         frames_per_buffer=cobra.frame_length,
     )
-
-    print("Listening...")
 
     while True:
         listen_pcm = listen_audio_stream.read(cobra.frame_length)
@@ -146,16 +144,19 @@ try:
 
                 transcript, words = leopardClient.process(userRecordedInput)
                 print("Has Transcript: ", transcript)
-
-                if len(transcript) > 0:
-                    response = chatGPT.Query(transcript)
-                    chatGPT.AppendAnswer(response)
-
+                hastranscriptLen = len(transcript)
                 answerRecorder.CleanRecording()
 
-                voice.Tell(response)
-                txtDisplay = TextDisplay()
-                txtDisplay.Tell(response)
+                if hastranscriptLen > 0:
+                    
+                    response = chatGPT.Query(transcript)
+                    chatGPT.AppendAnswer(response)
+                    
+                    voice.Tell(response)
+                    txtDisplay = TextDisplay()
+                    txtDisplay.Tell(response)
+                else:
+                    answerRecorder = None
 
             else:
 
