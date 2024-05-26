@@ -1,7 +1,9 @@
 from threading import Thread
 from decouple import config
 
+from libs.actions import Actions
 from libs.textToSpeech import TextToSpeech
+from libs.textResponder import TextDisplay
 
 
 class Greeter(Thread):
@@ -9,17 +11,44 @@ class Greeter(Thread):
     def __init__(self):
         super().__init__()
 
-        self._isIdle = True
         self.sleepingVoice = config("SLEEPING_VOICE")
         self.awakeVoice = config("AWAKE_VOICE")
+        self.pv_access_key = config("PV_ACCESS_KEY")
+        self.wakeWordFile = config("WAKE_WORD_FILE")
+        self.stopWordFile = config("STOP_WORD_FILE")
+
+        self.wakeAction = None
+        self.stopAction = None
+        self._greeted = False
 
     def SleepingVoice(self):
-        voice2 = TextToSpeech()
-        voice2.Tell(self.sleepingVoice)
-        self._isIdle = True
-    def Idle(self):
-        return self._isIdle
+        sleepVoiceObj = TextToSpeech()
+        sleepVoiceObj.Tell(self.sleepingVoice)
+
+    def HasGreeted(self):
+        return self._greeted
+
+    def ResetActions(self):
+        self.wakeAction = None
+        self.stopAction = None
+        
+
+    def InitActions(self):
+        if self.wakeAction is None:
+            self.wakeAction = Actions(self.pv_access_key, self.wakeWordFile)
+            self.wakeAction.Enable()
+
+        if self.stopAction is None:
+            self.stopAction = Actions(self.pv_access_key, self.stopWordFile)
+            self.stopAction.Enable()
+
     def AwakeVoice(self):
-        voice2 = TextToSpeech()
-        voice2.Tell(self.awakeVoice)
-        self._isIdle = False
+        awakeVoiceObj = TextToSpeech()
+        awakeVoiceObj.Tell(self.awakeVoice)
+        
+    def ShowText(self, text):
+        txtDisplay = TextDisplay()
+        txtDisplay.Tell(text)
+
+    def SetHasGreeted(self, state):
+        self._greeted = state

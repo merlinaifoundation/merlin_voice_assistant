@@ -10,11 +10,9 @@ import pyaudio
 import pvleopard
 
 # NEW LIBS
-from libs.textResponder import TextDisplay
 from libs.textToSpeech import TextToSpeech
 from libs.recorder import Recorder
 from libs.gpt import ChatGPT
-from libs.actions import Actions
 from libs.greeter import Greeter
 
 audio_stream = None
@@ -26,6 +24,7 @@ pv_access_key = str(config("PV_ACCESS_KEY"))
 print("Using PV KEY", pv_access_key)
 
 chatGPT = ChatGPT()
+
 
 def listen():
 
@@ -96,31 +95,22 @@ try:
 
     count = 0
 
-    actionWake = None
-    actionStop = None
+   
     questionsRecorder = None
     voice = None
     welcome = True
-    firstTime = True
+    firstTimeLoading = True
     greeter = Greeter()
 
     while True:
 
         sleep(0.01)
 
-        if actionWake is None:
-            actionWake = Actions("WAKE_WORD_FILE")
-            actionWake.Enable()
-
-        if actionStop is None:
-            actionStop = Actions("STOP_WORD_FILE")
-            actionStop.Enable()
-
         if questionsRecorder is None:
-            questionsRecorder = Recorder()
+            questionsRecorder = Recorder(None)
 
-        if voice is None:
-            voice = TextToSpeech()
+      
+        greeter.InitActions()
 
         count += 1
 
@@ -149,43 +139,55 @@ try:
                 if response is None:
                     questionsRecorder = None
                 else:
+                    
                     chatGPT.AppendAnswer(response)
-                    voice.Tell(response)
-                    txtDisplay = TextDisplay()
-                    txtDisplay.Tell(response)
+
+                    if voice is None:
+                        voice = TextToSpeech()
+                        voice.Tell(response)
+
+                    greeter.ShowText(response)
 
             else:
 
-                if firstTime:
-                    firstTime = False
-                    actionWake.SetEnabled(True)
+                if firstTimeLoading:
+                    firstTimeLoading = False
+                    if greeter.wakeAction:
+                        greeter.wakeAction.SetInvoked(True)
 
-                if actionWake.IsEnabled():
+                if greeter.wakeAction and greeter.wakeAction.IsInvoked():
 
-                    if greeter.Idle():
-                        greeter.AwakeVoice()                    
+                    #check if has welcomed the user
+                    if not greeter.HasGreeted():
+                        print("Welcoming...")
+                        greeter.AwakeVoice()
+                        greeter.SetHasGreeted(True)
                         sleep(5)
-                    
+
                     if not questionsRecorder.Finished():
                         questionsRecorder.StartRecording()
                         listen()
                         detect_silence()
 
-                    if voice.Finished():
+                    #check if voice finished to start recording again
+                    if (voice is not None) and voice.Finished():
                         print("Voice Finished. Flushing...")
                         voice = None
                         questionsRecorder = None
 
-                if actionStop.IsEnabled():
+                #checks if user asked to Stop
+                if greeter.stopAction and greeter.stopAction.IsInvoked():
 
                     print("Sleeping...")
+                    greeter.ResetActions()
                     greeter.SleepingVoice()
+                    greeter.SetHasGreeted(False)
                     
                     print("Flushing...")
-                   
-                    actionWake = None
+                    voice = None    
                     questionsRecorder = None
-                    actionStop = None
+                
+                    
 
 
 except KeyboardInterrupt:

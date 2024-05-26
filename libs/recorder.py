@@ -1,27 +1,42 @@
 from threading import Thread
 from pvrecorder import PvRecorder
-
+from decouple import config
 
 class Recorder(Thread):
-    def __init__(self):
+    def __init__(self, bufferLimit = None):
         super().__init__()
-        self._pcm = list()
+        self._buffer = []
+        self._result = []
         self._is_recording = False
         self._stop = True
-        self._result = []
+    
+        cfgLimit = config("REC_BUFFER_LIMIT")
+        self._bufferLimit = bufferLimit or int(cfgLimit) or 1e6
+        print("Recording Buffer Limit set at: ", self._bufferLimit)
         self._finalized = False
         self.recorder = PvRecorder(device_index=-1, frame_length=512)
 
     def run(self):
-        
+        #start recording
         self.recorder.start()
         print("Recording...")
         while not self._stop:
-            self._pcm.extend(self.recorder.read())
+            #read
+            reading = self.recorder.read()
+            #if more data than limit, clean buffer
+            if (len(self._buffer) > self._bufferLimit):
+                print('Recorder Buffer Limit was Hit', len(self._buffer), ". Flushing...")
+                self._buffer = []
+            #append to buffer
+            if (len(reading)>0):
+                self._buffer.extend(reading)
+        #stop recording
         self.recorder.stop()
-        self._stop = True
-        self._result = self._pcm.copy()
+        #append result to final variable
+        self._result = self._buffer.copy()
         
+        #flags
+        self._stop = True
         self._is_recording = False
         self._finalized = True
 
@@ -39,6 +54,7 @@ class Recorder(Thread):
         return self._result
     def CleanRecording(self):
         self._result = []
+        self._buffer = []
     def StopRecording(self):
         self._stop = True
         while self._is_recording:

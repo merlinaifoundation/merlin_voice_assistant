@@ -2,33 +2,20 @@ import os
 import sys
 from threading import Thread
 import struct
-from decouple import config
-from colorama import Fore
 import pvporcupine
-
 import pyaudio
-
-from libs.textToSpeech import TextToSpeech
 
 
 class Actions(Thread):
 
-    def __init__(self, wordTag):
+    def __init__(self, pv_access_key , wakeWordFile ):
         super().__init__()
-        self.wordTag = wordTag
         self.wake_pa = pyaudio.PyAudio()
         self._stop = True
-        self._finalized = False
-        self.porcupine = None
-        self.porcupine_audio_stream =None
-        pv_access_key = config("PV_ACCESS_KEY")
-     
-        wakeWordFile = config(wordTag)
-      
+        self._invoked = False
+        self.wakeWordFile = wakeWordFile
         rootPath = os.path.dirname(__file__)
-        keyword_path = os.path.join(rootPath, wakeWordFile)
-
-        # print("Using WAKE WORD", keyword_path)
+        keyword_path = os.path.join(rootPath, self.wakeWordFile)
 
         self.porcupine = pvporcupine.create(
             access_key=pv_access_key, keyword_paths=[keyword_path]
@@ -44,21 +31,21 @@ class Actions(Thread):
 
     def Enable(self):
         
-        if not self._finalized:
+        if not self._invoked:
             self._stop = False
             self.start()
 
-    def IsEnabled(self):
-        return self._finalized
-    def SetEnabled(self, boolState):
-        self._finalized = boolState
+    def IsInvoked(self):
+        return self._invoked
+    def SetInvoked(self, finalized):
+        self._invoked = finalized
   
 
     def run(self):
 
         try:
 
-            print(Fore.GREEN + "\nWakeWord Routine: ", self.wordTag)
+            print("\nWakeWord Routine from: ", self.wakeWordFile )
 
             devnull = os.open(os.devnull, os.O_WRONLY)
             old_stderr = os.dup(2)
@@ -66,28 +53,25 @@ class Actions(Thread):
             os.dup2(devnull, 2)
             os.close(devnull)
 
-            while self._stop != True:
+            while not self._stop:
                 
-                porcupine_pcm = self.porcupine_audio_stream.read(
-                    self.porcupine.frame_length
-                )
-                porcupine_pcm = struct.unpack_from(
-                    "h" * self.porcupine.frame_length, porcupine_pcm
-                )
-
+                frameLength = self.porcupine.frame_length
+                porcupine_pcm = self.porcupine_audio_stream.read(frameLength)
+                porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
                 porcupine_keyword_index = self.porcupine.process(porcupine_pcm)
-                # print(Fore.GREEN + "\nWake word check\n", porcupine_keyword_index)
 
                 if porcupine_keyword_index >= 0:
-                    print(Fore.GREEN + "\nWake word detected\n")
+                    
                     self.porcupine_audio_stream.stop_stream()
                     self.porcupine_audio_stream.close()
                     self.porcupine.delete()
                     os.dup2(old_stderr, 2)
                     os.close(old_stderr)
+                    
+                    print("\nAction Phrase Detected\n")
                     self._stop = True
 
         except Exception as error:
             print("Error:", error)
             
-        self._finalized = True
+        self._invoked = True
