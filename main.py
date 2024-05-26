@@ -103,7 +103,7 @@ try:
 
     actionWake = None
     actionStop = None
-    answerRecorder = None
+    questionsRecorder = None
     voice = None
     firstTime = True
 
@@ -119,20 +119,20 @@ try:
             actionStop = Actions("STOP_WORD_FILE")
             actionStop.Enable()
 
-        if answerRecorder is None:
-            answerRecorder = Recorder()
+        if questionsRecorder is None:
+            questionsRecorder = Recorder()
 
         if voice is None:
             voice = TextToSpeech()
 
         count += 1
 
-        if answerRecorder.IsRecording():
-            answerRecorder.StopRecording()
+        if questionsRecorder.IsRecording():
+            questionsRecorder.StopRecording()
 
         else:
 
-            userRecordedInput = answerRecorder.HasRecording()
+            userRecordedInput = questionsRecorder.HasRecording()
             transcriptRawSize = len(userRecordedInput)
             # print("Iter: ", count, " Idle")
 
@@ -142,7 +142,7 @@ try:
 
                 print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
 
-                answerRecorder.CleanRecording()
+                questionsRecorder.CleanRecording()
 
                 transcript, words = leopardClient.process(userRecordedInput)
                 print("Transcript: ", transcript)
@@ -150,7 +150,7 @@ try:
                 response = chatGPT.Query(transcript)
                 
                 if response is None:
-                    answerRecorder = None
+                    questionsRecorder = None
                 else :
                     chatGPT.AppendAnswer(response)
                     voice.Tell(response)
@@ -167,15 +167,15 @@ try:
                         actionStop.AwakeVoice()
                         sleep(1)
 
-                    if answerRecorder.IsNew():
-                        answerRecorder.StartRecording()
+                    if not questionsRecorder.Finished() :
+                        questionsRecorder.StartRecording()
                         listen()
                         detect_silence()
 
                     if voice.Finished():
                         print("Voice Finished!")
                         voice = None
-                        answerRecorder = None
+                        questionsRecorder = None
 
                 if actionStop.IsEnabled():
 
@@ -184,7 +184,7 @@ try:
                     actionStop = None
                     actionWake = None
                     firstTime = True
-                    answerRecorder = None
+                    questionsRecorder = None
 
 
 except KeyboardInterrupt:

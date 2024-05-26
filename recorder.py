@@ -33,8 +33,8 @@ class Recorder(Thread):
  
     def IsRecording(self):
         return self._is_recording
-    def IsNew(self):
-        return self._finalized is False
+    def Finished(self):
+        return self._finalized
     def HasRecording(self):
         return self._result
     def CleanRecording(self):

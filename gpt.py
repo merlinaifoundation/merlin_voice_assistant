@@ -81,12 +81,12 @@ class ChatGPT(Thread):
     def Query(self, query):
         
         response = None
-        hastranscriptLen = len(query)
-
-        if hastranscriptLen == 0:
+        
+        if len(query) == 0:
             return response
             
         try:
+            
             model = self.getModel()
             queryToSend = self.makeQueryObj(query)
             response = self.sendQueryObj(model, queryToSend)
