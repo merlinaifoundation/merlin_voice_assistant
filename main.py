@@ -6,7 +6,6 @@ from libs.greeter import Greeter
 from libs.recorder import Recorder
 from libs.gpt import ChatGPT
 from libs.listener import Listener
-from libs.interpreter import Interpreter
 
 
 try:
@@ -17,8 +16,6 @@ try:
     firstTimeLoading = True
     greeter = Greeter()
     chatGPT = ChatGPT()
-    interpreter = Interpreter()
-    
                     
     while True:
 
@@ -57,8 +54,8 @@ try:
             print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
             
             questionsRecorder.CleanRecording()
-            transcript  = interpreter.SpeechToText(userRecordedInput)
-            
+            transcript  = greeter.SpeechToText(userRecordedInput)
+
             response = chatGPT.Query(transcript)
 
             if response is None:
@@ -68,7 +65,6 @@ try:
                 chatGPT.AppendAnswer(response)
 
                 greeter.UseVoice(response)
-
                 greeter.UseDisplay(response)
 
         else:
