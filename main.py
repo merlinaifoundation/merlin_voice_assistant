@@ -45,11 +45,11 @@ try:
 
         userRecordedInput = questionsRecorder.HasRecording()
         transcriptRawSize = len(userRecordedInput)
-        questionsRecorder.SaveRecording("PRUEBA.mp3")
+        
         # print("Iter: ", count, " Idle")
 
         if transcriptRawSize > 0:
-
+            questionsRecorder.SaveRecording("PRUEBA.mp3")
             response = None
 
             print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
