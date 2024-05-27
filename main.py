@@ -49,14 +49,14 @@ try:
         # print("Iter: ", count, " Idle")
 
         if transcriptRawSize > 0:
-            questionsRecorder.SaveRecording("PRUEBA.mp3")
+            fileRecording = questionsRecorder.SaveRecording()
             response = None
 
             print("Iter: ", count, " has Recording Size: ", transcriptRawSize)
             
             questionsRecorder.CleanRecording()
-            transcript  = greeter.SpeechToTextOpenAI(userRecordedInput)
-
+            transcript  = greeter.SpeechToText(fileRecording)
+            print ("Transcript:", transcript )
             response = chatGPT.Query(transcript)
 
             if response is None:

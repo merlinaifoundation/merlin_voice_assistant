@@ -66,10 +66,22 @@ If you’re using Linux (specifically Debian/Ubuntu), you can install the Python
 sudo apt update && sudo apt install python3-pyaudio
 ```
 
-Additionally, make sure you have the PortAudio library installed. On Debian/Ubuntu, you can do this with:
+Additionally, make sure you have the PortAudio library and FFMPEG installed. On Debian/Ubuntu, you can do this with:
 
 ```bash
-sudo apt install portaudio19-dev
+sudo apt install portaudio19-dev ffmpeg
+
+```
+
+In Windows you can run PowerShell with Administrator Privileges and run using Chocolatery:
+
+```bash
+
+choco install ffmpeg
+
+
+```
+
 ```
 
 4. Create a new Python 3.10 environment:
