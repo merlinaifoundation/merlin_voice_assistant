@@ -1,7 +1,8 @@
 from threading import Thread
 from pvrecorder import PvRecorder
 from decouple import config
-
+from pydub import AudioSegment
+import numpy as np
 
 class Recorder(Thread):
     def __init__(self, bufferLimit=None):
@@ -67,3 +68,19 @@ class Recorder(Thread):
         self._stop = True
         while self._is_recording:
             pass
+    def SaveRecording(self, file_path):
+        if self._result:
+            # Convert the buffer to a numpy array
+            audio_data = np.array(self._result, dtype=np.int16)
+
+            # Create an AudioSegment from the numpy array
+            audio_segment = AudioSegment(
+                audio_data.tobytes(),
+                frame_rate=self._recorder.sample_rate,
+                sample_width=audio_data.dtype.itemsize,
+                channels=1
+            )
+
+            # Export the AudioSegment to an MP3 file
+            audio_segment.export(file_path, format="mp3")
+            print(f"Recording saved to {file_path}")

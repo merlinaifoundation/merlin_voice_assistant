@@ -25,7 +25,9 @@ class Greeter(Thread):
     def SpeechToText(self,userRecordedInput):
         transcript  = self.interpreter.SpeechToText(userRecordedInput)
         return transcript
-
+    def SpeechToTextOpenAI(self,userRecordedInput):
+        transcript  = self.interpreter.SpeechToTextOpenAI(userRecordedInput)
+        return transcript
     def SleepingVoice(self):
         sleepVoiceObj = TextToSpeech()
         sleepVoiceObj.Tell(self.sleepingVoice)
