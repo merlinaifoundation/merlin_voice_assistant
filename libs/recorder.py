@@ -1,3 +1,5 @@
+import os
+import random
 from threading import Thread
 from pvrecorder import PvRecorder
 from decouple import config
@@ -17,6 +19,13 @@ class Recorder(Thread):
         print("Recording Buffer Limit set at: ", self._bufferLimit)
         self._finalized = False
         self._recorder = PvRecorder(device_index=-1, frame_length=512)
+        rootPath = os.path.dirname(__file__)
+        internalPath = str(random.randint(0, 1000000)) + ".mp3"
+        self.file_path = os.path.join(
+            rootPath,
+            "tmp",
+            internalPath,
+        )
 
     def run(self):
         # start recording
@@ -43,6 +52,7 @@ class Recorder(Thread):
         self._stop = True
         self._is_recording = False
         self._finalized = True
+        
 
     def StartRecording(self):
         if self._stop and self._finalized is False:
@@ -63,12 +73,14 @@ class Recorder(Thread):
 
         self._result = []
         self._buffer = []
+        #os.remove(self.file_path)
+        
 
     def StopRecording(self):
         self._stop = True
         while self._is_recording:
             pass
-    def SaveRecording(self, file_path):
+    def SaveRecording(self):
         if self._result:
             # Convert the buffer to a numpy array
             audio_data = np.array(self._result, dtype=np.int16)
@@ -82,5 +94,8 @@ class Recorder(Thread):
             )
 
             # Export the AudioSegment to an MP3 file
-            audio_segment.export(file_path, format="mp3")
-            print(f"Recording saved to {file_path}")
+            audio_segment.export(self.file_path, format="mp3")
+            print(f"Recording saved to {self.file_path}")
+        
+            audio_segment = None
+            return self.file_path

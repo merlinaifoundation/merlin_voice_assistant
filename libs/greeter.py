@@ -4,7 +4,7 @@ from decouple import config
 from libs.actions import Action
 from libs.textToSpeech import TextToSpeech
 from libs.textResponder import TextDisplay
-from libs.interpreter import Interpreter
+from libs.interpreter import InterpreterAI
 
 class Greeter(Thread):
 
@@ -16,7 +16,7 @@ class Greeter(Thread):
         self.pv_access_key = config("PV_ACCESS_KEY")
         self.wakeWordFile = config("WAKE_WORD_FILE")
         self.stopWordFile = config("STOP_WORD_FILE")
-        self.interpreter = Interpreter()
+        self.interpreter = InterpreterAI()
         self.wakeAction = None
         self.stopAction = None
         self.voice = None
@@ -24,9 +24,6 @@ class Greeter(Thread):
 
     def SpeechToText(self,userRecordedInput):
         transcript  = self.interpreter.SpeechToText(userRecordedInput)
-        return transcript
-    def SpeechToTextOpenAI(self,userRecordedInput):
-        transcript  = self.interpreter.SpeechToTextOpenAI(userRecordedInput)
         return transcript
     def SleepingVoice(self):
         sleepVoiceObj = TextToSpeech()

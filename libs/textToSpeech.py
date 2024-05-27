@@ -16,14 +16,14 @@ class TextToSpeech(Thread):
         self.chat = None
         self._stop = True
         rootPath = os.path.dirname(__file__)
-        internalPath = str(random.randint(0, 10000)) + ".mp3"
+        internalPath = str(random.randint(0, 1000000)) + ".mp3"
         self.output_file = os.path.join(
             rootPath,
             "tmp",
             internalPath,
         )
         self.mixer = pygame.mixer
-        self.mixer.init()
+        
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
 
     def Stop(self):
@@ -46,7 +46,7 @@ class TextToSpeech(Thread):
     def run(self):
 
         try:
-            
+            self.mixer.init()
             tts = gTTS(text=self.chat, lang=self.lang)
             # You can specify other languages by changing the 'lang' parameter
             tts.save(self.output_file)
