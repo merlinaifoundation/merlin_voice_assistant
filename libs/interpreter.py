@@ -16,14 +16,18 @@ class InterpreterAI(Thread):
 
     def SpeechToText(self, file, response_format):
 
-        transcription = ""
-        
+        transcriptionTxt = ""
+        transcription = None
         try:
             audio_file = open(file, "rb")
             transcription = self.client.audio.transcriptions.create(
                 model="whisper-1", file=audio_file, response_format=response_format
             )
+            transcriptionTxt = str(transcription)
+
         except Exception as e:
             print("Error", e)
         
-        return transcription
+        transcription = None
+        
+        return transcriptionTxt

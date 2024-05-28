@@ -1,14 +1,14 @@
 import os
 import pygame
 from threading import Thread
-from gtts import gTTS
+#from gtts import gTTS
 from time import sleep
 from os import environ
 
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from decouple import config
 import random
-
+from openai import OpenAI
 
 class TextToSpeech(Thread):
     def __init__(self):
@@ -25,7 +25,9 @@ class TextToSpeech(Thread):
         self.mixer = pygame.mixer
         self.mixer.init()
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
+        OPENAI_API_KEY = config("OPENAI_API_KEY")
 
+        self.client = OpenAI(api_key=str(OPENAI_API_KEY))
     def Stop(self):
         try:
             
@@ -47,9 +49,13 @@ class TextToSpeech(Thread):
 
         try:
            
-            tts = gTTS(text=self.chat, lang=self.lang)
             # You can specify other languages by changing the 'lang' parameter
-            tts.save(self.output_file)
+
+            #tts = gTTS(text=self.chat, lang=self.lang)
+            #tts.save(self.output_file)
+
+            with self.client.audio.speech.with_streaming_response.create(model="tts-1", voice="alloy", input=str(self.chat)) as tts_response:
+                tts_response.stream_to_file(self.output_file)
             self.mixer.music.load(self.output_file)
             self.mixer.music.play()
             while self.mixer.music.get_busy():
