@@ -23,7 +23,7 @@ class TextToSpeech(Thread):
             internalPath,
         )
         self.mixer = pygame.mixer
-        
+        self.mixer.init()
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
 
     def Stop(self):
@@ -46,7 +46,7 @@ class TextToSpeech(Thread):
     def run(self):
 
         try:
-            self.mixer.init()
+           
             tts = gTTS(text=self.chat, lang=self.lang)
             # You can specify other languages by changing the 'lang' parameter
             tts.save(self.output_file)

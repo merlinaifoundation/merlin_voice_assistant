@@ -23,7 +23,7 @@ class Greeter(Thread):
         self._greeted = False
 
     def SpeechToText(self,userRecordedInput):
-        transcript  = self.interpreter.SpeechToText(userRecordedInput)
+        transcript  = self.interpreter.SpeechToText(userRecordedInput, "text")
         return transcript
     def SleepingVoice(self):
         sleepVoiceObj = TextToSpeech()
