@@ -31,7 +31,7 @@ class TextDisplay(Thread):
         
         
 
-    def Tell(self, chat):
+    def Display(self, chat):
         if (self._stop) and (chat is not None):
             self._stop = False
             self.chat = chat

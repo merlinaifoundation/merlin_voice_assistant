@@ -30,7 +30,7 @@ class TextToSpeech(Thread):
         self.client = OpenAI(api_key=str(OPENAI_API_KEY))
     def Stop(self):
         try:
-            
+            self.mixer.music.stop()
             self.mixer.quit()
 
         except Exception as error:
@@ -56,18 +56,19 @@ class TextToSpeech(Thread):
 
             with self.client.audio.speech.with_streaming_response.create(model="tts-1", voice="alloy", input=str(self.chat)) as tts_response:
                 tts_response.stream_to_file(self.output_file)
+            
             self.mixer.music.load(self.output_file)
             self.mixer.music.play()
             while self.mixer.music.get_busy():
                 sleep(0.1)
-            self.mixer.music.stop()
+            
 
         except Exception as error:
             print("Error:", error)
 
         self.Stop()
 
-    def Tell(self, chat):
+    def SpeakFromText(self, chat):
         if (self._stop) and (chat is not None):
             self._stop = False
             self.chat = chat

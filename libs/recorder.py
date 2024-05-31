@@ -30,14 +30,14 @@ class Recorder(Thread):
     def run(self):
         # start recording
         self._recorder.start()
-        print("Recording...")
-        while not self._stop:
+        print("Recording...", self.file_path)
+        while self._is_recording:
             # read
             reading = self._recorder.read()
             # if more data than limit, clean buffer
             if len(self._buffer) > self._bufferLimit:
                 print(
-                    "Recorder Buffer Limit was Hit", len(self._buffer), ". Flushing..."
+                    "Recorder Buffer Limit was Hit", len(self._buffer), ". Flushing...", self.file_path
                 )
                 self._buffer = []
             # append to buffer
@@ -45,12 +45,13 @@ class Recorder(Thread):
                 self._buffer.extend(reading)
         # stop recording
         self._recorder.stop()
+        self._recorder.delete()
         # append result to final variable
         self._result = self._buffer.copy()
 
         # flags
         self._stop = True
-        self._is_recording = False
+        #self._is_recording = False
         self._finalized = True
         
 
@@ -61,6 +62,7 @@ class Recorder(Thread):
             self.start()
 
     def IsRecording(self):
+        
         return self._is_recording
 
     def Finished(self):
@@ -77,9 +79,11 @@ class Recorder(Thread):
         
 
     def StopRecording(self):
-        self._stop = True
-        while self._is_recording:
+        self._is_recording = False
+        while not self._stop:
+            print('.', end='')
             pass
+        
     def SaveRecording(self):
         if self._result:
             # Convert the buffer to a numpy array

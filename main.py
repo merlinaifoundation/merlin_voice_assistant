@@ -42,7 +42,7 @@ try:
         if questionsRecorder.IsRecording():
             print("Stopping Recording...")
             questionsRecorder.StopRecording()
-
+            
         userRecordedInput = questionsRecorder.HasRecording()
         transcriptRawSize = len(userRecordedInput)
         
