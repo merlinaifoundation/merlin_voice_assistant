@@ -127,6 +127,13 @@ python3 main.py
 
 3. Say the wake word "Merlin" to activate the assistant and then speak your query.
 
+
+## ISSUES ON RASPBERRY PI 5:
+
+1. Fat32 / could not mount during RPI-Imager writing. This is due to USB auto-suspend. 
+Follow the answer from @mariuszbrz at https://github.com/raspberrypi/rpi-imager/issues/505
+
+2. Because of 5A required for USB, the first-time booting requires another press the RESET/POWER button again 
 ## Customization
 
 - **Wake Word**: You can change the wake word by replacing the `Merlin_en_linux_v2_2_0.ppn` file with another Porcupine keyword file and updating the `keyword_path` in the `wake_word()` function.
