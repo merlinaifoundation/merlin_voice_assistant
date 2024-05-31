@@ -27,7 +27,7 @@ class Greeter(Thread):
         return transcript
     def SleepingVoice(self):
         sleepVoiceObj = TextToSpeech()
-        sleepVoiceObj.Tell(self.sleepingVoice)
+        sleepVoiceObj.SpeakFromText(self.sleepingVoice)
 
     def HasGreeted(self):
         return self._greeted
@@ -45,7 +45,7 @@ class Greeter(Thread):
     def UseVoice(self, content):
         if self.voice is None:
             self.voice = TextToSpeech()
-            self.voice.Tell(content)
+            self.voice.SpeakFromText(content)
 
     def InitActions(self):
         if self.wakeAction is None:
@@ -58,11 +58,11 @@ class Greeter(Thread):
 
     def AwakeVoice(self):
         awakeVoiceObj = TextToSpeech()
-        awakeVoiceObj.Tell(self.awakeVoice)
+        awakeVoiceObj.SpeakFromText(self.awakeVoice)
 
     def UseDisplay(self, text):
         txtDisplay = TextDisplay()
-        txtDisplay.Tell(text)
+        txtDisplay.Display(text)
 
     def SetHasGreeted(self, state):
         self._greeted = state
