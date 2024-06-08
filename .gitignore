@@ -1,6 +1,7 @@
 merlin_voice
 __pycache__
 .env
+.env.fulvio
 myenv
 speech.mp3
 Python-3.10.13
