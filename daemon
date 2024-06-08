@@ -1,0 +1,15 @@
+[Unit]
+Description=Merlin Wizard
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/ubuntu/merlin_voice_assistant/
+ExecStart=/bin/bash /home/ubuntu/merlin_voice_assistant/merlin.sh
+TimeoutStartSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

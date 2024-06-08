@@ -25,5 +25,6 @@ tqdm==4.66.4
 typing_extensions==4.12.0
 urllib3==2.2.1
 pydub==0.25.1
-numpy==1.19
+numpy==1.24.4
+python-decouple==3.8
 
