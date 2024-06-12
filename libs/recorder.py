@@ -68,7 +68,7 @@ class Recorder(Thread):
     def Finished(self):
         return self._finalized
 
-    def HasRecording(self):
+    def HasRecordingObj(self):
         return self._result
 
     def CleanRecording(self):
@@ -81,10 +81,10 @@ class Recorder(Thread):
     def StopRecording(self):
         self._is_recording = False
         while not self._stop:
-            print('.', end='')
+            #print('.', end='')
             pass
         
-    def SaveRecording(self):
+    def SaveRecordingObj(self):
         if self._result:
             # Convert the buffer to a numpy array
             audio_data = np.array(self._result, dtype=np.int16)
