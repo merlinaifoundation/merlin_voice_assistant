@@ -11,54 +11,74 @@ class Greeter(Thread):
     def __init__(self):
         super().__init__()
 
-        self.sleepingVoice = config("SLEEPING_VOICE")
-        self.awakeVoice = config("AWAKE_VOICE")
+        self.sleepingVoiceTxt = config("SLEEPING_VOICE")
+        self.awakeVoiceTxt = config("AWAKE_VOICE")
         self.pv_access_key = config("PV_ACCESS_KEY")
         self.wakeWordFile = config("WAKE_WORD_FILE")
         self.stopWordFile = config("STOP_WORD_FILE")
+        
+        self._stopInnerFile  = "StopVoice.mp3"
+        self._wakeInnerFile  = "WakeVoice.mp3"
+        
         self.interpreter = InterpreterAI()
         self.wakeAction = None
         self.stopAction = None
-        self.voice = None
+        self._voice = None
         self._greeted = False
+        self._prepareDefaultVoices()
 
     def SpeechToText(self,userRecordedInput):
         transcript  = self.interpreter.SpeechToText(userRecordedInput, "text")
         return transcript
+    
+    def _prepareDefaultVoices(self):
+        
+        print("Creating Stop Audio File...")
+        self._sleepVoiceObj = TextToSpeech()
+        self._sleepVoiceObj.SetFile(self._stopInnerFile)
+        self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt)
+        print("Creating Wake Audio File...")
+        self._awakeVoiceObj = TextToSpeech()
+        self._awakeVoiceObj.SetFile(self._wakeInnerFile)
+        self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt)
+        print("Finished creating the default voices")
+    
+        
     def SleepingVoice(self):
-        sleepVoiceObj = TextToSpeech()
-        sleepVoiceObj.SpeakFromText(self.sleepingVoice)
-
+        self._sleepVoiceObj.SpeakFromFile(self._stopInnerFile)
+    
+    def AwakeVoice(self):
+        self._awakeVoiceObj.SpeakFromFile(self._wakeInnerFile)
+    
+    def UseVoice(self, content):
+        if self._voice is None:
+            self._voice = TextToSpeech()
+        self._voice.SpeakFromText(content)
+  
     def HasGreeted(self):
         return self._greeted
 
-    def ResetActions(self):
+    def ResetWaker(self):
         self.wakeAction = None
+    def ResetStopper(self):
         self.stopAction = None
 
     def ResetVoice(self):
-        self.voice = None
+        self._voice = None
 
     def IsIdle(self):
-        return (self.voice is not None) and self.voice.Finished()
+        return (self._voice is not None) and self._voice.Finished()
 
-    def UseVoice(self, content):
-        if self.voice is None:
-            self.voice = TextToSpeech()
-            self.voice.SpeakFromText(content)
-
-    def InitActions(self):
+    def InitWaker(self):
         if self.wakeAction is None:
             self.wakeAction = Action(self.pv_access_key, self.wakeWordFile)
-            self.wakeAction.Start()
-
+            self.wakeAction.StartListening()
+       
+    def InitStopper(self):
         if self.stopAction is None:
             self.stopAction = Action(self.pv_access_key, self.stopWordFile)
-            self.stopAction.Start()
+            self.stopAction.StartListening()
 
-    def AwakeVoice(self):
-        awakeVoiceObj = TextToSpeech()
-        awakeVoiceObj.SpeakFromText(self.awakeVoice)
 
     def UseDisplay(self, text):
         txtDisplay = TextDisplay()

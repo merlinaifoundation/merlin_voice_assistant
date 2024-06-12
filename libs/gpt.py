@@ -20,7 +20,9 @@ class ChatGPT(Thread):
         ]
 
         #print("Using OPENAI KEY", OPENAI_API_KEY)
-        print("Using Chat Log", self.CHAT_LOG)
+        print("Using Merlin Default Prompt: ")
+        print(self.CHAT_LOG)
+
 
         self.prompt = [
             "How may I assist you?",

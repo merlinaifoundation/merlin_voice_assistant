@@ -29,7 +29,7 @@ class Action(Thread):
             frames_per_buffer=self.porcupine.frame_length,
         )
 
-    def Start(self):
+    def StartListening(self):
         
         if not self._invoked:
             self._stop = False
