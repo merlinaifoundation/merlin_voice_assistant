@@ -8,14 +8,12 @@ from libs.listener import Listener
 
 
 try:
-
+    
+    greeter = Greeter()
+    
     count = 0
-
     questionsRecorder = None
     firstTimeLoading = True
-    greeter = Greeter()
-  
-    
     chatGPT = ChatGPT()
 
     while True:
@@ -23,103 +21,102 @@ try:
         greeter.InitWaker()
         sleep(0.05)
 
-        greeter.InitStopper()
-        sleep(0.05)
-
-        if count > 1000000:
-            count = 0
-
-        count += 1
+        if firstTimeLoading:
+            firstTimeLoading = False
+            if greeter.wakeAction:
+                greeter.wakeAction.SetInvoked(True)
+                sleep(0.05)
 
         # checks if user asked to Stop
         if greeter.stopAction and greeter.stopAction.IsInvoked():
 
             print("Sleeping...")
-            greeter.SleepingVoice()
+            greeter.ResetVoice()
+            greeter.VoiceSleeping()
             greeter.ResetWaker()
             greeter.SetHasGreeted(False)
-            greeter.ResetVoice()
             if questionsRecorder is not None:
                 questionsRecorder.StopRecording()
                 questionsRecorder.CleanRecording()
                 questionsRecorder = None
-            sleep(0.1)
             greeter.ResetStopper()
             print("Flush finished. Restarting...")
+            continue
 
-        else:
+        if greeter.wakeAction and greeter.wakeAction.IsInvoked():
 
-            if firstTimeLoading:
-                firstTimeLoading = False
-                if greeter.wakeAction:
-                    greeter.wakeAction.SetInvoked(True)
+            if not greeter.HasGreeted():
+                print("Welcome...")
+                greeter.VoiceAwake()
+                greeter.SetHasGreeted(True)
+                sleep(2)
+                
+            greeter.InitStopper()
+            sleep(0.05)
+                
+            # check if voice finished to start recording again
+            if greeter.IsIdle():
+                print("GreeterVoice Finished. Flushing...")
+                greeter.ResetVoice()
+                questionsRecorder = None
 
-            if greeter.wakeAction and greeter.wakeAction.IsInvoked():
+            if questionsRecorder is None:
+                questionsRecorder = Recorder(None)
 
-                if not greeter.HasGreeted():
-                    print("Welcoming...")
-                    greeter.AwakeVoice()
-                    greeter.SetHasGreeted(True)
-                    sleep(2)
+            if questionsRecorder and not questionsRecorder.Finished():
+                sleep(0.05)
+                questionsRecorder.StartRecording()
+                listener = Listener()
+                listener.Trigger()
+                
+            if greeter.stopAction and greeter.stopAction.IsInvoked():
+                continue
+
+            if questionsRecorder.IsRecording():
+                print("Stopping Recording...")
+                questionsRecorder.StopRecording()
+
+            if greeter.stopAction and greeter.stopAction.IsInvoked():
+                continue
+
+            userRecordedInput = questionsRecorder.HasRecordingObj()
+            userRecordedInputSize = len(userRecordedInput)
+            # print("Iter: ", count, " Idle")
+            if userRecordedInputSize > 0:
 
                 if greeter.stopAction and greeter.stopAction.IsInvoked():
                     continue
-                # check if voice finished to start recording again
-                if greeter.IsIdle():
-                    print("GreeterVoice Finished. Flushing...")
-                    greeter.ResetVoice()
-                    questionsRecorder = None
 
-                if questionsRecorder is None:
-                    questionsRecorder = Recorder(None)
-
-                if questionsRecorder and not questionsRecorder.Finished():
-                    sleep(0.1)
-                    questionsRecorder.StartRecording()
-                    listener = Listener()
-                    listener.Trigger()
-
-                if questionsRecorder.IsRecording():
-                    print("Stopping Recording...")
-                    questionsRecorder.StopRecording()
+                fileRecording = questionsRecorder.SaveRecordingObj()
+                print("Iter: ", count, " has Recording Size: ", userRecordedInputSize)
+                questionsRecorder.CleanRecording()
+                
+                if greeter.stopAction and greeter.stopAction.IsInvoked():
+                    continue
+                
+                aiResponse = None
+                transcript = greeter.SpeechToText(fileRecording)
+                print("Transcript:", transcript)
+                
+                if greeter.stopAction and greeter.stopAction.IsInvoked():
+                    continue
+                
+                aiResponse = chatGPT.Query(transcript)
 
                 if greeter.stopAction and greeter.stopAction.IsInvoked():
                     continue
 
-                userRecordedInput = questionsRecorder.HasRecordingObj()
-                userRecordedInputSize = len(userRecordedInput)
-                # print("Iter: ", count, " Idle")
-                if userRecordedInputSize > 0:
-
-                    if greeter.stopAction and greeter.stopAction.IsInvoked():
-                        continue
-
-                    fileRecording = questionsRecorder.SaveRecordingObj()
-                    print(
-                        "Iter: ", count, " has Recording Size: ", userRecordedInputSize
-                    )
+                if aiResponse is not None:
+                    print("Display:", aiResponse)
+                    greeter.VoiceDefault(aiResponse)
+                    chatGPT.AppendAnswer(aiResponse)
+                    # greeter.UseDisplay(aiResponse)
                     
+        
+        if count > 1000000:
+            count = 0
+        count += 1
+        sleep(0.05)
 
-                    if greeter.stopAction and greeter.stopAction.IsInvoked():
-                        continue
-
-                    questionsRecorder.CleanRecording()
-                    aiResponse = None
-                    transcript = greeter.SpeechToText(fileRecording)
-                    print("Transcript:", transcript)
-                    aiResponse = chatGPT.Query(transcript)
-
-                    if greeter.stopAction and greeter.stopAction.IsInvoked():
-                        continue
-
-                    if aiResponse is not None:
-                        print("Display:", aiResponse)
-                        chatGPT.AppendAnswer(aiResponse)
-                        greeter.UseVoice(aiResponse)
-                        #greeter.UseDisplay(aiResponse)
-                        
-
-
-except KeyboardInterrupt:
-    print("\nExiting ChatGPT Virtual Assistant")
-
+except Exception as error:
+    print("\nExiting ChatGPT Virtual Assistant", error)
