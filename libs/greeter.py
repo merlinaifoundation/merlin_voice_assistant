@@ -15,22 +15,39 @@ class Greeter(Thread):
         self.awakeVoiceTxt = config("AWAKE_VOICE")
         self.pv_access_key = config("PV_ACCESS_KEY")
         self.wakeWordFile = config("WAKE_WORD_FILE")
+        self.waitVoiceTxt = config("WAIT_VOICE")
+
         self.stopWordFile = config("STOP_WORD_FILE")
         
         self._stopInnerFile  = "StopVoice.mp3"
         self._wakeInnerFile  = "WakeVoice.mp3"
+        self._waitInnerFile  = "WaitVoice.mp3"
+
         
-        self.interpreter = InterpreterAI()
+        self._prepareInitialVoice()
+        
         self.wakeAction = None
         self.stopAction = None
         self._voice = None
         self._greeted = False
+        
+        self.interpreter = InterpreterAI()
+        
         self._prepareDefaultVoices()
 
     def SpeechToText(self,userRecordedInput):
         transcript  = self.interpreter.SpeechToText(userRecordedInput, "text")
         return transcript
     
+    def _prepareInitialVoice(self):
+        
+        self._waitVoiceObj = TextToSpeech()
+        self._waitVoiceObj.SetFile(self._waitInnerFile)
+        self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt)
+        print("Initializing...")
+        self.VoiceWait()
+        
+        
     def _prepareDefaultVoices(self):
         
         print("Creating Stop Audio File...")
@@ -44,13 +61,16 @@ class Greeter(Thread):
         print("Finished creating the default voices")
     
         
-    def SleepingVoice(self):
+    def VoiceSleeping(self):
         self._sleepVoiceObj.SpeakFromFile(self._stopInnerFile)
     
-    def AwakeVoice(self):
+    def VoiceAwake(self):
         self._awakeVoiceObj.SpeakFromFile(self._wakeInnerFile)
     
-    def UseVoice(self, content):
+    def VoiceWait(self):
+        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile)
+    
+    def VoiceDefault(self, content):
         if self._voice is None:
             self._voice = TextToSpeech()
         self._voice.SpeakFromText(content)
