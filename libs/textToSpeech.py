@@ -57,7 +57,7 @@ class TextToSpeech(Thread):
     def _setFilePath(self):
         self.output_file = os.path.join(
                 self._rootPath,
-                "tmp",
+                "defaultVoices",
                 self._fileName,
             )
 

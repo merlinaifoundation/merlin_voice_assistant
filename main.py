@@ -61,9 +61,8 @@ try:
 
             if greeter.questionsRecorder and not greeter.questionsRecorder.Finished():
                 greeter.questionsRecorder.StartRecording()
-                
-                listener.Listen()
-                listener.DetectSilence()
+                listener.Listen(greeter.stopAction)
+                listener.DetectSilence(greeter.stopAction)
 
             if greeter.stopAction and greeter.stopAction.IsInvoked():
                 continue
