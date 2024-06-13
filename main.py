@@ -116,7 +116,7 @@ try:
                             if len(aiResponse) > 300:
                                 greeter.VoiceWait()
 
-                            chatGPT.AppendAnswer(aiResponse)
+                            chatGPT.AppendAnswer(aiResponse, 29)
 
                             print("Display Response: ", aiResponse)
                             greeter.VoiceDefault(aiResponse, greeter.stopAction)

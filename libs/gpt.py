@@ -65,11 +65,14 @@ class ChatGPT(Thread):
         # return the answer trimmed
         return str.strip(str(answer))
 
-    def ClearCummulativeAnswers(self):
+    def _clearCummulativeAnswers(self):
         self.cummulative = []
-        print("Clearing Cumm Answers", self.cummulative)
 
-    def AppendAnswer(self, answer):
+    def AppendAnswer(self, answer, max):
+        answers = len(self.cummulative)
+        if answers > max:
+            print("Clearing Cumm Answers", answers)
+            self._clearCummulativeAnswers()
         self.cummulative.append({"role": "assistant", "content": answer})
 
     # to be tested
