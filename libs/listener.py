@@ -25,7 +25,7 @@ class Listener(Thread):
 
         self._stop = False
         self._invoked = False
-        
+
         try:
             print("Listening...")
 
@@ -36,14 +36,14 @@ class Listener(Thread):
                 input=True,
                 frames_per_buffer=self._cobra.frame_length,
             )
-            
+
             frameLength = self._cobra.frame_length
 
             while stopObject and stopObject.IsInvoked() is False:
                 listen_pcm = listen_audio_stream.read(frameLength)
                 listen_pcm = struct.unpack_from("h" * frameLength, listen_pcm)
                 listenValue = self._cobra.process(listen_pcm)
-                
+
                 if listenValue > self._listenerThreshold:
                     print("\nVoice detected at [0-1] level:", listenValue)
                     listen_audio_stream.stop_stream()
@@ -51,7 +51,7 @@ class Listener(Thread):
                     # self._cobra.delete()
                     break
                 else:
-                    print(".", end='')
+                    print(".", end="")
 
         except Exception as error:
             print("Error Listening:", error)
@@ -78,11 +78,11 @@ class Listener(Thread):
 
                 silenceValue = self._cobra.process(cobra_pcm)
                 if silenceValue > self._silenceThreshold:
-                    print("_", end='')
+                    print("_", end="")
                     last_voice_time = time.time()
                 else:
                     silence_duration = time.time() - last_voice_time
-                    
+
                     if silence_duration > self._silenceDuration:
                         print("\nTotal Silence of: ", silence_duration, " seconds")
                         cobra_audio_stream.stop_stream()
