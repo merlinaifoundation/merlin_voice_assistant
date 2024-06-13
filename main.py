@@ -11,11 +11,10 @@ try:
     greeter = Greeter()
 
     count = 0
-    
+
     firstTimeLoading = True
     chatGPT = ChatGPT()
-    listener = Listener(0.45,3.0,0.4)
-    
+    listener = Listener(0.45, 2.4, 0.4)
 
     while True:
 
@@ -75,7 +74,7 @@ try:
                 continue
 
             if greeter.questionsRecorder:
-                
+
                 userRecordedInput = greeter.questionsRecorder.HasRecordingObj()
                 userRecordedInputSize = len(userRecordedInput)
 
@@ -87,11 +86,11 @@ try:
                     )
 
                     if userRecordedInputSize > 38000:
-                    
+
                         if greeter.stopAction and greeter.stopAction.IsInvoked():
                             continue
-                    
-                        #if userRecordedInputSize > 300000:
+
+                        # if userRecordedInputSize > 300000:
                         #    greeter.VoiceProcess()
                         #
                         fileRecording = greeter.questionsRecorder.SaveRecordingObj()
@@ -113,21 +112,19 @@ try:
                             continue
 
                         if aiResponse is not None:
-                            
+
                             if len(aiResponse) > 300:
                                 greeter.VoiceWait()
-                                
+
                             chatGPT.AppendAnswer(aiResponse)
-                            
+
                             print("Display Response: ", aiResponse)
                             greeter.VoiceDefault(aiResponse, greeter.stopAction)
                             # greeter.UseDisplay(aiResponse)
-                    else: 
+                    else:
                         print("Discarding...")
                         greeter.ResetRecorder()
-                        
-        
-        
+
         if count > 1000000:
             count = 0
         count += 1

@@ -78,7 +78,7 @@ class Listener(Thread):
 
                 silenceValue = self._cobra.process(cobra_pcm)
                 if silenceValue > self._silenceThreshold:
-                    print(".", end='')
+                    print("_", end='')
                     last_voice_time = time.time()
                 else:
                     silence_duration = time.time() - last_voice_time
