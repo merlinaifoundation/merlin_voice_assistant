@@ -20,7 +20,9 @@ try:
 
         greeter.InitWaker()
         sleep(0.05)
-
+        greeter.InitStopper()
+        sleep(0.05)
+        
         if firstTimeLoading:
             firstTimeLoading = False
             if greeter.wakeAction:
@@ -51,8 +53,7 @@ try:
                 greeter.SetHasGreeted(True)
                 sleep(2)
                 
-            greeter.InitStopper()
-            sleep(0.05)
+            
                 
             # check if voice finished to start recording again
             if greeter.IsIdle():
@@ -105,11 +106,13 @@ try:
 
                 if greeter.stopAction and greeter.stopAction.IsInvoked():
                     continue
-
+                
                 if aiResponse is not None:
-                    print("Display:", aiResponse)
-                    greeter.VoiceDefault(aiResponse)
                     chatGPT.AppendAnswer(aiResponse)
+                
+                if aiResponse is not None:
+                    print("Display Response:", aiResponse)
+                    greeter.VoiceDefault(aiResponse, greeter.stopAction )
                     # greeter.UseDisplay(aiResponse)
                     
         

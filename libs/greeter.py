@@ -70,9 +70,10 @@ class Greeter(Thread):
     def VoiceWait(self):
         self._waitVoiceObj.SpeakFromFile(self._waitInnerFile)
     
-    def VoiceDefault(self, content):
+    def VoiceDefault(self, content, stopObj):
         if self._voice is None:
             self._voice = TextToSpeech()
+        self._voice.SetForceStopObj (stopObj)
         self._voice.SpeakFromText(content)
   
     def HasGreeted(self):
