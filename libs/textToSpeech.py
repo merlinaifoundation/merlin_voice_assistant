@@ -22,12 +22,17 @@ class TextToSpeech(Thread):
         self._autoremove = False
         self._setFilePath()
         self.mixer = pygame.mixer
+        self._forceStopObj = None
         
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
         OPENAI_API_KEY = config("OPENAI_API_KEY")
 
         self.client = OpenAI(api_key=str(OPENAI_API_KEY))
-
+        
+        
+    def SetForceStopObj(self, obj):
+        self._forceStopObj = obj
+    
     def _stopProcess(self):
         try:
             self.mixer.music.stop()
@@ -55,7 +60,6 @@ class TextToSpeech(Thread):
                 "tmp",
                 self._fileName,
             )
-    
 
     
     def _prepareFile(self):
@@ -75,7 +79,6 @@ class TextToSpeech(Thread):
             print("Error Preparing File:", error)
             
 
-
     def _playFile(self):
         
         self._setFilePath()
@@ -85,7 +88,9 @@ class TextToSpeech(Thread):
             self.mixer.music.load(self.output_file)
             self.mixer.music.play()
             while self.mixer.music.get_busy():
-                sleep(0.1)
+                sleep(0.5)
+                if self._forceStopObj and self._forceStopObj.IsInvoked():
+                    break
 
         except Exception as error:
             print("Error Playing File:", error)
