@@ -19,10 +19,9 @@ class ChatGPT(Thread):
             config("GPT_MODEL2"),
         ]
 
-        #print("Using OPENAI KEY", OPENAI_API_KEY)
+        # print("Using OPENAI KEY", OPENAI_API_KEY)
         print("Using Merlin Default Prompt: ")
         print(self.CHAT_LOG)
-
 
         self.prompt = [
             "How may I assist you?",
@@ -65,12 +64,34 @@ class ChatGPT(Thread):
         # return the answer trimmed
         return str.strip(str(answer))
 
-    def ClearCummulativeAnswers(self):
+    def _clearCummulativeAnswers(self):
         self.cummulative = []
-        print("Clearing Cumm Answers", self.cummulative)
 
-    def AppendAnswer(self, answer):
-        self.cummulative.append({"role": "assistant", "content": answer})
+    def AppendAnswer(self, answer, maximum):
+        answers = len(self.cummulative)
+        if answers > maximum:
+            print("Clearing Cumm Answers", answers)
+            self._clearCummulativeAnswers()
+        if answer is not None:
+            self.cummulative.append({"role": "assistant", "content": answer})
+
+    def SpeechToText(self, file, response_format):
+
+        transcriptionTxt = ""
+        transcription = None
+        try:
+            audio_file = open(file, "rb")
+            transcription = self.client.audio.transcriptions.create(
+                model="whisper-1", file=audio_file, response_format=response_format
+            )
+            transcriptionTxt = str(transcription)
+
+        except Exception as e:
+            print("Error", e)
+
+        transcription = None
+
+        return transcriptionTxt
 
     # to be tested
     def SwitchModel(self):
@@ -81,15 +102,15 @@ class ChatGPT(Thread):
         print("Using Default Model", model, "from length", len(self.GPT_MODELS))
 
     def Query(self, query):
-        
+
         response = None
         if query is None or not query:
             return response
         if len(query) == 0:
             return response
-            
+
         try:
-            
+
             model = self.getModel()
             queryToSend = self.makeQueryObj(query)
             response = self.sendQueryObj(model, queryToSend)

@@ -21,15 +21,12 @@ class TextDisplay(Thread):
                 for word in wrapped_chat:
                     sleep(0.055)
                     print(word, end="", flush=True)
-                print('\n')
-                
+                print("\n")
 
         except Exception as error:
             print("Error:", error)
 
         self._stop = True
-        
-        
 
     def Display(self, chat):
         if (self._stop) and (chat is not None):

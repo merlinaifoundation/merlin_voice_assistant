@@ -23,16 +23,15 @@ class TextToSpeech(Thread):
         self._setFilePath()
         self.mixer = pygame.mixer
         self._forceStopObj = None
-        
+
         self.lang = str(config("OUTPUT_SPEECH_LANG"))
         OPENAI_API_KEY = config("OPENAI_API_KEY")
 
         self.client = OpenAI(api_key=str(OPENAI_API_KEY))
-        
-        
+
     def SetForceStopObj(self, obj):
         self._forceStopObj = obj
-    
+
     def _stopProcess(self):
         try:
             self.mixer.music.stop()
@@ -43,8 +42,6 @@ class TextToSpeech(Thread):
 
         self._stop = True
 
-    
-    
     def _removeFile(self, file):
         try:
             if file is not None:
@@ -53,17 +50,16 @@ class TextToSpeech(Thread):
             os.remove(self.output_file)
         except Exception as error:
             print("Error Removing File:", error)
-            
+
     def _setFilePath(self):
         self.output_file = os.path.join(
-                self._rootPath,
-                "tmp",
-                self._fileName,
-            )
+            self._rootPath,
+            "defaultVoices",
+            self._fileName,
+        )
 
-    
     def _prepareFile(self):
-        
+
         self._setFilePath()
         try:
 
@@ -77,12 +73,11 @@ class TextToSpeech(Thread):
 
         except Exception as error:
             print("Error Preparing File:", error)
-            
 
     def _playFile(self):
-        
+
         self._setFilePath()
-        
+
         try:
             self.mixer.init()
             self.mixer.music.load(self.output_file)
@@ -104,12 +99,14 @@ class TextToSpeech(Thread):
 
     def SetFile(self, file):
         self._fileName = file
-        
+        self._setFilePath()
+        return os.path.isfile(self.output_file)
+
     def PrepareFileFromText(self, chat):
-        
-        self.chat= chat
-        self._prepareFile()     
-        
+
+        self.chat = chat
+        self._prepareFile()
+
     def SpeakFromText(self, chat):
         if (self._stop) and (chat is not None):
             self._stop = False
@@ -117,7 +114,7 @@ class TextToSpeech(Thread):
             self.PrepareFileFromText(self.chat)
             self._autoremove = True
             self._startProcess()
-    
+
     def SpeakFromFile(self, file):
         if (self._stop) and (file is not None):
             self._stop = False
