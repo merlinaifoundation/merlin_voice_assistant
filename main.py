@@ -14,6 +14,8 @@ try:
     
     firstTimeLoading = True
     chatGPT = ChatGPT()
+    listener = Listener(0.45,3.0,0.4)
+    
 
     while True:
 
@@ -59,8 +61,9 @@ try:
 
             if greeter.questionsRecorder and not greeter.questionsRecorder.Finished():
                 greeter.questionsRecorder.StartRecording()
-                listener = Listener(0.5,1.3,0.4)
-                listener.Trigger()
+                
+                listener.Listen()
+                listener.DetectSilence()
 
             if greeter.stopAction and greeter.stopAction.IsInvoked():
                 continue
@@ -121,7 +124,9 @@ try:
                             greeter.VoiceDefault(aiResponse, greeter.stopAction)
                             # greeter.UseDisplay(aiResponse)
                     else: 
+                        print("Discarding...")
                         greeter.ResetRecorder()
+                        
         
         
         if count > 1000000:

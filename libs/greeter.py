@@ -23,8 +23,8 @@ class Greeter(Thread):
 
         self.stopWordFile = config("STOP_WORD_FILE")
 
-        self._stopInnerFile = "StopVoice.mp3"
-        self._wakeInnerFile = "WakeVoice.mp3"
+        self._sleepingInnerFile = "StopVoice.mp3"
+        self._awakeInnerFile = "WakeVoice.mp3"
         self._waitInnerFile = "WaitVoice.mp3"
         self._initInnerFile = "InitVoice.mp3"
         self._processInnerFile = "ProcessVoice.mp3"
@@ -47,8 +47,8 @@ class Greeter(Thread):
     def _prepareInitialVoice(self):
 
         self._initVoiceObj = TextToSpeech()
-        self._initVoiceObj.SetFile(self._initInnerFile)
-        self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt)
+        if self._initVoiceObj.SetFile(self._initInnerFile) is False:
+            self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt)
         print("Initializing...")
         self.VoiceInit()
 
@@ -57,32 +57,34 @@ class Greeter(Thread):
         self._defaultVoiceObj = TextToSpeech()
             
         self._waitVoiceObj = TextToSpeech()
-        self._waitVoiceObj.SetFile(self._waitInnerFile)
-        self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt)
-        print("Creating Wait Audio File...")
+        if self._waitVoiceObj.SetFile(self._waitInnerFile) is False:
+            self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt)
+            print("Creating Wait Audio File...")
         self.VoiceWait()
         
         self._processVoiceObj = TextToSpeech()
-        self._processVoiceObj.SetFile(self._processInnerFile)
-        self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt)
-        print("Creating Process Audio File...")
+        if self._processVoiceObj.SetFile(self._processInnerFile) is False:
+            self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt)
+            print("Creating Process Audio File...")
         
-        print("Creating Stop Audio File...")
         self._sleepVoiceObj = TextToSpeech()
-        self._sleepVoiceObj.SetFile(self._stopInnerFile)
-        self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt)
-        print("Creating Wake Audio File...")
+        if self._sleepVoiceObj.SetFile(self._sleepingInnerFile) is False:
+            self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt)
+            print("Creating Stop Audio File...")
+        
         self._awakeVoiceObj = TextToSpeech()
-        self._awakeVoiceObj.SetFile(self._wakeInnerFile)
-        self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt)
-        print("Finished creating the default voices")
+        if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
+            self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt)
+            print("Creating Wake Audio File...")
+        
+        print("Finished creating the TTS Defaults")
         
 
     def VoiceSleeping(self):
-        self._sleepVoiceObj.SpeakFromFile(self._stopInnerFile)
+        self._sleepVoiceObj.SpeakFromFile(self._sleepingInnerFile)
 
     def VoiceAwake(self):
-        self._awakeVoiceObj.SpeakFromFile(self._wakeInnerFile)
+        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile)
 
     def VoiceWait(self):
         self._waitVoiceObj.SpeakFromFile(self._waitInnerFile)

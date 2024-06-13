@@ -104,6 +104,9 @@ class TextToSpeech(Thread):
 
     def SetFile(self, file):
         self._fileName = file
+        self._setFilePath()
+        return os.path.isfile(self.output_file)
+    
         
     def PrepareFileFromText(self, chat):
         
