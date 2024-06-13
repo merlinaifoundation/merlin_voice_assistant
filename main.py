@@ -19,9 +19,9 @@ try:
     while True:
 
         greeter.InitWaker()
-        sleep(0.05)
+        sleep(0.2)
         greeter.InitStopper()
-        sleep(0.05)
+        sleep(0.2)
         
         if firstTimeLoading:
             firstTimeLoading = False
@@ -35,12 +35,14 @@ try:
             print("Sleeping...")
             greeter.ResetVoice()
             greeter.VoiceSleeping()
-            greeter.ResetWaker()
-            greeter.SetHasGreeted(False)
+            
             if questionsRecorder is not None:
                 questionsRecorder.StopRecording()
                 questionsRecorder.CleanRecording()
                 questionsRecorder = None
+            
+            greeter.ResetWaker()
+            greeter.SetHasGreeted(False)
             greeter.ResetStopper()
             print("Flush finished. Restarting...")
             continue
@@ -51,9 +53,8 @@ try:
                 print("Welcome...")
                 greeter.VoiceAwake()
                 greeter.SetHasGreeted(True)
-                sleep(2)
-                
-            
+                sleep(0.5)
+                continue
                 
             # check if voice finished to start recording again
             if greeter.IsIdle():
@@ -65,7 +66,6 @@ try:
                 questionsRecorder = Recorder(None)
 
             if questionsRecorder and not questionsRecorder.Finished():
-                sleep(0.05)
                 questionsRecorder.StartRecording()
                 listener = Listener()
                 listener.Trigger()
@@ -119,7 +119,7 @@ try:
         if count > 1000000:
             count = 0
         count += 1
-        sleep(0.05)
+        sleep(0.1)
 
 except Exception as error:
     print("\nExiting ChatGPT Virtual Assistant", error)
