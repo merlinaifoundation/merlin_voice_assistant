@@ -1,4 +1,5 @@
 from threading import Thread
+import time
 from decouple import config
 
 from libs.actions import Action
@@ -10,6 +11,7 @@ class Greeter(Thread):
 
     def __init__(self):
         super().__init__()
+        timeNow = time.time()
 
         self.sleepingVoiceTxt = config("SLEEPING_VOICE")
         self.awakeVoiceTxt = config("AWAKE_VOICE")
@@ -34,7 +36,16 @@ class Greeter(Thread):
         self.stopAction = None
         self._greeted = False
         self.count = 0
+        
+        diff = round(time.time() - timeNow, 2)
+        self._prGreen("Greeter Creation in seconds: ", diff)
 
+    def _prRed(self,skk, number):
+        print("\033[91m {}\033[00m".format(skk),number)
+
+    def _prGreen(self,skk, number):
+        print("\033[92m {}\033[00m".format(skk),number)
+        
     def _prepareInitialVoice(self):
 
         self._initVoiceObj = TextToSpeech()
@@ -103,9 +114,14 @@ class Greeter(Thread):
         return (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
 
     def InitWaker(self):
+        timeNow = time.time()
+
         if self.wakeAction is None:
             self.wakeAction = Action(self.pv_access_key, self.wakeWordFile)
             self.wakeAction.StartListening()
+        
+        diff = round(time.time() - timeNow, 2)
+        self._prRed("Init Waker in seconds: ", diff)
 
     def ForceWake(self):
 
@@ -113,9 +129,14 @@ class Greeter(Thread):
             self.wakeAction.SetInvoked(True)
 
     def InitStopper(self):
+        timeNow = time.time()
+
         if self.stopAction is None:
             self.stopAction = Action(self.pv_access_key, self.stopWordFile)
             self.stopAction.StartListening()
+            
+        diff = round(time.time() - timeNow, 2)
+        self._prRed("Init Stopper in seconds: ", diff)
 
     def UseDisplay(self, text):
         txtDisplay = TextDisplay()

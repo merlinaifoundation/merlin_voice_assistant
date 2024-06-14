@@ -20,14 +20,7 @@ class Action(Thread):
         self.porcupine = pvporcupine.create(
             access_key=pv_access_key, keyword_paths=[keyword_path]
         )
-
-        self.porcupine_audio_stream = self.wake_pa.open(
-            rate=self.porcupine.sample_rate,
-            channels=1,
-            format=pyaudio.paInt16,
-            input=True,
-            frames_per_buffer=self.porcupine.frame_length,
-        )
+        self.porcupine_audio_stream =None
 
     def StartListening(self):
 
@@ -47,6 +40,13 @@ class Action(Thread):
 
         try:
 
+            self.porcupine_audio_stream = self.wake_pa.open(
+                rate=self.porcupine.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=self.porcupine.frame_length,
+            )
             print("\nWakeWord Routine from: ", self.wakeWordFile)
 
             devnull = os.open(os.devnull, os.O_WRONLY)
@@ -64,14 +64,17 @@ class Action(Thread):
 
                 if porcupine_keyword_index >= 0:
 
-                    self.porcupine_audio_stream.stop_stream()
-                    self.porcupine_audio_stream.close()
-                    self.porcupine.delete()
+                    
+                    
                     os.dup2(old_stderr, 2)
                     os.close(old_stderr)
 
                     print("\nAction Phrase Detected as in file: ", self.wakeWordFile)
                     self.SetInvoked(True)
 
+            self.porcupine.delete()
+            self.porcupine_audio_stream.stop_stream()
+            self.porcupine_audio_stream.close()
+            
         except Exception as error:
             print("Error:", error)

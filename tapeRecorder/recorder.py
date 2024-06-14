@@ -38,7 +38,7 @@ class Recorder(Thread):
             # if more data than limit, clean buffer
             if len(self._buffer) > self._bufferLimit:
                 print(
-                    "Recorder Buffer Limit was Hit",
+                    "\nRecorder Buffer Limit was Hit",
                     len(self._buffer),
                     ". Flushing...",
                     self.file_path,
