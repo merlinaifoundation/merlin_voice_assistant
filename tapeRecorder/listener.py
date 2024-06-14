@@ -63,7 +63,7 @@ class Listener(Thread):
                         suma = sum(self._averageListenerThreshold)
                         avg = round(suma / lenghtOfArray,2)
                         print ("\nAverage Listening Threshold: ", avg, lenghtOfArray, self._listenerThreshold )
-                        self._listenerThreshold = 2*avg
+                        self._listenerThreshold = 5*avg
                         
                     print("\nVoice detected at [0-1] level:", round(listenValue), self._listenerThreshold)
                     # self._cobra.delete()
@@ -129,7 +129,7 @@ class Listener(Thread):
                             suma = sum(self._averageSilenceThreshold)
                             avg = round(suma / lenghtOfArray,2)
                             print ("\nAverage Silence Threshold: ", avg, lenghtOfArray, self._silenceThreshold )
-                            self._silenceThreshold = 2*avg
+                            self._silenceThreshold = 5*avg
                         
                         print("\nTotal Silence of: ", round(silence_duration,2), " seconds")
                         # self._cobra.delete()
