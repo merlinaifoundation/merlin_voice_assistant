@@ -86,8 +86,8 @@ try:
 
             tapeRecorder.Start(greeter.stopAction)
 
-            if greeter.UserCancelled():
-                continue
+            #if greeter.UserCancelled():
+                #continue
 
             tapeRecorder.Stop()
 
