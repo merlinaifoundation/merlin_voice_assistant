@@ -21,6 +21,11 @@ class Listener(Thread):
         self._silenceAudioObj = pyaudio.PyAudio()
         self._listenAudioObj = pyaudio.PyAudio()
 
+        self._averageListenerThreshold = []
+        self._averageSilenceDuration = []
+        self._averageSilenceThreshold = []
+        self.iterator = 0
+
     def Listen(self, stopObject):
 
         self._stop = False
@@ -44,14 +49,30 @@ class Listener(Thread):
                 listen_pcm = struct.unpack_from("h" * frameLength, listen_pcm)
                 listenValue = self._cobra.process(listen_pcm)
 
+                
+                self._averageListenerThreshold.append( listenValue)
+                
+                lenghtOfArray = len(self._averageListenerThreshold)
+                
+                if lenghtOfArray > 10:
+                    self._averageListenerThreshold.pop(0)
+                
                 if listenValue > self._listenerThreshold:
-                    print("\nVoice detected at [0-1] level:", listenValue)
-                    listen_audio_stream.stop_stream()
-                    listen_audio_stream.close()
+                    
+                    if lenghtOfArray > 10 :
+                        suma = sum(self._averageListenerThreshold)
+                        avg = round(suma / lenghtOfArray,2)
+                        print ("\nAverage Listening Threshold: ", avg, lenghtOfArray, self._listenerThreshold )
+                        #self._listenerThreshold = avg
+                        
+                    print("\nVoice detected at [0-1] level:", listenValue, self._listenerThreshold)
                     # self._cobra.delete()
                     break
                 else:
                     print(".", end="")
+                
+            listen_audio_stream.stop_stream()
+            listen_audio_stream.close()
 
         except Exception as error:
             print("Error Listening:", error)
@@ -77,20 +98,45 @@ class Listener(Thread):
                 cobra_pcm = struct.unpack_from("h" * frameLength, cobra_pcm)
 
                 silenceValue = self._cobra.process(cobra_pcm)
+                
+                self._averageSilenceThreshold.append( silenceValue)
+                
+                lenghtOfArray = len(self._averageSilenceThreshold)
+                
+                if lenghtOfArray > 10:
+                    self._averageSilenceThreshold.pop(0)
+                    
                 if silenceValue > self._silenceThreshold:
                     print("_", end="")
                     last_voice_time = time.time()
+                    
                 else:
+                    
                     silence_duration = time.time() - last_voice_time
-
+                    
+                    self._averageSilenceDuration.append( silence_duration)
+                    if lenghtOfArray > 10:
+                        self._averageSilenceDuration.pop(0)
+                    
                     if silence_duration > self._silenceDuration:
+                        
+                        if lenghtOfArray > 10 :
+                            suma = sum(self._averageSilenceDuration)
+                            avg = round(suma / lenghtOfArray,2)
+                            print ("\nAverage Silence Duration: ", avg, lenghtOfArray, self._silenceDuration )
+                            suma = sum(self._averageSilenceThreshold)
+                            avg = round(suma / lenghtOfArray,2)
+                            print ("\nAverage Silence Threshold: ", avg, lenghtOfArray, self._silenceThreshold )
+                            #self._silenceThreshold = avg
+                        
                         print("\nTotal Silence of: ", silence_duration, " seconds")
-                        cobra_audio_stream.stop_stream()
-                        cobra_audio_stream.close()
                         # self._cobra.delete()
                         last_voice_time = None
                         break
-
+            
+            cobra_audio_stream.stop_stream()
+            cobra_audio_stream.close()
+            
         except Exception as error:
             print("Error Detecting Silence:", error)
 
