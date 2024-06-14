@@ -11,6 +11,9 @@ class ChatGPT(Thread):
 
         OPENAI_API_KEY = config("OPENAI_API_KEY")
         self.CHAT_LOG = config("CHAT_LOG")
+        self.frequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
+        self.temperature = float(config("CHATGPT_TEMPERATURE"))
+
 
         self.defaultModel = 0
         self.GPT_MODELS = [
@@ -58,7 +61,7 @@ class ChatGPT(Thread):
     def sendQueryObj(self, model, send_query):
         # make a OpenAI connection client
         # construct a response object for the query message
-        response = self.client.chat.completions.create(model=model, messages=send_query)
+        response = self.client.chat.completions.create(model=model, messages=send_query, temperature=self.temperature, frequency_penalty=self.frequencyPenalty)
         # get OpenAI answer!
         answer = response.choices[0].message.content
         # return the answer trimmed

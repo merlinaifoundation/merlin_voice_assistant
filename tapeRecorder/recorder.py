@@ -74,11 +74,18 @@ class Recorder(Thread):
     def HasRecordingObj(self):
         return self._result
 
-    def CleanRecording(self):
+    def RemoveRecording(self):
+        try:
+            # os.remove(self.file_path)
+            print("Removing Recording: ", self.file_path)
+            os.remove(self.file_path)
 
+        except Exception as error:
+            print("Error Removing Recording", error)
+
+    def CleanRecording(self):
         self._result = []
         self._buffer = []
-        # os.remove(self.file_path)
 
     def StopRecording(self):
         self._is_recording = False
@@ -87,7 +94,7 @@ class Recorder(Thread):
             pass
 
     def SaveRecordingObj(self):
-        if self._result:
+        if len(self._result) > 0:
             # Convert the buffer to a numpy array
             audio_data = np.array(self._result, dtype=np.int16)
 

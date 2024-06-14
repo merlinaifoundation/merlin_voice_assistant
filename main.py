@@ -11,7 +11,7 @@ try:
     tapeRecorder = TapeRecorder()
     ai = ChatGPT()
 
-    greeter.InitStopper()
+   
     # sleep(0.02)
     greeter.InitWaker()
     # sleep(0.02)
@@ -19,7 +19,7 @@ try:
 
     while True:
 
-        sleep(0.25)
+        sleep(0.01)
 
         greeter.CountIteration()
 
@@ -37,19 +37,23 @@ try:
             print("Restarting...")
             greeter.InitWaker()
             # sleep(0.02)
-            greeter.InitStopper()
-            sleep(0.25)
+            #greeter.InitStopper()
+            #sleep(0.25)
             continue
 
         if greeter.wakeAction and greeter.wakeAction.IsInvoked():
 
+            greeter.InitStopper()
+            
             if not greeter.HasGreeted():
                 print("Welcome...")
                 greeter.VoiceAwake()
                 greeter.SetHasGreeted(True)
+                
                 sleep(1)
                 continue
-
+            
+            
             if greeter.UserCancelled():
                 continue
 
@@ -96,6 +100,7 @@ try:
                         # if userRecordedInputSize > 300000:
                         #    greeter.VoiceProcess()
                         #
+                        
                         fileRecording = tapeRecorder.recorder.SaveRecordingObj()
                         tapeRecorder.recorder.CleanRecording()
 

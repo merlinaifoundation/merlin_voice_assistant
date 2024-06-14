@@ -26,6 +26,7 @@ class TapeRecorder(Thread):
                 print("Stopping Recording...")
                 self.recorder.StopRecording()
             self.recorder.CleanRecording()
+            self.recorder.RemoveRecording()
             self.recorder = None
 
     def Initialize(self):
