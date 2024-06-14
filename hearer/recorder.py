@@ -6,6 +6,7 @@ from decouple import config
 from pydub import AudioSegment
 import numpy as np
 
+
 class Recorder(Thread):
     def __init__(self, bufferLimit=None):
         super().__init__()
@@ -37,7 +38,10 @@ class Recorder(Thread):
             # if more data than limit, clean buffer
             if len(self._buffer) > self._bufferLimit:
                 print(
-                    "Recorder Buffer Limit was Hit", len(self._buffer), ". Flushing...", self.file_path
+                    "Recorder Buffer Limit was Hit",
+                    len(self._buffer),
+                    ". Flushing...",
+                    self.file_path,
                 )
                 self._buffer = []
             # append to buffer
@@ -51,9 +55,8 @@ class Recorder(Thread):
 
         # flags
         self._stop = True
-        #self._is_recording = False
+        # self._is_recording = False
         self._finalized = True
-        
 
     def StartRecording(self):
         if self._stop and self._finalized is False:
@@ -62,7 +65,7 @@ class Recorder(Thread):
             self.start()
 
     def IsRecording(self):
-        
+
         return self._is_recording
 
     def Finished(self):
@@ -75,15 +78,14 @@ class Recorder(Thread):
 
         self._result = []
         self._buffer = []
-        #os.remove(self.file_path)
-        
+        # os.remove(self.file_path)
 
     def StopRecording(self):
         self._is_recording = False
         while not self._stop:
-            #print('.', end='')
+            # print('.', end='')
             pass
-        
+
     def SaveRecordingObj(self):
         if self._result:
             # Convert the buffer to a numpy array
@@ -94,12 +96,12 @@ class Recorder(Thread):
                 audio_data.tobytes(),
                 frame_rate=self._recorder.sample_rate,
                 sample_width=audio_data.dtype.itemsize,
-                channels=1
+                channels=1,
             )
 
             # Export the AudioSegment to an MP3 file
             audio_segment.export(self.file_path, format="mp3")
             print(f"Recording saved to {self.file_path}")
-        
+
             audio_segment = None
             return self.file_path
