@@ -21,7 +21,7 @@ try:
 
 
         
-        sleep(0.05)
+        sleep(0.001)
 
         greeter.CountIteration()
         print ("Doing nothing, Iter:", greeter.count)
@@ -58,7 +58,7 @@ try:
                 greeter.ForceWake()
                 greeter.InitStopper()
 
-            sleep(0.01)
+            sleep(0.001)
             
             continue
 
@@ -82,12 +82,16 @@ try:
                 greeter.stopMode = 1
                 # sleep(0.05)
 
+
             tapeRecorder.Initialize()
 
+            if greeter.UserCancelled():
+                continue
+            
             tapeRecorder.Start(greeter.stopAction)
 
-            #if greeter.UserCancelled():
-                #continue
+            if greeter.UserCancelled():
+                continue
 
             tapeRecorder.Stop()
 
