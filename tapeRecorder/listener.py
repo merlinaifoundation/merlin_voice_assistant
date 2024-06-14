@@ -54,12 +54,12 @@ class Listener(Thread):
                 
                 lenghtOfArray = len(self._averageListenerThreshold)
                 
-                if lenghtOfArray > 20:
+                if lenghtOfArray > 10:
                     self._averageListenerThreshold.pop(0)
                 
                 if listenValue > self._listenerThreshold:
                     
-                    if lenghtOfArray > 20 :
+                    if lenghtOfArray > 10 :
                         suma = sum(self._averageListenerThreshold)
                         avg = round(suma / lenghtOfArray,2)
                         print ("\nAverage Listening Threshold: ", avg, lenghtOfArray, self._listenerThreshold )
@@ -103,7 +103,7 @@ class Listener(Thread):
                 
                 lenghtOfArray = len(self._averageSilenceThreshold)
                 
-                if lenghtOfArray > 20:
+                if lenghtOfArray > 10:
                     self._averageSilenceThreshold.pop(0)
                     
                 if silenceValue > self._silenceThreshold:
@@ -115,12 +115,12 @@ class Listener(Thread):
                     silence_duration = time.time() - last_voice_time
                     
                     self._averageSilenceDuration.append( silence_duration)
-                    if lenghtOfArray > 20:
+                    if lenghtOfArray > 10:
                         self._averageSilenceDuration.pop(0)
                     
                     if silence_duration > self._silenceDuration:
                         
-                        if lenghtOfArray > 20 :
+                        if lenghtOfArray > 10 :
                             suma = sum(self._averageSilenceDuration)
                             avg = round(suma / lenghtOfArray,2)
                             print ("\nAverage Silence Duration: ", avg, lenghtOfArray, self._silenceDuration )
@@ -129,7 +129,7 @@ class Listener(Thread):
                             suma = sum(self._averageSilenceThreshold)
                             avg = round(suma / lenghtOfArray,2)
                             print ("\nAverage Silence Threshold: ", avg, lenghtOfArray, self._silenceThreshold )
-                            #self._silenceThreshold = 2*avg
+                            self._silenceThreshold = 2*avg
                         
                         print("\nTotal Silence of: ", round(silence_duration,2), " seconds")
                         # self._cobra.delete()

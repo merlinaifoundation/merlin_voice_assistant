@@ -21,7 +21,7 @@ try:
 
 
         
-        sleep(0.01)
+        sleep(0.05)
 
         greeter.CountIteration()
         print ("Doing nothing, Iter:", greeter.count)
