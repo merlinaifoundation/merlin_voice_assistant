@@ -2,42 +2,64 @@ from time import sleep
 
 # NEW LIBS
 from libs.greeter import Greeter
-from hearer.base import Hearer
+from tapeRecorder.base import TapeRecorder
 from libs.gpt import ChatGPT
 
 try:
 
     greeter = Greeter()
-    hearer = Hearer()
+    tapeRecorder = TapeRecorder()
     ai = ChatGPT()
 
-    greeter.InitStopper()
+    # sleep(0.02)
+    #greeter.InitStopper()
     greeter.InitWaker()
-    greeter.WakeOnFirstLoad()
-    
-        
+    # sleep(0.02)
+    greeter.ForceWake()
+
     while True:
 
-        sleep(0.2)
+
+        
+        sleep(0.01)
 
         greeter.CountIteration()
+        print ("Doing nothing, Iter:", greeter.count)
 
         # checks if user asked to Stop
         if greeter.UserCancelled():
 
-            print("Sleeping...")
-            greeter.VoiceSleeping()
+            #mode sleeping
+            if greeter.stopMode == 1:
+                print("Sleeping...")
+                greeter.VoiceSleeping()
+            
+            #mode interruption when greeter is talking
+            if greeter.stopMode == 2:
+                print("Processing Interruption...")
+                greeter.VoiceProcess()
+                
             print("Flushing...")
             greeter.ResetWaker()
-            greeter.SetHasGreeted(False)
-            hearer.ResetRecorder()
             greeter.ResetStopper()
-            #
+            tapeRecorder.Reset()
+            
             print("Restarting...")
+            
+            
             greeter.InitWaker()
-            sleep(0.05)
-            greeter.InitStopper()
-            sleep(0.05)
+
+            #mode sleeping
+            if greeter.stopMode == 1:
+                greeter.SetHasGreeted(False)
+            
+            #mode interruption when greeter is talking
+            if greeter.stopMode == 2:
+                greeter.ForceWake()
+                greeter.InitStopper()
+
+            sleep(0.01)
+            
             continue
 
         if greeter.wakeAction and greeter.wakeAction.IsInvoked():
@@ -46,8 +68,9 @@ try:
                 print("Welcome...")
                 greeter.VoiceAwake()
                 greeter.SetHasGreeted(True)
+                greeter.InitStopper()
                 sleep(1)
-                # continue
+                continue
 
             if greeter.UserCancelled():
                 continue
@@ -55,38 +78,37 @@ try:
             # check if voice finished to start recording again
             if greeter.IsIdle():
                 print("GreeterVoice Finished. Flushing...")
-                hearer.ResetRecorder()
-                sleep(0.05)
+                tapeRecorder.Reset()
+                greeter.stopMode = 1
+                # sleep(0.05)
 
-            hearer.InitRecorder()
+            tapeRecorder.Initialize()
 
-            if hearer.recorder and not hearer.recorder.Finished():
-                hearer.recorder.StartRecording()
-                hearer.listener.Listen(greeter.stopAction)
-                hearer.listener.DetectSilence(greeter.stopAction)
+            tapeRecorder.Start(greeter.stopAction)
 
             if greeter.UserCancelled():
                 continue
 
-            if hearer.recorder and hearer.recorder.IsRecording():
-                print("Stopping Recording...")
-                hearer.recorder.StopRecording()
+            tapeRecorder.Stop()
 
             if greeter.UserCancelled():
                 continue
 
-            if hearer.recorder:
+            print(
+                "Iter: ",
+                greeter.count,
+            )
 
-                userRecordedInput = hearer.recorder.HasRecordingObj()
+            if tapeRecorder.recorder:
+
+                userRecordedInput = tapeRecorder.recorder.HasRecordingObj()
                 userRecordedInputSize = len(userRecordedInput)
 
                 print(
-                        "Iter: ",
-                        greeter.count,
-                        " has Recording Size: ",
-                        userRecordedInputSize,
-                    )
-                
+                    "Recording Size: ",
+                    userRecordedInputSize,
+                )
+
                 if userRecordedInputSize > 0:
 
                     if userRecordedInputSize > 38000:
@@ -97,8 +119,9 @@ try:
                         # if userRecordedInputSize > 300000:
                         #    greeter.VoiceProcess()
                         #
-                        fileRecording = hearer.recorder.SaveRecordingObj()
-                        hearer.recorder.CleanRecording()
+
+                        fileRecording = tapeRecorder.recorder.SaveRecordingObj()
+                        tapeRecorder.recorder.CleanRecording()
 
                         if greeter.UserCancelled():
                             continue
@@ -121,12 +144,14 @@ try:
                                 greeter.VoiceWait()
 
                             print("Display Response: ", aiResponse)
+                            greeter.stopMode = 2
                             greeter.VoiceDefault(aiResponse, greeter.stopAction)
                             # greeter.UseDisplay(aiResponse)
                     else:
                         print("Discarding...")
-                        hearer.ResetRecorder()
+                        tapeRecorder.Reset()
 
+    
 
 except Exception as error:
     print("\nExiting...", error)
