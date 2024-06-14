@@ -12,16 +12,14 @@ try:
     ai = ChatGPT()
 
     # sleep(0.02)
-    #greeter.InitStopper()
+    greeter.InitStopper()
     greeter.InitWaker()
     # sleep(0.02)
     greeter.ForceWake()
 
     while True:
 
-
-        
-        sleep(0.001)
+        sleep(0.01)
 
         greeter.CountIteration()
         print ("Doing nothing, Iter:", greeter.count)
@@ -56,9 +54,9 @@ try:
             #mode interruption when greeter is talking
             if greeter.stopMode == 2:
                 greeter.ForceWake()
-                greeter.InitStopper()
-
-            sleep(0.001)
+                
+            greeter.InitStopper()
+            sleep(0.01)
             
             continue
 
@@ -68,7 +66,6 @@ try:
                 print("Welcome...")
                 greeter.VoiceAwake()
                 greeter.SetHasGreeted(True)
-                greeter.InitStopper()
                 sleep(1)
                 continue
 
