@@ -29,11 +29,10 @@ class Greeter(Thread):
 
         self._prepareInitialVoice()
         self._prepareDefaultVoices()
-
+        self.stopMode = 1
         self.wakeAction = None
         self.stopAction = None
         self._greeted = False
-        self.firstTimeLoading = True
         self.count = 0
 
     def _prepareInitialVoice(self):
@@ -109,10 +108,9 @@ class Greeter(Thread):
             self.wakeAction.StartListening()
 
     def WakeOnFirstLoad(self):
-        if self.firstTimeLoading:
-            self.firstTimeLoading = False
-            if self.wakeAction:
-                self.wakeAction.SetInvoked(True)
+
+        if self.wakeAction:
+            self.wakeAction.SetInvoked(True)
 
     def InitStopper(self):
         if self.stopAction is None:
