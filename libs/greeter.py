@@ -107,7 +107,7 @@ class Greeter(Thread):
             self.wakeAction = Action(self.pv_access_key, self.wakeWordFile)
             self.wakeAction.StartListening()
 
-    def WakeOnFirstLoad(self):
+    def ForceWake(self):
 
         if self.wakeAction:
             self.wakeAction.SetInvoked(True)

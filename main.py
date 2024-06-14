@@ -15,23 +15,28 @@ try:
     greeter.InitStopper()
     greeter.InitWaker()
     # sleep(0.02)
-    greeter.WakeOnFirstLoad()
+    greeter.ForceWake()
 
     while True:
 
+
+        
         sleep(0.01)
 
         greeter.CountIteration()
+        print ("Doing nothing, Iter:", greeter.count)
 
         # checks if user asked to Stop
         if greeter.UserCancelled():
 
+            #mode sleeping
             if greeter.stopMode == 1:
                 print("Sleeping...")
                 greeter.VoiceSleeping()
             
+            #mode interruption when greeter is talking
             if greeter.stopMode == 2:
-                print("Processing...")
+                print("Processing Interruption...")
                 greeter.VoiceProcess()
                 
             print("Flushing...")
@@ -44,11 +49,13 @@ try:
             greeter.InitStopper()
             greeter.InitWaker()
 
+            #mode sleeping
             if greeter.stopMode == 1:
                 greeter.SetHasGreeted(False)
             
+            #mode interruption when greeter is talking
             if greeter.stopMode == 2:
-                greeter.WakeOnFirstLoad()
+                greeter.ForceWake()
 
             sleep(0.01)
             
@@ -142,6 +149,7 @@ try:
                         print("Discarding...")
                         tapeRecorder.Reset()
 
+    
 
 except Exception as error:
     print("\nExiting...", error)
