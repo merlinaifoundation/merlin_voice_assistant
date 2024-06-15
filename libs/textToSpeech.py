@@ -13,43 +13,23 @@ from openai import OpenAI
 
 
 class TextToSpeech(Thread):
-    def __init__(self):
+    def __init__(self, language = None):
         super().__init__()
-        self.chat = None
+        self._chat = None
         self._stop = True
         self._rootPath = os.path.dirname(__file__)
         self._fileName = str(random.randint(0, 1000000)) + ".mp3"
-        self._autoremove = False
         self._setFilePath()
         self.mixer = pygame.mixer
         self._forceStopObj = None
+        self._autoremoveFile = False
+        self._shouldPrepareFile = False
+        self._shouldPlayFile = True
+        self.language = language or str(config("OUTPUT_SPEECH_LANG"))
 
-        self.lang = str(config("OUTPUT_SPEECH_LANG"))
-        OPENAI_API_KEY = config("OPENAI_API_KEY")
+        apiKey = config("OPENAI_API_KEY")
 
-        self.client = OpenAI(api_key=str(OPENAI_API_KEY))
-
-    def SetForceStopObj(self, obj):
-        self._forceStopObj = obj
-
-    def _stopProcess(self):
-        try:
-            self.mixer.music.stop()
-            self.mixer.quit()
-
-        except Exception as error:
-            print("Error:", error)
-
-        self._stop = True
-
-    def _removeFile(self, file):
-        try:
-            if file is not None:
-                self._fileName = file
-            self._setFilePath()
-            os.remove(self.output_file)
-        except Exception as error:
-            print("Error Removing File:", error)
+        self.client = OpenAI(api_key=str(apiKey))
 
     def _setFilePath(self):
         self.output_file = os.path.join(
@@ -67,7 +47,7 @@ class TextToSpeech(Thread):
             # tts = gTTS(text=self.chat, lang=self.lang)
             # tts.save(self.output_file)
             with self.client.audio.speech.with_streaming_response.create(
-                model="tts-1", voice="alloy", input=str(self.chat)
+                model="tts-1", voice="alloy", input=str(self._chat)
             ) as tts_response:
                 tts_response.stream_to_file(self.output_file)
 
@@ -90,37 +70,77 @@ class TextToSpeech(Thread):
         except Exception as error:
             print("Error Playing File:", error)
 
-    def _startProcess(self):
+    def stop(self):
+        try:
+            self.mixer.music.stop()
+            self.mixer.quit()
+        except Exception as error:
+            print("Error:", error)
+        self._stop = True
+
+    def removeFile(self, file):
+        try:
+            if file is not None:
+                self._fileName = file
+            self._setFilePath()
+            os.remove(self.output_file)
+        except Exception as error:
+            print("Error Removing File:", error)
+
+    def playFile(self):
 
         self._playFile()
-        self._stopProcess()
-        if self._autoremove:
-            self._removeFile(self._fileName)
+        self.stop()
+        if self._autoremoveFile:
+            self.removeFile(self._fileName)
+
+    def run(self):
+
+        if self._shouldPrepareFile:
+            self._prepareFile()
+        self.playFile()
+
+    ####################################################################################################
+
+    def SetForceStopObj(self, obj):
+        self._forceStopObj = obj
 
     def SetFile(self, file):
         self._fileName = file
         self._setFilePath()
         return os.path.isfile(self.output_file)
 
-    def PrepareFileFromText(self, chat):
+    def PrepareFileFromText(self, chat, asThread = False):
 
-        self.chat = chat
-        self._prepareFile()
+        self._chat = chat
+        if asThread:
+            self._shouldPlayFile = False
+            self.start()
+        else:
+            self._prepareFile()
 
-    def SpeakFromText(self, chat):
+    def SpeakFromText(self, chat, asThread=False):
         if (self._stop) and (chat is not None):
             self._stop = False
-            self.chat = chat
-            self.PrepareFileFromText(self.chat)
-            self._autoremove = True
-            self._startProcess()
+            self._chat = chat
+            self._shouldPrepareFile = True
+            self._autoremoveFile = True
+            if asThread:
+                self.start()
+            else:
+                self._prepareFile()
+                self.playFile()
 
-    def SpeakFromFile(self, file):
+    def SpeakFromFile(self, file, asThread=False):
         if (self._stop) and (file is not None):
             self._stop = False
             if file is not None:
                 self._fileName = file
-            self._startProcess()
+            #self._shouldPrepareFile = False
+            if asThread:
+                self.start()
+            else:
+                self.playFile()
 
     def Finished(self):
-        return (self._stop) and (self.chat is not None)
+        return (self._stop) and (self._chat is not None)

@@ -50,56 +50,63 @@ class Greeter(Thread):
 
         self._initVoiceObj = TextToSpeech()
         if self._initVoiceObj.SetFile(self._initInnerFile) is False:
-            self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt)
+            self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt, False)
         print("Initializing...")
         self.VoiceInit()
 
     def _prepareDefaultVoices(self):
 
-        self._defaultVoiceObj = TextToSpeech()
-
         self._waitVoiceObj = TextToSpeech()
         if self._waitVoiceObj.SetFile(self._waitInnerFile) is False:
-            self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt)
+            self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt, False)
             print("Creating Wait Audio File...")
         self.VoiceWait()
 
+        self._defaultVoiceObj = TextToSpeech()
+        
         self._processVoiceObj = TextToSpeech()
         if self._processVoiceObj.SetFile(self._processInnerFile) is False:
-            self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt)
+            self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
             print("Creating Process Audio File...")
 
         self._sleepVoiceObj = TextToSpeech()
         if self._sleepVoiceObj.SetFile(self._sleepingInnerFile) is False:
-            self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt)
+            self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt, False)
             print("Creating Stop Audio File...")
 
         self._awakeVoiceObj = TextToSpeech()
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
-            self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt)
+            self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
             print("Creating Wake Audio File...")
 
         print("Finished creating the TTS Defaults")
 
     def VoiceSleeping(self):
-        self._sleepVoiceObj.SpeakFromFile(self._sleepingInnerFile)
+        #self._sleepVoiceObj = TextToSpeech()
+        self._sleepVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
 
     def VoiceAwake(self):
-        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile)
+        #self._awakeVoiceObj = TextToSpeech()
+        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile, False)
 
     def VoiceWait(self):
-        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile)
+        #self._waitVoiceObj = TextToSpeech()
+        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile, False)
 
     def VoiceProcess(self):
-        self._processVoiceObj.SpeakFromFile(self._processInnerFile)
+        #self._processVoiceObj = TextToSpeech()
+        self._processVoiceObj.SpeakFromFile(self._processInnerFile, False)
 
     def VoiceInit(self):
-        self._initVoiceObj.SpeakFromFile(self._initInnerFile)
+        
+        #self._initVoiceObj = TextToSpeech()
+        self._initVoiceObj.SpeakFromFile(self._initInnerFile, False)
 
     def VoiceDefault(self, content, stopObj):
 
+        #self._defaultVoiceObj = TextToSpeech()
         self._defaultVoiceObj.SetForceStopObj(stopObj)
-        self._defaultVoiceObj.SpeakFromText(content)
+        self._defaultVoiceObj.SpeakFromText(content,False)
 
     def HasGreeted(self):
         return self._greeted
