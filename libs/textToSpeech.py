@@ -77,6 +77,7 @@ class TextToSpeech(Thread):
         except Exception as error:
             print("Error:", error)
         self._stop = True
+        #self._chat = None
 
     def removeFile(self, file):
         try:

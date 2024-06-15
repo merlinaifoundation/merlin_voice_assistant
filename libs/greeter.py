@@ -83,3 +83,7 @@ class Greeter(Thread):
         if self.stopAction and self.stopAction.IsInvoked():
             return True
         return False
+    def UserInvoked(self):
+        if self.wakeAction and self.wakeAction.IsInvoked():
+            return True
+        return False
