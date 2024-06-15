@@ -10,9 +10,11 @@ class RunnerGreeter(Thread):
         super().__init__()
         timeNow = time.time()
 
+        self._aiResponse = None
+        self.greeter = Greeter()
+
         diff = round(time.time() - timeNow, 2)
-        self._prGreen("Greeter Creation in seconds: ", diff)
-        self.greeter =  Greeter()
+        self._prGreen("RunnerGreeter Creation in seconds: ", diff)
 
     def _prRed(self, skk, number):
         print("\033[91m {}\033[00m".format(skk), number)
@@ -20,8 +22,10 @@ class RunnerGreeter(Thread):
     def _prGreen(self, skk, number):
         print("\033[92m {}\033[00m".format(skk), number)
 
-    def run(self):
+    def SetContent(self,content):
+        self._aiResponse = content
         
+    def run(self):
 
         self.greeter.InitStopper()
         self.greeter.InitWaker()
@@ -33,15 +37,14 @@ class RunnerGreeter(Thread):
             time.sleep(0.01)
 
             self.greeter.CountIteration()
-            #print("Doing nothing, Iter:", self.greeter.count)
+            # print("Doing nothing, Iter:", self.greeter.count)
 
             # checks if user asked to Stop
             if self.greeter.UserCancelled():
 
                 print("Flushing...")
                 self.greeter.ResetWaker()
-                
-                
+
                 # mode sleeping
                 if self.greeter.stopMode == 1:
                     print("Sleeping...")
@@ -68,18 +71,33 @@ class RunnerGreeter(Thread):
 
                 self.greeter.ResetStopper()
                 self.greeter.InitStopper()
-                
+
                 time.sleep(0.01)
 
                 continue
 
-                
-            if self.greeter.wakeAction and self.greeter.wakeAction.IsInvoked():
+            if self.greeter.UserInvoked():
 
                 if not self.greeter.HasGreeted():
                     print("Welcome...")
                     self.greeter.voiceMaker.VoiceAwake()
                     self.greeter.SetHasGreeted(True)
                     time.sleep(1)
-                    
 
+                if self.greeter.voiceMaker.IsIdle():
+                    #self._aiResponse = None
+                    #print("GreeterVoice Finished. Flushing...")
+                    self.greeter.stopMode = 1
+
+                if self._aiResponse is not None:
+
+                    if len(self._aiResponse) > 300:
+                        self.greeter.voiceMaker.VoiceWait()
+
+                    print("Display Response: ", self._aiResponse)
+                    self.greeter.stopMode = 2
+                    self.greeter.voiceMaker.VoiceDefault(
+                        self._aiResponse, self.greeter.stopAction
+                    )
+                    self._aiResponse = None
+                    # greeter.UseDisplay(aiResponse)
