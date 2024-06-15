@@ -30,16 +30,18 @@ try:
             #mode sleeping
             if greeter.stopMode == 1:
                 print("Sleeping...")
-                greeter.VoiceSleeping()
+                greeter.voiceMaker.VoiceSleeping()
             
             #mode interruption when greeter is talking
             if greeter.stopMode == 2:
                 print("Processing Interruption...")
-                greeter.VoiceProcess()
+                greeter.voiceMaker.VoiceProcess()
                 
             print("Flushing...")
             greeter.ResetWaker()
             greeter.ResetStopper()
+            
+            
             tapeRecorder.Reset()
             
             print("Restarting...")
@@ -64,7 +66,7 @@ try:
 
             if not greeter.HasGreeted():
                 print("Welcome...")
-                greeter.VoiceAwake()
+                greeter.voiceMaker.VoiceAwake()
                 greeter.SetHasGreeted(True)
                 sleep(1)
                 continue
@@ -73,7 +75,7 @@ try:
                 continue
 
             # check if voice finished to start recording again
-            if greeter.IsIdle():
+            if greeter.voiceMaker.IsIdle():
                 print("GreeterVoice Finished. Flushing...")
                 tapeRecorder.Reset()
                 greeter.stopMode = 1
@@ -142,11 +144,11 @@ try:
                         if aiResponse is not None:
 
                             if len(aiResponse) > 300:
-                                greeter.VoiceWait()
+                                greeter.voiceMaker.VoiceWait()
 
                             print("Display Response: ", aiResponse)
                             greeter.stopMode = 2
-                            greeter.VoiceDefault(aiResponse, greeter.stopAction)
+                            greeter.voiceMaker.VoiceDefault(aiResponse, greeter.stopAction)
                             # greeter.UseDisplay(aiResponse)
                     else:
                         print("Discarding...")
