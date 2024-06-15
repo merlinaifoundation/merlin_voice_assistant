@@ -42,15 +42,15 @@ class TapeRecorder(Thread):
             self.recorder.CleanRecording()
             self.recorder.RemoveRecording()
             self.recorder = None
-        diff = round(time.time() - timeNow, 2)
-        self._prRed("Reset Recorder in seconds: ", diff)
+            diff = round(time.time() - timeNow, 2)
+            self._prRed("Reset Recorder in seconds: ", diff)
 
     def Initialize(self):
         timeNow = time.time()
         if self.recorder is None:
             self.recorder = Recorder(None)
-        diff = round(time.time() - timeNow, 2)
-        self._prRed("Initialized Recorder in seconds: ", diff)
+            diff = round(time.time() - timeNow, 2)
+            self._prRed("Initialized Recorder in seconds: ", diff)
 
     def Start(self, stopAction):
 
@@ -60,13 +60,12 @@ class TapeRecorder(Thread):
             self.recorder.StartRecording()
             self.listener.Listen(stopAction)
             self.listener.DetectSilence(stopAction)
-        
-        diff = round(time.time() - timeNow, 2)
-        self._prRed("Listening for seconds: ", diff)
+            diff = round(time.time() - timeNow, 2)
+            self._prRed("Listening for seconds: ", diff)
 
     def Stop(self):
         timeNow = time.time()
         if self.recorder and self.recorder.IsRecording():
             self.recorder.StopRecording()
-        diff = round(time.time() - timeNow, 2)
-        self._prRed("Stoping OpenMic for seconds: ", diff)
+            diff = round(time.time() - timeNow, 2)
+            self._prRed("Stoping OpenMic for seconds: ", diff)

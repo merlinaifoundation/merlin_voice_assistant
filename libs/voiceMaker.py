@@ -50,7 +50,8 @@ class VoiceMaker(Thread):
             print("Creating Wait Audio File...")
         self.VoiceWait()
 
-        self._defaultVoiceObj = TextToSpeech()
+        
+        
 
         self._processVoiceObj = TextToSpeech()
         if self._processVoiceObj.SetFile(self._processInnerFile) is False:
@@ -66,7 +67,9 @@ class VoiceMaker(Thread):
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
             self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
             print("Creating Wake Audio File...")
-
+        
+        self._defaultVoiceObj = TextToSpeech()
+        self.VoiceDefault("Finished", None)
         print("Finished creating the TTS Defaults")
 
     def VoiceSleeping(self):
