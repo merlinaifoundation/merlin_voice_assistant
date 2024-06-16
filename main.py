@@ -11,31 +11,29 @@ try:
 
     tapeRecorder = TapeRecorder(greeter)
     tapeRecorder.StartThread()
+    
+    
     ai = ChatGPT()
 
     while True:
 
         sleep(0.01)
-
-        # check if voice finished to start recording again
-        if tapeRecorder.fileRecording:
-            # print("GreeterVoice Finished. Flushing...")
-
-            if greeter.UserCancelled():
-                continue
-
-            userTranscript = ai.SpeechToText(tapeRecorder.fileRecording, "text")
-            tapeRecorder.fileRecording = None
+        
+        enabled = greeter.UserCancelled() is False and greeter.UserInvoked() is True
+        
+        openMicOn = enabled and greeter.IsIdle()
+        tapeRecorder.SetOpenMic(openMicOn)
+        
+        hasRecordedStuff = enabled and tapeRecorder.fileRecording
+        if hasRecordedStuff:
+        
+            userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
             print("Transcript:", userTranscript)
-
-            if greeter.UserCancelled():
-                continue
 
             aiResponse = ai.Query(userTranscript)
             ai.AppendAnswer(aiResponse, 29)
-
-            if greeter.UserCancelled():
-                continue
+            
+            tapeRecorder.fileRecording = None
 
             greeter.UseVoice(aiResponse)
 

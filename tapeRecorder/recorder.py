@@ -19,7 +19,7 @@ class Recorder(Thread):
         self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
         print("Recording Buffer Limit set at: ", self._bufferLimit)
         self._finalized = False
-        self._recorder = PvRecorder(device_index=-1, frame_length=512)
+        self._recorder = PvRecorder(device_index=-1, frame_length=4096)
         rootPath = os.path.dirname(__file__)
         internalPath = str(random.randint(0, 1000000)) + ".mp3"
         self.file_path = os.path.join(
@@ -78,7 +78,7 @@ class Recorder(Thread):
         try:
             # os.remove(self.file_path)
             print("Removing Recording: ", self.file_path)
-            os.remove(self.file_path)
+            #os.remove(self.file_path)
 
         except Exception as error:
             print("Error Removing Recording", error)

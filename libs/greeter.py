@@ -18,10 +18,10 @@ class Greeter(Thread):
         self.wakeWordFile = config("WAKE_WORD_FILE")
         self.stopWordFile = config("STOP_WORD_FILE")
 
-        self.stopMode = 1
+        self._stopMode = 1
         self.wakeAction = None
         self.stopAction = None
-        self.count = 0
+        self.iteration = 0
 
         self._greeted = False
         self._aiResponse = None
@@ -44,11 +44,11 @@ class Greeter(Thread):
         print("Flushing...")
         self.resetWaker()
         # mode sleeping
-        if self.stopMode == 1:
+        if self._stopMode == 1:
             print("Sleeping...")
             self._voiceMaker.VoiceSleeping()
         # mode interruption when greeter is talking
-        if self.stopMode == 2:
+        if self._stopMode == 2:
             print("Processing User Interruption...")
             self._voiceMaker.VoiceProcess()
 
@@ -58,10 +58,10 @@ class Greeter(Thread):
 
         self.initWaker()
         # mode sleeping
-        if self.stopMode == 1:
+        if self._stopMode == 1:
             self.setHasGreeted(False)
         # mode interruption when greeter is talking
-        if self.stopMode == 2:
+        if self._stopMode == 2:
             self.forceWake()
 
         self.initStopper()
@@ -77,7 +77,7 @@ class Greeter(Thread):
 
         if self._voiceMaker.IsIdle():
             # print("GreeterVoice Finished. Flushing...")
-            self.stopMode = 1
+            self._stopMode = 1
 
         if self._aiResponse is not None:
 
@@ -85,7 +85,7 @@ class Greeter(Thread):
                 self._voiceMaker.VoiceWait()
 
             self._prGreen("Display Response: ", self._aiResponse)
-            self.stopMode = 2
+            self._stopMode = 2
             self._voiceMaker.VoiceDefault(self._aiResponse, self.stopAction)
             self._aiResponse = None
             # greeter.UseDisplay(aiResponse)
@@ -147,9 +147,9 @@ class Greeter(Thread):
         return self._greeted
     
     def countIteration(self):
-        if self.count > 1000000:
-            self.count = 0
-        self.count += 1
+        if self.iteration > 1000000:
+            self.iteration = 0
+        self.iteration += 1
 
 #####################################################################################################
 
