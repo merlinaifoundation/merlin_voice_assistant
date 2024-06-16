@@ -26,7 +26,7 @@ class Greeter(Thread):
         self._greeted = False
         self._aiResponse = None
 
-        self._voiceMaker = VoiceMaker()
+        self.voiceMaker = VoiceMaker()
     
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Greeter Creation in seconds: ", diff)
@@ -46,11 +46,11 @@ class Greeter(Thread):
         # mode sleeping
         if self._stopMode == 1:
             print("Sleeping...")
-            self._voiceMaker.VoiceSleeping()
+            self.voiceMaker.VoiceSleeping()
         # mode interruption when greeter is talking
         if self._stopMode == 2:
             print("Processing User Interruption...")
-            self._voiceMaker.VoiceProcess()
+            self.voiceMaker.VoiceProcess()
 
         # tapeRecorder.Reset()
         print("Restarting...")
@@ -70,23 +70,23 @@ class Greeter(Thread):
 
         if not self.hasGreeted():
             print("Welcome...")
-            self._voiceMaker.VoiceAwake()
+            self.voiceMaker.VoiceAwake()
             self.setHasGreeted(True)
             # time.sleep(1)
             # return
 
-        if self._voiceMaker.IsIdle():
+        if self.voiceMaker.IsIdle():
             # print("GreeterVoice Finished. Flushing...")
             self._stopMode = 1
 
         if self._aiResponse is not None:
 
             if len(self._aiResponse) > 300:
-                self._voiceMaker.VoiceWait()
+                self.voiceMaker.VoiceWait()
 
             self._prGreen("Display Response: ", self._aiResponse)
             self._stopMode = 2
-            self._voiceMaker.VoiceDefault(self._aiResponse, self.stopAction)
+            self.voiceMaker.VoiceDefault(self._aiResponse, self.stopAction)
             self._aiResponse = None
             # greeter.UseDisplay(aiResponse)
 
@@ -124,6 +124,7 @@ class Greeter(Thread):
         if self.wakeAction is None:
             self.wakeAction = Action(self._pv_access_key, self.wakeWordFile)
             self.wakeAction.StartListening()
+        
             diff = round(time.time() - timeNow, 2)
             self._prRed("Init Waker in seconds: ", diff)
 
@@ -162,7 +163,7 @@ class Greeter(Thread):
         
     def IsIdle(self):
         
-        if self._voiceMaker.IsIdle():
+        if self.voiceMaker.IsIdle() and self.hasGreeted():
             return True
         return False
     

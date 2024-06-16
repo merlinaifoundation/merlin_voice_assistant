@@ -10,7 +10,9 @@ class ChatGPT(Thread):
         super().__init__()
 
         OPENAI_API_KEY = config("OPENAI_API_KEY")
-        self.CHAT_LOG = config("CHAT_LOG")
+        CHAT_LOG = config("CHAT_LOG")
+        CHAT_LOG_LAST = config("CHAT_LOG_LAST")
+
         self.frequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
         self.temperature = float(config("CHATGPT_TEMPERATURE"))
 
@@ -24,7 +26,7 @@ class ChatGPT(Thread):
 
         # print("Using OPENAI KEY", OPENAI_API_KEY)
         print("Using Merlin Default Prompt: ")
-        print(self.CHAT_LOG)
+        print(CHAT_LOG)
 
         self.prompt = [
             "How may I assist you?",
@@ -40,7 +42,10 @@ class ChatGPT(Thread):
         self.client = OpenAI(api_key=str(OPENAI_API_KEY))
         self.count = 0
         self.chat_log = [
-            {"role": "system", "content": self.CHAT_LOG},
+            {"role": "system", "content": CHAT_LOG},
+        ]
+        self.last_chat_log = [
+            {"role": "system", "content": CHAT_LOG_LAST},
         ]
         self.cummulative = []
 
@@ -51,11 +56,11 @@ class ChatGPT(Thread):
 
     def makeQueryObj(self, query):
         # create a query object
-        user_query = [
-            {"role": "user", "content": query},
-        ]
+        #user_query = [
+            #{"role": "user", "content": query},
+        #]
         # create the query to be sent
-        send_query = self.chat_log + self.cummulative + user_query
+        send_query = self.chat_log + self.cummulative #+ user_query
         return send_query
 
     def sendQueryObj(self, model, send_query):
@@ -67,17 +72,22 @@ class ChatGPT(Thread):
         # return the answer trimmed
         return str.strip(str(answer))
 
-    def _clearCummulativeAnswers(self):
+    def ClearCummulativeList(self):
         self.cummulative = []
 
-    def AppendAnswer(self, answer, maximum):
-        answers = len(self.cummulative)
-        if answers > maximum:
-            print("Clearing Cumm Answers", answers)
-            self._clearCummulativeAnswers()
-        if answer is not None:
-            self.cummulative.append({"role": "assistant", "content": answer})
-
+    def AppendToList(self, questionOrAnswer, role,  maximum):
+        QAs = len(self.cummulative)
+        if QAs > maximum:
+            print("Clearing Cumm List", QAs)
+            self.ClearCummulativeList()
+        if questionOrAnswer is not None:
+            self.cummulative.append({"role": role, "content": questionOrAnswer})
+    
+    def AppendBriefer(self ):
+        briefer = self.last_chat_log[0]
+        if briefer is not None:
+            self.cummulative.append( briefer )
+    
     def SpeechToText(self, file, response_format):
 
         transcriptionTxt = ""

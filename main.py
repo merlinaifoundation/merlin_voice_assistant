@@ -24,26 +24,41 @@ try:
         idle = greeter.IsIdle()
         openMicOn = not cancelled and enabled and idle
 
-        status = int(enabled), int(cancelled), int(idle),  int(openMicOn)
-        #integer = bytes(status) #.decode("utf-8")
-        #print("\nSTATUS", status)
+        status = int(enabled), int(cancelled), int(idle), int(openMicOn)
+        # integer = bytes(status) #.decode("utf-8")
+        # print("\nSTATUS", status)
 
         tapeRecorder.SetOpenMic(openMicOn)
 
-        #hasRecordedStuff = enabled and tapeRecorder.fileRecording
-        hasRecordedStuff =  tapeRecorder.fileRecording
+        # hasRecordedStuff = enabled and tapeRecorder.fileRecording
+        hasRecordedStuff = tapeRecorder.fileRecording
 
         if hasRecordedStuff:
 
             userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
             print("Transcript:", userTranscript)
 
+            if cancelled:
+                ai.AppendBriefer()
+            else:
+                ai.AppendToList(userTranscript, "user", 29)
+
             aiResponse = ai.Query(userTranscript)
-            ai.AppendAnswer(aiResponse, 29)
+
+            if not cancelled:
+                ai.AppendToList(aiResponse, "assistant", 29)
+                greeter.UseVoice(aiResponse)
+            else:
+                ai.ClearCummulativeList()
+                appendTopics = str(aiResponse)
+                ai.AppendToList(
+                    appendTopics,
+                    "system",
+                    29,
+                )
+                greeter.voiceMaker.CreateWakeVoice(appendTopics, True)
 
             tapeRecorder.fileRecording = None
-
-            greeter.UseVoice(aiResponse)
 
 
 except Exception as error:

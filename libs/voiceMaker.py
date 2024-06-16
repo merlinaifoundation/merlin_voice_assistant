@@ -58,20 +58,28 @@ class VoiceMaker(Thread):
 
         
         self._awakeVoiceObj = TextToSpeech()
-        if self._awakeVoiceObj.SetFile(self._sleepingInnerFile) is False:
-            self._awakeVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt, False)
-            print("Created Stop Audio File...")
-            #self._awakeVoiceObj = TextToSpeech()
         
-        if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
-            self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
-            print("Created Wake Audio File...")
-            #self._awakeVoiceObj = TextToSpeech()
+        self.CreateSleepVoice(self.sleepingVoiceTxt)
+
+        self.CreateWakeVoice(self.awakeVoiceTxt)
         
         self._defaultVoiceObj = TextToSpeech()
         self.VoiceDefault("Almost there!", None)
         print("Finished creating the TTS Defaults")
 
+    def CreateWakeVoice(self, txt, force = False):
+        if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False or force:
+            self._awakeVoiceObj.PrepareFileFromText(txt, False)
+            print("Created Wake Audio File...")
+            
+            #self._awakeVoiceObj = TextToSpeech()
+    def CreateSleepVoice(self, txt,  force = False):
+        if self._awakeVoiceObj.SetFile(self._sleepingInnerFile) is False or force:
+            self._awakeVoiceObj.PrepareFileFromText(txt, False)
+            print("Created Stop Audio File...")
+            #self._awakeVoiceObj = TextToSpeech()
+        
+    
     def VoiceSleeping(self):
         # self._awakeVoiceObj = TextToSpeech()
         self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
