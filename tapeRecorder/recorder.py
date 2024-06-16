@@ -108,8 +108,13 @@ class Recorder(Thread):
     def Finished(self):
         return self._finalized
 
-    def HasRecordingObj(self):
+    def GetBufferObj(self):
+        return self._buffer
+    
+    def GetRecordingObj(self):
         return self._result
+    def SetBufferObj(self, obj ):
+        self._buffer = obj
 
     def RemoveRecording(self):
         try:
