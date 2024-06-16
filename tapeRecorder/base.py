@@ -59,7 +59,7 @@ class TapeRecorder(Thread):
                             "Recording Size: ",
                             userRecordedInputSize,
                         )
-                        if userRecordedInputSize > 38000:
+                        if userRecordedInputSize > 10000:
                             self.fileRecording = self.recorder.SaveRecordingObj()
                             self.recorder.CleanRecording()
                         else:
@@ -72,8 +72,8 @@ class TapeRecorder(Thread):
     def reset(self):
         timeNow = time.time()
         
-        if self.fileRecording is not None:
-            self.fileRecording = None
+        #if self.fileRecording is not None:
+            #self.fileRecording = None
         
         if self.recorder and self.recorder.Finished():
             self._prGreen("Flushing Recording...", "Once")

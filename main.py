@@ -37,17 +37,21 @@ try:
 
         if hasRecordedStuff:
 
-            userTranscript = "Merlin, Stop"
-            if cancelled:
-                ai.AppendBriefer()
-            else:
+            userTranscript =None
+            role = "user"
+            if not cancelled:
                 userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
                 print("Transcript:", userTranscript)
+            else:
+                userTranscript = ai.GetBriefer()
+                role = "system"
             
-            ai.AppendToList(userTranscript, "user", 29)
-            aiResponse = ai.Query(userTranscript)
+            #ai.AppendToList(userTranscript, "user", 29)
+                
+            aiResponse = ai.Query(userTranscript, role)
 
             if not cancelled:
+                ai.AppendToList(userTranscript, "user", 29)
                 ai.AppendToList(aiResponse, "assistant", 29)
                 greeter.UseVoice(aiResponse)
             else:

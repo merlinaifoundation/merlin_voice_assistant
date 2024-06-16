@@ -11,7 +11,7 @@ class ChatGPT(Thread):
 
         OPENAI_API_KEY = config("OPENAI_API_KEY")
         CHAT_LOG = config("CHAT_LOG")
-        CHAT_LOG_LAST = config("CHAT_LOG_LAST")
+        self.CHAT_LOG_LAST = str(config("CHAT_LOG_LAST"))
 
         self.frequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
         self.temperature = float(config("CHATGPT_TEMPERATURE"))
@@ -44,9 +44,7 @@ class ChatGPT(Thread):
         self.chat_log = [
             {"role": "system", "content": CHAT_LOG},
         ]
-        self.last_chat_log = [
-            {"role": "system", "content": CHAT_LOG_LAST},
-        ]
+        
         self.cummulative = []
 
     def getModel(self):
@@ -54,13 +52,13 @@ class ChatGPT(Thread):
         print("Using GPT_MODEL", model)
         return model
 
-    def makeQueryObj(self):
+    def makeQueryObj(self, query, role):
         # create a query object
-        #user_query = [
-            #{"role": "user", "content": query},
-        #]
+        user_query = [
+            {"role": role, "content": query},
+        ]
         # create the query to be sent
-        send_query = self.chat_log + self.cummulative #+ user_query
+        send_query = self.chat_log + self.cummulative + user_query
         return send_query
 
     def sendQueryObj(self, model, send_query):
@@ -83,10 +81,8 @@ class ChatGPT(Thread):
         if questionOrAnswer is not None:
             self.cummulative.append({"role": role, "content": questionOrAnswer})
     
-    def AppendBriefer(self ):
-        briefer = self.last_chat_log[0]
-        if briefer is not None:
-            self.cummulative.append( briefer )
+    def GetBriefer(self ):
+        return  self.CHAT_LOG_LAST
     
     def SpeechToText(self, file, response_format):
 
@@ -114,7 +110,7 @@ class ChatGPT(Thread):
         model = str(self.GPT_MODELS[self.defaultModel])
         print("Using Default Model", model, "from length", len(self.GPT_MODELS))
 
-    def Query(self, query):
+    def Query(self, query, role):
 
         response = None
         if query is None or not query:
@@ -125,7 +121,7 @@ class ChatGPT(Thread):
         try:
 
             model = self.getModel()
-            queryToSend = self.makeQueryObj()
+            queryToSend = self.makeQueryObj(query, role)
             response = self.sendQueryObj(model, queryToSend)
         except openai.error.APIError as e:
             response = "\nThere was an API error.  Please try again in a few minutes."
