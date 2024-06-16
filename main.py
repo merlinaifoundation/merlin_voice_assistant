@@ -16,6 +16,10 @@ try:
     while True:
 
         sleep(0.01)
+        
+        if runnerGreet.greeter.UserCancelled():
+            tapeRecorder.Reset()
+            
         # print ("Doing nothing, Iter:", greeter.count)
         if runnerGreet.greeter.UserInvoked():
             # check if voice finished to start recording again
