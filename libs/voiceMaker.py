@@ -44,28 +44,29 @@ class VoiceMaker(Thread):
 
     def _prepareDefaultVoices(self):
 
+
         self._waitVoiceObj = TextToSpeech()
+        if self._waitVoiceObj.SetFile(self._processInnerFile) is False:
+            self._waitVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
+            print("Created Process Audio File...")
+            
+        #self._waitVoiceObj = TextToSpeech()
         if self._waitVoiceObj.SetFile(self._waitInnerFile) is False:
             self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt, False)
             print("Creating Wait Audio File...")
         self.VoiceWait()
 
-        self._processVoiceObj = TextToSpeech()
-        if self._processVoiceObj.SetFile(self._processInnerFile) is False:
-            self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
-            print("Created Process Audio File...")
-
-        self._awakeVoiceObj = TextToSpeech()
         
+        self._awakeVoiceObj = TextToSpeech()
         if self._awakeVoiceObj.SetFile(self._sleepingInnerFile) is False:
             self._awakeVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt, False)
             print("Created Stop Audio File...")
-            self._awakeVoiceObj = TextToSpeech()
+            #self._awakeVoiceObj = TextToSpeech()
         
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
             self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
             print("Created Wake Audio File...")
-            self._awakeVoiceObj = TextToSpeech()
+            #self._awakeVoiceObj = TextToSpeech()
         
         self._defaultVoiceObj = TextToSpeech()
         self.VoiceDefault("Almost there!", None)
@@ -85,7 +86,7 @@ class VoiceMaker(Thread):
 
     def VoiceProcess(self):
         # self._processVoiceObj = TextToSpeech()
-        self._processVoiceObj.SpeakFromFile(self._processInnerFile, False)
+        self._waitVoiceObj.SpeakFromFile(self._processInnerFile, False)
 
     def VoiceInit(self):
 
@@ -101,5 +102,7 @@ class VoiceMaker(Thread):
     def IsIdle(self):
         condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
         condition2 = (self._awakeVoiceObj is not None) and self._awakeVoiceObj.Finished()
+        condition3 = (self._waitVoiceObj is not None) and self._waitVoiceObj.Finished()
+
         #print(condition1, condition2)
-        return condition1 and condition2 
+        return condition1 and condition2 and condition3
