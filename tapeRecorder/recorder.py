@@ -27,8 +27,6 @@ class Recorder(Thread):
         cfgLimit = config("REC_BUFFER_LIMIT")
         self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
         self._finalized = False
-        # self._recorder = PvRecorder(device_index=-1, frame_length=512)
-
         self.p = pyaudio.PyAudio()
         print(
             "Recording Buffer Limit set at: ",
