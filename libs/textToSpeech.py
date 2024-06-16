@@ -137,7 +137,9 @@ class TextToSpeech(Thread):
             self._stop = False
             if file is not None:
                 self._fileName = file
-            #self._shouldPrepareFile = False
+            
+            #some content to mark Finished(), in this case the filename as default
+            self._chat = self._fileName 
             if asThread:
                 self.start()
             else:

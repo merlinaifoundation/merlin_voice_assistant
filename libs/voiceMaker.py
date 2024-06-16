@@ -67,6 +67,7 @@ class VoiceMaker(Thread):
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
             self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
             print("Creating Wake Audio File...")
+            self._awakeVoiceObj = TextToSpeech()
         
         self._defaultVoiceObj = TextToSpeech()
         self.VoiceDefault("Finished", None)
@@ -100,4 +101,7 @@ class VoiceMaker(Thread):
         self._defaultVoiceObj.SpeakFromText(content, False)
 
     def IsIdle(self):
-        return (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
+        condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
+        condition2 = (self._awakeVoiceObj is not None) and self._awakeVoiceObj.Finished()
+        #print(condition1, condition2)
+        return condition1 and condition2
