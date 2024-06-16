@@ -63,7 +63,7 @@ class TextToSpeech(Thread):
             self.mixer.music.load(self.output_file)
             self.mixer.music.play()
             while self.mixer.music.get_busy():
-                sleep(0.1)
+                sleep(0.5)
                 if self._forceStopObj and self._forceStopObj.IsInvoked():
                     break
 
