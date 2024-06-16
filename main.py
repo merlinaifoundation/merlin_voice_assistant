@@ -22,7 +22,7 @@ try:
         cancelled = greeter.UserCancelled()
 
         idle = greeter.IsIdle()
-        openMicOn = not cancelled and enabled and idle
+        openMicOn = not cancelled and idle and enabled 
 
         status = int(enabled), int(cancelled), int(idle), int(openMicOn)
         # integer = bytes(status) #.decode("utf-8")
