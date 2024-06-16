@@ -50,32 +50,30 @@ class VoiceMaker(Thread):
             print("Creating Wait Audio File...")
         self.VoiceWait()
 
-        
-        
-
         self._processVoiceObj = TextToSpeech()
         if self._processVoiceObj.SetFile(self._processInnerFile) is False:
             self._processVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
-            print("Creating Process Audio File...")
-
-        self._sleepVoiceObj = TextToSpeech()
-        if self._sleepVoiceObj.SetFile(self._sleepingInnerFile) is False:
-            self._sleepVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt, False)
-            print("Creating Stop Audio File...")
+            print("Created Process Audio File...")
 
         self._awakeVoiceObj = TextToSpeech()
+        
+        if self._awakeVoiceObj.SetFile(self._sleepingInnerFile) is False:
+            self._awakeVoiceObj.PrepareFileFromText(self.sleepingVoiceTxt, False)
+            print("Created Stop Audio File...")
+            self._awakeVoiceObj = TextToSpeech()
+        
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False:
             self._awakeVoiceObj.PrepareFileFromText(self.awakeVoiceTxt, False)
-            print("Creating Wake Audio File...")
+            print("Created Wake Audio File...")
             self._awakeVoiceObj = TextToSpeech()
         
         self._defaultVoiceObj = TextToSpeech()
-        self.VoiceDefault("Finished", None)
+        self.VoiceDefault("Almost there!", None)
         print("Finished creating the TTS Defaults")
 
     def VoiceSleeping(self):
-        # self._sleepVoiceObj = TextToSpeech()
-        self._sleepVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
+        # self._awakeVoiceObj = TextToSpeech()
+        self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
 
     def VoiceAwake(self):
         # self._awakeVoiceObj = TextToSpeech()
@@ -104,4 +102,4 @@ class VoiceMaker(Thread):
         condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
         condition2 = (self._awakeVoiceObj is not None) and self._awakeVoiceObj.Finished()
         #print(condition1, condition2)
-        return condition1 and condition2
+        return condition1 and condition2 
