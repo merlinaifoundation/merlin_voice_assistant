@@ -54,7 +54,7 @@ class ChatGPT(Thread):
         print("Using GPT_MODEL", model)
         return model
 
-    def makeQueryObj(self, query):
+    def makeQueryObj(self):
         # create a query object
         #user_query = [
             #{"role": "user", "content": query},
@@ -125,7 +125,7 @@ class ChatGPT(Thread):
         try:
 
             model = self.getModel()
-            queryToSend = self.makeQueryObj(query)
+            queryToSend = self.makeQueryObj()
             response = self.sendQueryObj(model, queryToSend)
         except openai.error.APIError as e:
             response = "\nThere was an API error.  Please try again in a few minutes."

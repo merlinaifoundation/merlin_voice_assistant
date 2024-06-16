@@ -29,20 +29,22 @@ try:
         # print("\nSTATUS", status)
 
         tapeRecorder.SetOpenMic(openMicOn)
+        
+        cancelled = greeter.UserCancelled()
 
         # hasRecordedStuff = enabled and tapeRecorder.fileRecording
         hasRecordedStuff = tapeRecorder.fileRecording
 
         if hasRecordedStuff:
 
-            userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
-            print("Transcript:", userTranscript)
-
+            userTranscript = "Merlin, Stop"
             if cancelled:
                 ai.AppendBriefer()
             else:
-                ai.AppendToList(userTranscript, "user", 29)
-
+                userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
+                print("Transcript:", userTranscript)
+            
+            ai.AppendToList(userTranscript, "user", 29)
             aiResponse = ai.Query(userTranscript)
 
             if not cancelled:
@@ -50,7 +52,7 @@ try:
                 greeter.UseVoice(aiResponse)
             else:
                 ai.ClearCummulativeList()
-                appendTopics = str(aiResponse)
+                appendTopics = "Our last conversation was about: " + str(aiResponse)
                 ai.AppendToList(
                     appendTopics,
                     "system",
