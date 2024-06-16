@@ -63,9 +63,11 @@ class TextToSpeech(Thread):
             self.mixer.music.load(self.output_file)
             self.mixer.music.play()
             while self.mixer.music.get_busy():
-                sleep(0.1)
+                
                 if self._forceStopObj and self._forceStopObj.IsInvoked():
                     break
+                
+                sleep(0.1)
 
         except Exception as error:
             print("Error Playing File:", error)
@@ -137,7 +139,9 @@ class TextToSpeech(Thread):
             self._stop = False
             if file is not None:
                 self._fileName = file
-            #self._shouldPrepareFile = False
+            
+            #some content to mark Finished(), in this case the filename as default
+            self._chat = self._fileName 
             if asThread:
                 self.start()
             else:

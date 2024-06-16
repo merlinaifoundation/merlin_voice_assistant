@@ -2,89 +2,70 @@
 from time import sleep
 from tapeRecorder.base import TapeRecorder
 from libs.gpt import ChatGPT
-from libs.runner import RunnerGreeter
+from libs.greeter import Greeter
 
 try:
 
-    tapeRecorder = TapeRecorder()
+    greeter = Greeter()
+    greeter.StartThread()
+
+    tapeRecorder = TapeRecorder(greeter)
+    tapeRecorder.StartThread()
+
     ai = ChatGPT()
-
-    runnerGreet = RunnerGreeter()
-
-    runnerGreet.start()
 
     while True:
 
         sleep(0.01)
-        # print ("Doing nothing, Iter:", greeter.count)
-        if runnerGreet.greeter.UserInvoked():
-            # check if voice finished to start recording again
-            if runnerGreet.greeter.voiceMaker.IsIdle():
-                # print("GreeterVoice Finished. Flushing...")
-                
-                # runnerGreet.greeter.stopMode = 1
 
-                tapeRecorder.Initialize()
+        enabled = greeter.UserInvoked()
+        cancelled = greeter.UserCancelled()
 
-                if runnerGreet.greeter.UserCancelled():
-                    continue
+        idle = greeter.IsIdle()
+        openMicOn = not cancelled and idle and enabled 
 
-                tapeRecorder.Start(runnerGreet.greeter.stopAction)
+        status = int(enabled), int(cancelled), int(idle), int(openMicOn)
+        # integer = bytes(status) #.decode("utf-8")
+        # print("\nSTATUS", status)
 
-                if runnerGreet.greeter.UserCancelled():
-                    continue
+        tapeRecorder.SetOpenMic(openMicOn)
+        
+        cancelled = greeter.UserCancelled()
 
-                tapeRecorder.Stop()
+        # hasRecordedStuff = enabled and tapeRecorder.fileRecording
+        hasRecordedStuff = tapeRecorder.fileRecording
 
-                if runnerGreet.greeter.UserCancelled():
-                    continue
+        if hasRecordedStuff:
 
-                if tapeRecorder.recorder:
-
-                    userRecordedInput = tapeRecorder.recorder.HasRecordingObj()
-                    userRecordedInputSize = len(userRecordedInput)
-
-                    if userRecordedInputSize > 0:
-
-                        print(
-                            "Recording Size: ",
-                            userRecordedInputSize,
-                        )
-                        if userRecordedInputSize > 38000:
-
-                            if runnerGreet.greeter.UserCancelled():
-                                continue
-
-                            # if userRecordedInputSize > 300000:
-                            #    greeter.VoiceProcess()
-                            #
-
-                            fileRecording = tapeRecorder.recorder.SaveRecordingObj()
-                            tapeRecorder.recorder.CleanRecording()
-
-                            if runnerGreet.greeter.UserCancelled():
-                                continue
-
-                            userTranscript = ai.SpeechToText(fileRecording, "text")
-                            print("Transcript:", userTranscript)
-
-                            if runnerGreet.greeter.UserCancelled():
-                                continue
-
-                            aiResponse = ai.Query(userTranscript)
-                            ai.AppendAnswer(aiResponse, 29)
-
-                            if runnerGreet.greeter.UserCancelled():
-                                continue
-
-                            runnerGreet.SetContent(aiResponse)
-
-                        else:
-                            print("Discarding...")
-                            tapeRecorder.Reset()
-
+            userTranscript =None
+            role = "user"
+            if not cancelled:
+                userTranscript = ai.SpeechToText(hasRecordedStuff, "text")
+                print("Transcript:", userTranscript)
             else:
-                tapeRecorder.Reset()
+                userTranscript = ai.GetBriefer()
+                role = "system"
+            
+            #ai.AppendToList(userTranscript, "user", 29)
+                
+            aiResponse = ai.Query(userTranscript, role)
+
+            if not cancelled:
+                ai.AppendToList(userTranscript, "user", 29)
+                ai.AppendToList(aiResponse, "assistant", 29)
+                greeter.UseVoice(aiResponse)
+            else:
+                ai.ClearCummulativeList()
+                appendTopics = "Our last conversation was about: " + str(aiResponse)
+                ai.AppendToList(
+                    appendTopics,
+                    "system",
+                    29,
+                )
+                greeter.voiceMaker.CreateWakeVoice(appendTopics, True)
+
+            tapeRecorder.fileRecording = None
+
 
 except Exception as error:
     print("\nExiting...", error)

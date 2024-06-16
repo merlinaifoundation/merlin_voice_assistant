@@ -2,6 +2,7 @@ import os
 import sys
 from threading import Thread
 import struct
+import time
 import pvporcupine
 import pyaudio
 
@@ -49,30 +50,32 @@ class Action(Thread):
             )
             print("\nWakeWord Routine from: ", self.wakeWordFile)
 
-            devnull = os.open(os.devnull, os.O_WRONLY)
-            old_stderr = os.dup(2)
-            sys.stderr.flush()
-            os.dup2(devnull, 2)
-            os.close(devnull)
+            #devnull = os.open(os.devnull, os.O_WRONLY)
+            #time.sleep(0.05)
+
+            #old_stderr = os.dup(2)
+            #sys.stderr.flush()
+            #os.dup2(devnull, 2)
+            #os.close(devnull)
 
             while not self._stop:
-
+                time.sleep(0.001)
                 frameLength = self.porcupine.frame_length
                 porcupine_pcm = self.porcupine_audio_stream.read(frameLength)
                 porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
                 porcupine_keyword_index = self.porcupine.process(porcupine_pcm)
 
                 if porcupine_keyword_index >= 0:
-
                     
+                    self.SetInvoked(True)
                     
-                    os.dup2(old_stderr, 2)
-                    os.close(old_stderr)
+                    #os.dup2(old_stderr, 2)
+                    #os.close(old_stderr)
 
                     print("\nAction Phrase Detected as in file: ", self.wakeWordFile)
-                    self.SetInvoked(True)
+                    
 
-            self.porcupine.delete()
+            #self.porcupine.delete()
             self.porcupine_audio_stream.stop_stream()
             self.porcupine_audio_stream.close()
             

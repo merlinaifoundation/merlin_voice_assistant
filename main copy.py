@@ -12,62 +12,62 @@ try:
     ai = ChatGPT()
 
     # sleep(0.02)
-    greeter.InitStopper()
-    greeter.InitWaker()
+    greeter.initStopper()
+    greeter.initWaker()
     # sleep(0.02)
-    greeter.ForceWake()
+    greeter.forceWake()
 
     while True:
 
         sleep(0.01)
 
-        greeter.CountIteration()
-        print ("Doing nothing, Iter:", greeter.count)
+        greeter.countIteration()
+        print ("Doing nothing, Iter:", greeter.iteration)
 
         # checks if user asked to Stop
         if greeter.UserCancelled():
 
             #mode sleeping
-            if greeter.stopMode == 1:
+            if greeter._stopMode == 1:
                 print("Sleeping...")
                 greeter.voiceMaker.VoiceSleeping()
             
             #mode interruption when greeter is talking
-            if greeter.stopMode == 2:
+            if greeter._stopMode == 2:
                 print("Processing Interruption...")
                 greeter.voiceMaker.VoiceProcess()
                 
             print("Flushing...")
-            greeter.ResetWaker()
-            greeter.ResetStopper()
+            greeter.resetWaker()
+            greeter.resetStopper()
             
             
-            tapeRecorder.Reset()
+            tapeRecorder.reset()
             
             print("Restarting...")
             
             
-            greeter.InitWaker()
+            greeter.initWaker()
 
             #mode sleeping
-            if greeter.stopMode == 1:
-                greeter.SetHasGreeted(False)
+            if greeter._stopMode == 1:
+                greeter.setHasGreeted(False)
             
             #mode interruption when greeter is talking
-            if greeter.stopMode == 2:
-                greeter.ForceWake()
+            if greeter._stopMode == 2:
+                greeter.forceWake()
                 
-            greeter.InitStopper()
+            greeter.initStopper()
             sleep(0.01)
             
             continue
 
         if greeter.wakeAction and greeter.wakeAction.IsInvoked():
 
-            if not greeter.HasGreeted():
+            if not greeter.hasGreeted():
                 print("Welcome...")
                 greeter.voiceMaker.VoiceAwake()
-                greeter.SetHasGreeted(True)
+                greeter.setHasGreeted(True)
                 sleep(1)
                 continue
 
@@ -77,29 +77,29 @@ try:
             # check if voice finished to start recording again
             if greeter.voiceMaker.IsIdle():
                 print("GreeterVoice Finished. Flushing...")
-                tapeRecorder.Reset()
-                greeter.stopMode = 1
+                tapeRecorder.reset()
+                greeter._stopMode = 1
                 # sleep(0.05)
 
 
-            tapeRecorder.Initialize()
+            tapeRecorder.initialize()
 
             if greeter.UserCancelled():
                 continue
             
-            tapeRecorder.Start(greeter.stopAction)
+            tapeRecorder.startRecording(greeter.stopAction)
 
             if greeter.UserCancelled():
                 continue
 
-            tapeRecorder.Stop()
+            tapeRecorder.stopRecording()
 
             if greeter.UserCancelled():
                 continue
 
             print(
                 "Iter: ",
-                greeter.count,
+                greeter.iteration,
             )
 
             if tapeRecorder.recorder:
@@ -147,12 +147,12 @@ try:
                                 greeter.voiceMaker.VoiceWait()
 
                             print("Display Response: ", aiResponse)
-                            greeter.stopMode = 2
+                            greeter._stopMode = 2
                             greeter.voiceMaker.VoiceDefault(aiResponse, greeter.stopAction)
                             # greeter.UseDisplay(aiResponse)
                     else:
                         print("Discarding...")
-                        tapeRecorder.Reset()
+                        tapeRecorder.reset()
 
     
 

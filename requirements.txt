@@ -13,7 +13,6 @@ idna==3.7
 openai==1.30.2
 pvcobra==2.0.2
 pvporcupine==3.0.2
-pvrecorder==1.2.2
 PyAudio==0.2.14
 pydantic==2.7.1
 pydantic_core==2.18.2
