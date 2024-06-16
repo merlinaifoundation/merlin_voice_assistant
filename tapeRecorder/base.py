@@ -59,7 +59,7 @@ class TapeRecorder(Thread):
                             "Recording Size: ",
                             userRecordedInputSize,
                         )
-                        if userRecordedInputSize > 17:
+                        if userRecordedInputSize > 93:
                             self.fileRecording = self.recorder.SaveRecordingObj()
                             self.recorder.CleanRecording()
                         else:
