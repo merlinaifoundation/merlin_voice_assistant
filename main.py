@@ -1,5 +1,5 @@
 # NEW LIBS
-from wizard.base import Wizard
+from wizard.wizard import Wizard
 
 try:
 

@@ -25,6 +25,8 @@ class Recorder(Thread):
         self._stop = True
 
         cfgLimit = config("REC_BUFFER_LIMIT")
+        self._cutLength = int(config("LISTEN_LENGTH"))
+
         self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
         self._finalized = False
         self.p = pyaudio.PyAudio()
@@ -41,6 +43,14 @@ class Recorder(Thread):
             "tmp",
             internalPath,
         )
+
+    def TrimLeftRecording(self):
+        # DETECT WHEN VOICE ACTIVATES AND STORE RECORDING FROM THERE - BIAS (cut length)
+        stored = self.GetBufferObj()
+        getIndex = len(stored)
+        print("Cutting at index =", getIndex)
+        stored = stored[getIndex - self._cutLength : getIndex]
+        self.SetBufferObj(stored)
 
     def run(self):
         # start recording

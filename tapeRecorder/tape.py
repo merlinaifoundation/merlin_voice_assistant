@@ -17,7 +17,6 @@ class TapeRecorder(Thread):
         self._listenThreshold = float(config("LISTEN_THRESHOLD"))
         self._silenceDuration = float(config("LISTEN_SILENCE_DURATION"))
         self._silenceThreshold = float(config("LISTEN_SILENCE_THRESHOLD"))
-        self._cutLength = int(config("LISTEN_LENGTH"))
 
         print("Listener Settings")
         print(self._listenThreshold, self._silenceDuration, self._silenceThreshold)
@@ -91,33 +90,36 @@ class TapeRecorder(Thread):
             diff = round(time.time() - timeNow, 2)
             self._prRed("Reset Recorder in seconds: ", diff)
 
+    
     def initialize(self):
         timeNow = time.time()
         if self.Recorder is None:
             self.Recorder = Recorder(None)
             diff = round(time.time() - timeNow, 2)
             self._prRed("Initialized Recorder in seconds: ", diff)
-
+    
     def startTape(self, stopAction):
 
         timeNow = time.time()
-        if self.Recorder and not self.Recorder.Finished():
-            print("Starting OpenMic...")
-            self.Recorder.StartRecording()
-            self.Listener.Listen(stopAction)
+        
+        if self.Recorder:
             
-            #DETECT WHEN VOICE ACTIVATES AND STORE RECORDING FROM THERE - BIAS (cut length)
-            stored = self.Recorder.GetBufferObj()
-            getIndex = len(stored)
-            print("Cutting at index =", getIndex)
-            stored = stored[getIndex-self._cutLength:getIndex]
-            self.Recorder.SetBufferObj(stored)
-            
-            self.Listener.DetectSilence(stopAction)
-            diff = round(time.time() - timeNow, 2)
-            self._prRed("Listening for seconds: ", diff)
-        #else:
-            #self.Reset()
+            if not self.Recorder.Finished():
+                
+                print("Starting OpenMic...")
+                #
+                self.Recorder.StartRecording()
+                #
+                self.Listener.Listen(stopAction)
+                #
+                self.Recorder.TrimLeftRecording()
+                #
+                self.Listener.DetectSilence(stopAction)
+                #
+                diff = round(time.time() - timeNow, 2)
+                self._prRed("Listening for seconds: ", diff)
+            #else:
+                #self.Reset()
 
     def stopTape(self):
         timeNow = time.time()

@@ -158,12 +158,14 @@ class ChatGPT(Thread):
                 role = "user"
                 if not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
-                    self._hasRecordedStuff = None
+                    
                     print("Transcript:", userTranscript)
                 else:
                     userTranscript = self.getBrieferCommand()
                     role = "system"
-
+                
+                self._hasRecordedStuff = None
+                
                 aiResponse = self.query(userTranscript, role)
                 self._aiResponse = aiResponse
 
@@ -187,7 +189,7 @@ class ChatGPT(Thread):
     def SetQuery(self, recordedStuff):
         self._hasRecordedStuff = recordedStuff
 
-    def MakeSummary(self, cancelled):
+    def SetCancelled(self, cancelled):
         self._cancelled = cancelled
 
     def SetResponse(self, response):
