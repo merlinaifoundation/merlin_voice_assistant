@@ -16,7 +16,6 @@ class ChatGPT(Thread):
         self.frequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
         self.temperature = float(config("CHATGPT_TEMPERATURE"))
 
-
         self.defaultModel = 0
         self.GPT_MODELS = [
             config("GPT_MODEL0"),
@@ -44,8 +43,12 @@ class ChatGPT(Thread):
         self.chat_log = [
             {"role": "system", "content": CHAT_LOG},
         ]
-        
+        self._cancelled = False
+        self._aiResponse = None
+        self._hasRecordedStuff = None
+
         self.cummulative = []
+        self._isIdle = True
 
     def getModel(self):
         model = str(self.GPT_MODELS[self.defaultModel])
@@ -64,27 +67,32 @@ class ChatGPT(Thread):
     def sendQueryObj(self, model, send_query):
         # make a OpenAI connection client
         # construct a response object for the query message
-        response = self.client.chat.completions.create(model=model, messages=send_query, temperature=self.temperature, frequency_penalty=self.frequencyPenalty)
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=send_query,
+            temperature=self.temperature,
+            frequency_penalty=self.frequencyPenalty,
+        )
         # get OpenAI answer!
         answer = response.choices[0].message.content
         # return the answer trimmed
         return str.strip(str(answer))
 
-    def ClearCummulativeList(self):
+    def clearCummulativeList(self):
         self.cummulative = []
 
-    def AppendToList(self, questionOrAnswer, role,  maximum):
+    def appendToConversation(self, questionOrAnswer, role, maximum):
         QAs = len(self.cummulative)
         if QAs > maximum:
             print("Clearing Cumm List", QAs)
-            self.ClearCummulativeList()
+            self.clearCummulativeList()
         if questionOrAnswer is not None:
             self.cummulative.append({"role": role, "content": questionOrAnswer})
-    
-    def GetBriefer(self ):
-        return  self.CHAT_LOG_LAST
-    
-    def SpeechToText(self, file, response_format):
+
+    def getBrieferCommand(self):
+        return self.CHAT_LOG_LAST
+
+    def speechToText(self, file, response_format):
 
         transcriptionTxt = ""
         transcription = None
@@ -102,15 +110,7 @@ class ChatGPT(Thread):
 
         return transcriptionTxt
 
-    # to be tested
-    def SwitchModel(self):
-        self.defaultModel = self.defaultModel + 1
-        if self.defaultModel >= len(self.GPT_MODELS):
-            self.defaultModel = 0
-        model = str(self.GPT_MODELS[self.defaultModel])
-        print("Using Default Model", model, "from length", len(self.GPT_MODELS))
-
-    def Query(self, query, role):
+    def query(self, query, role):
 
         response = None
         if query is None or not query:
@@ -144,3 +144,65 @@ class ChatGPT(Thread):
             )
             print(e)
         return response
+
+    def run(self):
+
+
+        while True:
+
+            if self._hasRecordedStuff and self._isIdle:
+                
+                self._isIdle = False
+                
+                userTranscript = None
+                role = "user"
+                if not self._cancelled:
+                    userTranscript = self.speechToText(self._hasRecordedStuff, "text")
+                    self._hasRecordedStuff = None
+                    print("Transcript:", userTranscript)
+                else:
+                    userTranscript = self.getBrieferCommand()
+                    role = "system"
+
+                aiResponse = self.query(userTranscript, role)
+                self._aiResponse = aiResponse
+
+                if not self._cancelled:
+                    self.appendToConversation(userTranscript, "user", 20)
+                    self.appendToConversation(aiResponse, "assistant", 20)
+                    #self._aiResponse = aiResponse
+
+                else:
+                    self.clearCummulativeList()
+                    self._aiResponse = "Our last conversation was about: " + str(aiResponse)
+                    self.appendToConversation(
+                        self._aiResponse,
+                        "system",
+                        20,
+                    )
+                    #self._aiResponse = None
+                
+                self._isIdle = True
+
+    def SetQuery(self, recordedStuff):
+        self._hasRecordedStuff = recordedStuff
+
+    def MakeSummary(self, cancelled):
+        self._cancelled = cancelled
+
+    def SetResponse(self, response):
+        self._aiResponse = response
+
+    def GetResponse(self):
+        return self._aiResponse
+
+    # to be tested
+    def SwitchModel(self):
+        self.defaultModel = self.defaultModel + 1
+        if self.defaultModel >= len(self.GPT_MODELS):
+            self.defaultModel = 0
+        model = str(self.GPT_MODELS[self.defaultModel])
+        print("Using Default Model", model, "from length", len(self.GPT_MODELS))
+
+    def StartThread(self):
+        self.start()
