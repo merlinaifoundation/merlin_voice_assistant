@@ -25,8 +25,11 @@ class Listener(Thread):
         self._averageSilenceDuration = []
         self._averageSilenceThreshold = []
         self.iterator = 0
+        self._cancelled = False
 
-    def Listen(self, stopObject):
+    def SetCancelled(self, cancelled):
+        self._cancelled = cancelled
+    def Listen(self):
 
         self._stop = False
         self._invoked = False
@@ -44,7 +47,7 @@ class Listener(Thread):
 
             frameLength = self._cobra.frame_length
 
-            while stopObject and stopObject.IsInvoked() is False:
+            while self._cancelled is False:
                 listen_pcm = listen_audio_stream.read(frameLength)
                 listen_pcm = struct.unpack_from("h" * frameLength, listen_pcm)
                 listenValue = self._cobra.process(listen_pcm)
@@ -77,7 +80,7 @@ class Listener(Thread):
         except Exception as error:
             print("Error Listening:", error)
 
-    def DetectSilence(self, stopObject):
+    def DetectSilence(self):
 
         try:
             print("Detecting Silence...")
@@ -93,7 +96,7 @@ class Listener(Thread):
             last_voice_time = time.time()
             frameLength = self._cobra.frame_length
 
-            while stopObject and stopObject.IsInvoked() is False:
+            while self._cancelled is False:
                 cobra_pcm = cobra_audio_stream.read(frameLength)
                 cobra_pcm = struct.unpack_from("h" * frameLength, cobra_pcm)
 

@@ -1,13 +1,13 @@
 [Unit]
-Description=Merlin Wizard
+Description=Galileo
 DefaultDependencies=no
 After=network.target
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/home/ubuntu/merlin_voice_assistant/
-ExecStart=/bin/bash /home/ubuntu/merlin_voice_assistant/merlin.sh
+WorkingDirectory=/home/root/
+ExecStart=/bin/bash /home/root/python prueba.py
 TimeoutStartSec=0
 RemainAfterExit=yes
 Restart=always
