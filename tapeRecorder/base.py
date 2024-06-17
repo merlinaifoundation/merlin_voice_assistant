@@ -24,7 +24,7 @@ class TapeRecorder(Thread):
         self._listener = Listener(
             self._listenThreshold, self._silenceDuration, self._silenceThreshold
         )
-        self.fileRecording = None
+        self._fileRecording = None
         self.greeter = greeter
         self.isOpenMic = False
         diff = round(time.time() - timeNow, 2)
@@ -67,8 +67,8 @@ class TapeRecorder(Thread):
                     "Recording Size: ",
                     userRecordedInputSize,
                 )
-                if userRecordedInputSize > 93:
-                    self.fileRecording = self._recorder.SaveRecordingObj()
+                if userRecordedInputSize > 75:
+                    self._fileRecording = self._recorder.SaveRecordingObj()
                     self._recorder.CleanRecording()
                 else:
                     print("Discarding short Recording:", userRecordedInputSize)
@@ -129,3 +129,8 @@ class TapeRecorder(Thread):
         
     def SetOpenMic(self, isOpenMic):
         self.isOpenMic = isOpenMic
+    
+    def SetTape(self, obj):
+        self._fileRecording = obj
+    def GetTape(self):
+        return self._fileRecording
