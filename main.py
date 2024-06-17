@@ -48,14 +48,16 @@ try:
 
         brain.SetQuery(fileRecording)
 
+        #tapeRecorder.SetTape(None)
         tapeRecorder.SetTape(None)
-
+        
         aiResponse = brain.GetResponse()
         greeter.VoiceResponse(aiResponse)
 
-        if not greeter.IsIdle():
+        if greeter.IsIdle():
             if aiResponse:
                 brain.SetResponse(None)
+                tapeRecorder.resetTape()
 
         #
 
