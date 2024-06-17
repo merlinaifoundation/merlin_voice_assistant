@@ -110,17 +110,18 @@ class Recorder(Thread):
 
     def GetBufferObj(self):
         return self._buffer
-    
+
     def GetRecordingObj(self):
         return self._result
-    def SetBufferObj(self, obj ):
+
+    def SetBufferObj(self, obj):
         self._buffer = obj
 
     def RemoveRecording(self):
         try:
-            # os.remove(self.file_path)
-            print("Removing Recording: ", self.file_path)
-            # os.remove(self.file_path)
+            if os.path.isfile(self.file_path):
+                os.remove(self.file_path)
+                print("Removing Recording: ", self.file_path)
 
         except Exception as error:
             print("Error Removing Recording", error)

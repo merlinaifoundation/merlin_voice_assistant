@@ -22,11 +22,14 @@ try:
         enabled = greeter.UserInvoked()
         cancelled = greeter.UserCancelled()
         idle = greeter.IsIdle()
-        openMicOn = not cancelled and idle and enabled
+        openMicOn =  idle and enabled
 
         status = int(enabled), int(cancelled), int(idle), int(openMicOn)
         # print("\nSTATUS", status)
+        bypassFilter = cancelled
 
+        tapeRecorder.SetBypassFilter(bypassFilter)
+        tapeRecorder.SetCancelled(cancelled)
         tapeRecorder.SetOpenMic(openMicOn)
 
         cancelled = greeter.UserCancelled()

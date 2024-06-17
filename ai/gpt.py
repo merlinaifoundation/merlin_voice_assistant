@@ -163,17 +163,17 @@ class ChatGPT(Thread):
                 self._aiResponse = aiResponse
 
                 if not self._cancelled:
-                    self.appendToConversation(userTranscript, "user", 29)
-                    self.appendToConversation(aiResponse, "assistant", 29)
+                    self.appendToConversation(userTranscript, "user", 20)
+                    self.appendToConversation(aiResponse, "assistant", 20)
                     #self._aiResponse = aiResponse
 
                 else:
                     self.clearCummulativeList()
-                    aiResponse = "Our last conversation was about: " + str(aiResponse)
+                    self._aiResponse = "Our last conversation was about: " + str(aiResponse)
                     self.appendToConversation(
-                        aiResponse,
+                        self._aiResponse,
                         "system",
-                        29,
+                        20,
                     )
                     #self._aiResponse = None
 

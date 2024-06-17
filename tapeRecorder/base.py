@@ -13,7 +13,7 @@ class TapeRecorder(Thread):
 
         timeNow = time.time()
 
-        self._recorder = None
+        self.Recorder = None
         self._listenThreshold = float(config("LISTEN_THRESHOLD"))
         self._silenceDuration = float(config("LISTEN_SILENCE_DURATION"))
         self._silenceThreshold = float(config("LISTEN_SILENCE_THRESHOLD"))
@@ -21,12 +21,14 @@ class TapeRecorder(Thread):
 
         print("Listener Settings")
         print(self._listenThreshold, self._silenceDuration, self._silenceThreshold)
-        self._listener = Listener(
+        self.Listener = Listener(
             self._listenThreshold, self._silenceDuration, self._silenceThreshold
         )
         self._fileRecording = None
         self.greeter = greeter
-        self.isOpenMic = False
+        self._isOpenMic = False
+        self._bypassFilter = False
+        self._cancelled = False
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Tape Recorder Creation in seconds: ", diff)
 
@@ -43,7 +45,7 @@ class TapeRecorder(Thread):
             time.sleep(0.01)
             
             # check if voice finished to start recording again
-            if self.isOpenMic:
+            if self._isOpenMic:
                 # print("GreeterVoice Finished. Flushing...")
 
                 self.initialize()
@@ -59,17 +61,17 @@ class TapeRecorder(Thread):
 
     def filterTape(self):
         userRecordedInputSize = 0
-        if self._recorder:
-            userRecordedInput = self._recorder.GetRecordingObj()
+        if self.Recorder:
+            userRecordedInput = self.Recorder.GetRecordingObj()
             userRecordedInputSize = len(userRecordedInput)
             if userRecordedInputSize > 0:
                 print(
                     "Recording Size: ",
                     userRecordedInputSize,
                 )
-                if userRecordedInputSize > 75:
-                    self._fileRecording = self._recorder.SaveRecordingObj()
-                    self._recorder.CleanRecording()
+                if userRecordedInputSize > 93 or self._bypassFilter:
+                    self._fileRecording = self.Recorder.SaveRecordingObj()
+                    self.Recorder.CleanRecording()
                 else:
                     print("Discarding short Recording:", userRecordedInputSize)
                     self.resetTape()
@@ -80,38 +82,38 @@ class TapeRecorder(Thread):
         #if self.fileRecording is not None:
             #self.fileRecording = None
         
-        if self._recorder and self._recorder.Finished():
+        if self.Recorder and self.Recorder.Finished():
             self._prGreen("Flushing Recording...", "Once")
-            self._recorder.StopRecording()
-            self._recorder.CleanRecording()
-            self._recorder.RemoveRecording()
-            self._recorder = None
+            self.Recorder.StopRecording()
+            self.Recorder.CleanRecording()
+            self.Recorder.RemoveRecording()
+            self.Recorder = None
             diff = round(time.time() - timeNow, 2)
             self._prRed("Reset Recorder in seconds: ", diff)
 
     def initialize(self):
         timeNow = time.time()
-        if self._recorder is None:
-            self._recorder = Recorder(None)
+        if self.Recorder is None:
+            self.Recorder = Recorder(None)
             diff = round(time.time() - timeNow, 2)
             self._prRed("Initialized Recorder in seconds: ", diff)
 
     def startTape(self, stopAction):
 
         timeNow = time.time()
-        if self._recorder and not self._recorder.Finished():
+        if self.Recorder and not self.Recorder.Finished():
             print("Starting OpenMic...")
-            self._recorder.StartRecording()
-            self._listener.Listen(stopAction)
+            self.Recorder.StartRecording()
+            self.Listener.Listen(stopAction)
             
             #DETECT WHEN VOICE ACTIVATES AND STORE RECORDING FROM THERE - BIAS (cut length)
-            stored = self._recorder.GetBufferObj()
+            stored = self.Recorder.GetBufferObj()
             getIndex = len(stored)
             print("Cutting at index =", getIndex)
             stored = stored[getIndex-self._cutLength:getIndex]
-            self._recorder.SetBufferObj(stored)
+            self.Recorder.SetBufferObj(stored)
             
-            self._listener.DetectSilence(stopAction)
+            self.Listener.DetectSilence(stopAction)
             diff = round(time.time() - timeNow, 2)
             self._prRed("Listening for seconds: ", diff)
         #else:
@@ -119,8 +121,8 @@ class TapeRecorder(Thread):
 
     def stopTape(self):
         timeNow = time.time()
-        if self._recorder and self._recorder.IsRecording():
-            self._recorder.StopRecording()
+        if self.Recorder and self.Recorder.IsRecording():
+            self.Recorder.StopRecording()
             diff = round(time.time() - timeNow, 2)
             self._prRed("Stoping OpenMic for seconds: ", diff)
 
@@ -128,9 +130,15 @@ class TapeRecorder(Thread):
         self.start()
         
     def SetOpenMic(self, isOpenMic):
-        self.isOpenMic = isOpenMic
+        self._isOpenMic = isOpenMic
     
     def SetTape(self, obj):
         self._fileRecording = obj
     def GetTape(self):
         return self._fileRecording
+    
+    def SetCancelled(self, status):
+        self._cancelled = status
+    def SetBypassFilter(self, status):
+        self._bypassFilter = status
+    
