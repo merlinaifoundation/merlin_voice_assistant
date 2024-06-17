@@ -29,10 +29,10 @@ class Wizard(Thread):
         self._prGreen("Wizard Creation in seconds: ", diff)
 
     def _prRed(self, skk, number):
-        print("\033[97m {}\033[00m".format(skk), number)
+        print("\033[91m {}\033[00m".format(skk), number)
 
     def _prGreen(self, skk, number):
-        print("\033[98m {}\033[00m".format(skk), number)
+        print("\033[92m {}\033[00m".format(skk), number)
 
     def run(self):
 
@@ -71,11 +71,11 @@ class Wizard(Thread):
                 aiResponse = self.Brain.GetResponse()
                 self.Greeter.VoiceResponse(aiResponse)
 
-                idle = self.Greeter.IsIdle()
-                if idle:
-                    if aiResponse:
-                        self.Brain.SetResponse(None)
-                        self.TapeRecorder.resetTape()
+                #idle = self.Greeter.IsIdle()
+                if aiResponse:
+                    self.Brain.SetResponse(None)
+                    if self.Greeter.IsIdle():
+                        self.TapeRecorder.Reset()
                         
                     
 
@@ -84,7 +84,15 @@ class Wizard(Thread):
 
     def StartThread(self):
 
-        self.start()
-        self.Brain.StartThread()
-        self.TapeRecorder.StartThread()
+        timeNow = time.time()
+        
         self.Greeter.StartThread()
+        
+        self.Brain.StartThread()
+
+        self.TapeRecorder.StartThread()
+        
+        self.start()
+        
+        diff = round(time.time() - timeNow, 2)
+        self._prGreen("Wizard Thread Start in seconds: ", diff)
