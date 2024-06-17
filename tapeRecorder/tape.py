@@ -53,7 +53,7 @@ class TapeRecorder(Thread):
                 self.filterTape()
 
             else:
-                self.resetTape()
+                self.Reset()
 
 
 
@@ -72,9 +72,9 @@ class TapeRecorder(Thread):
                     self.Recorder.CleanRecording()
                 else:
                     print("Discarding short Recording:", userRecordedInputSize)
-                    self.resetTape()
+                    self.Reset()
         
-    def resetTape(self):
+    def Reset(self):
         timeNow = time.time()
         
         #if self.fileRecording is not None:

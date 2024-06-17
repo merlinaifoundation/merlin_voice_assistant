@@ -64,7 +64,7 @@ class VoiceMaker(Thread):
         self.CreateWakeVoice(self.awakeVoiceTxt)
         
         self._defaultVoiceObj = TextToSpeech()
-        self.VoiceDefault("Almost there!", None)
+        self.VoiceDefault("Almost there!", False)
         print("Finished creating the TTS Defaults")
 
     def CreateWakeVoice(self, txt, force = False):
@@ -100,10 +100,10 @@ class VoiceMaker(Thread):
         # self._initVoiceObj = TextToSpeech()
         self._initVoiceObj.SpeakFromFile(self._initInnerFile, False)
 
-    def VoiceDefault(self, content, stopObj):
+    def VoiceDefault(self, content, cancelled):
 
         # self._defaultVoiceObj = TextToSpeech()
-        self._defaultVoiceObj.SetForceStopObj(stopObj)
+        self._defaultVoiceObj.SetCancelled(cancelled)
         self._defaultVoiceObj.SpeakFromText(content, False)
 
     def IsIdle(self):
