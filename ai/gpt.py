@@ -48,6 +48,7 @@ class ChatGPT(Thread):
         self._hasRecordedStuff = None
 
         self.cummulative = []
+        self._isIdle = True
 
     def getModel(self):
         model = str(self.GPT_MODELS[self.defaultModel])
@@ -146,14 +147,18 @@ class ChatGPT(Thread):
 
     def run(self):
 
+
         while True:
 
-            if self._hasRecordedStuff:
-
+            if self._hasRecordedStuff and self._isIdle:
+                
+                self._isIdle = False
+                
                 userTranscript = None
                 role = "user"
                 if not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
+                    self._hasRecordedStuff = None
                     print("Transcript:", userTranscript)
                 else:
                     userTranscript = self.getBrieferCommand()
@@ -176,6 +181,8 @@ class ChatGPT(Thread):
                         20,
                     )
                     #self._aiResponse = None
+                
+                self._isIdle = True
 
     def SetQuery(self, recordedStuff):
         self._hasRecordedStuff = recordedStuff

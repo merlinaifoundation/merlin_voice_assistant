@@ -42,7 +42,7 @@ try:
             greeter.resetStopper()
             
             
-            tapeRecorder.reset()
+            tapeRecorder.resetTape()
             
             print("Restarting...")
             
@@ -77,7 +77,7 @@ try:
             # check if voice finished to start recording again
             if greeter.voiceMaker.IsIdle():
                 print("GreeterVoice Finished. Flushing...")
-                tapeRecorder.reset()
+                tapeRecorder.resetTape()
                 greeter._stopMode = 1
                 # sleep(0.05)
 
@@ -87,12 +87,12 @@ try:
             if greeter.UserCancelled():
                 continue
             
-            tapeRecorder.startRecording(greeter.stopAction)
+            tapeRecorder.startTape(greeter.stopAction)
 
             if greeter.UserCancelled():
                 continue
 
-            tapeRecorder.stopRecording()
+            tapeRecorder.stopTape()
 
             if greeter.UserCancelled():
                 continue
@@ -102,9 +102,9 @@ try:
                 greeter.iteration,
             )
 
-            if tapeRecorder.recorder:
+            if tapeRecorder.Recorder:
 
-                userRecordedInput = tapeRecorder.recorder.HasRecordingObj()
+                userRecordedInput = tapeRecorder.Recorder.GetRecordingObj()
                 userRecordedInputSize = len(userRecordedInput)
 
                 print(
@@ -123,19 +123,19 @@ try:
                         #    greeter.VoiceProcess()
                         #
 
-                        fileRecording = tapeRecorder.recorder.SaveRecordingObj()
-                        tapeRecorder.recorder.CleanRecording()
+                        fileRecording = tapeRecorder.Recorder.SaveRecordingObj()
+                        tapeRecorder.Recorder.CleanRecording()
 
                         if greeter.UserCancelled():
                             continue
 
-                        userTranscript = ai.SpeechToText(fileRecording, "text")
+                        userTranscript = ai.speechToText(fileRecording, "text")
                         print("Transcript:", userTranscript)
 
                         if greeter.UserCancelled():
                             continue
 
-                        aiResponse = ai.Query(userTranscript)
+                        aiResponse = ai.query(userTranscript)
                         ai.AppendAnswer(aiResponse, 29)
 
                         if greeter.UserCancelled():
@@ -152,7 +152,7 @@ try:
                             # greeter.UseDisplay(aiResponse)
                     else:
                         print("Discarding...")
-                        tapeRecorder.reset()
+                        tapeRecorder.resetTape()
 
     
 

@@ -22,33 +22,42 @@ try:
         enabled = greeter.UserInvoked()
         cancelled = greeter.UserCancelled()
         idle = greeter.IsIdle()
-        openMicOn =  idle and enabled
+        openMicOn = idle and enabled
 
         status = int(enabled), int(cancelled), int(idle), int(openMicOn)
         # print("\nSTATUS", status)
-        bypassFilter = cancelled
 
+        # bypass filter when cancelling!
+        bypassFilter = cancelled
         tapeRecorder.SetBypassFilter(bypassFilter)
+
+        # not finished the flags-implementation
         tapeRecorder.SetCancelled(cancelled)
+
+        # to start recording session
         tapeRecorder.SetOpenMic(openMicOn)
 
         cancelled = greeter.UserCancelled()
 
         brain.MakeSummary(cancelled)
 
-        #has record to process for answers?
+        # has record to process for answers?
+        # brain.SetResponse(None)
+
         fileRecording = tapeRecorder.GetTape()
+
         brain.SetQuery(fileRecording)
-        aiResponse = brain.GetResponse()
 
-        if aiResponse:
-            if not cancelled:
-                greeter.UseVoice(aiResponse)
-            else:
-                greeter.voiceMaker.CreateWakeVoice(aiResponse, True)
-
-        brain.SetResponse(None)
         tapeRecorder.SetTape(None)
+
+        aiResponse = brain.GetResponse()
+        greeter.VoiceResponse(aiResponse)
+
+        if not greeter.IsIdle():
+            if aiResponse:
+                brain.SetResponse(None)
+
+        #
 
 
 except Exception as error:
