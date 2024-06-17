@@ -8,7 +8,7 @@ from tapeRecorder.recorder import Recorder
 
 class TapeRecorder(Thread):
 
-    def __init__(self, greeter):
+    def __init__(self):
         super().__init__()
 
         timeNow = time.time()
@@ -24,7 +24,6 @@ class TapeRecorder(Thread):
             self._listenThreshold, self._silenceDuration, self._silenceThreshold
         )
         self._fileRecording = None
-        self.greeter = greeter
         self._isOpenMic = False
         self._bypassFilter = False
         self._cancelled = False
@@ -48,7 +47,7 @@ class TapeRecorder(Thread):
                 # print("GreeterVoice Finished. Flushing...")
 
                 self.initialize()
-                self.startTape(self.greeter.stopAction)
+                self.startTape()
                 self.stopTape()
                 
                 self.filterTape()
@@ -98,7 +97,7 @@ class TapeRecorder(Thread):
             diff = round(time.time() - timeNow, 2)
             self._prRed("Initialized Recorder in seconds: ", diff)
     
-    def startTape(self, stopAction):
+    def startTape(self):
 
         timeNow = time.time()
         
@@ -110,11 +109,11 @@ class TapeRecorder(Thread):
                 #
                 self.Recorder.StartRecording()
                 #
-                self.Listener.Listen(stopAction)
+                self.Listener.Listen()
                 #
                 self.Recorder.TrimLeftRecording()
                 #
-                self.Listener.DetectSilence(stopAction)
+                self.Listener.DetectSilence()
                 #
                 diff = round(time.time() - timeNow, 2)
                 self._prRed("Listening for seconds: ", diff)
@@ -141,6 +140,9 @@ class TapeRecorder(Thread):
     
     def SetCancelled(self, status):
         self._cancelled = status
+        self.Listener.SetCancelled(self._cancelled)
+        #
+        
     def SetBypassFilter(self, status):
         self._bypassFilter = status
     

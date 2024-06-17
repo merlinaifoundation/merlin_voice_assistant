@@ -45,12 +45,12 @@ class VoiceMaker(Thread):
     def _prepareDefaultVoices(self):
 
 
-        self._waitVoiceObj = TextToSpeech()
-        if self._waitVoiceObj.SetFile(self._processInnerFile) is False:
-            self._waitVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
+        #self._initVoiceObj = TextToSpeech()
+        if self._initVoiceObj.SetFile(self._processInnerFile) is False:
+            self._initVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
             print("Created Process Audio File...")
             
-        #self._waitVoiceObj = TextToSpeech()
+        self._waitVoiceObj = TextToSpeech()
         if self._waitVoiceObj.SetFile(self._waitInnerFile) is False:
             self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt, False)
             print("Creating Wait Audio File...")
@@ -78,7 +78,6 @@ class VoiceMaker(Thread):
             self._awakeVoiceObj.PrepareFileFromText(txt, False)
             print("Created Stop Audio File...")
             #self._awakeVoiceObj = TextToSpeech()
-        
     
     def VoiceSleeping(self):
         # self._awakeVoiceObj = TextToSpeech()
@@ -94,7 +93,7 @@ class VoiceMaker(Thread):
 
     def VoiceProcess(self):
         # self._processVoiceObj = TextToSpeech()
-        self._waitVoiceObj.SpeakFromFile(self._processInnerFile, False)
+        self._initVoiceObj.SpeakFromFile(self._processInnerFile, False)
 
     def VoiceInit(self):
 
@@ -111,6 +110,7 @@ class VoiceMaker(Thread):
         condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
         condition2 = (self._awakeVoiceObj is not None) and self._awakeVoiceObj.Finished()
         condition3 = (self._waitVoiceObj is not None) and self._waitVoiceObj.Finished()
+        condition4 = (self._initVoiceObj is not None) and self._initVoiceObj.Finished()
 
         #print(condition1, condition2)
-        return condition1 and condition2 and condition3
+        return condition1 and condition2 and condition3 and condition4

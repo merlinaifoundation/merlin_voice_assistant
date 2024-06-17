@@ -20,7 +20,7 @@ class Wizard(Thread):
         # self._silenceDuration = float(config("LISTEN_SILENCE_DURATION"))
         self.Greeter = Greeter()
 
-        self.TapeRecorder = TapeRecorder(self.Greeter)
+        self.TapeRecorder = TapeRecorder()
 
         self.Brain = ChatGPT()
 
@@ -45,16 +45,17 @@ class Wizard(Thread):
                 enabled = self.Greeter.UserInvoked()
                 cancelled = self.Greeter.UserCancelled()
                 idle = self.Greeter.IsIdle()
-                openMicOn = idle and enabled
+                openMicOn = not cancelled and idle and enabled
                 bypassFilter = cancelled
 
                 # status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 # print("\nSTATUS", status)
 
                 # not finished the flags-implementation
-                self.TapeRecorder.SetCancelled(cancelled)
                 # bypass filter when cancelling!
                 self.TapeRecorder.SetBypassFilter(bypassFilter)
+                self.TapeRecorder.SetCancelled(cancelled)
+
                 # to start recording session
                 self.TapeRecorder.SetOpenMic(openMicOn)
 

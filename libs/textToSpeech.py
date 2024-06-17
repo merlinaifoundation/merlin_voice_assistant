@@ -21,6 +21,7 @@ class TextToSpeech(Thread):
         self._fileName = str(random.randint(0, 1000000)) + ".mp3"
         self._setFilePath()
         self.mixer = pygame.mixer
+        
         self._forceStopObj = None
         self._autoremoveFile = False
         self._shouldPrepareFile = False
@@ -75,7 +76,7 @@ class TextToSpeech(Thread):
     def _stopPlay(self):
         try:
             self.mixer.music.stop()
-            self.mixer.quit()
+            #self.mixer.quit()
         except Exception as error:
             print("Error:", error)
         self._stop = True
