@@ -21,7 +21,7 @@ class Action(Thread):
         self._keyword_path = os.path.join(rootPath, self.wakeWordFile)
         self._apiKey = str(pv_access_key)
         self._createClient( channels, frame_length, rate)
-        self.porcupineStream = None
+        
         print("\nWakeWord Routine from: ", self.wakeWordFile)
         
 
@@ -68,7 +68,7 @@ class Action(Thread):
         try:
             self._openStream()
             
-            while not self._stop and self.porcupineStream:
+            while not self._stop:
                 time.sleep(0.001)
                 frameLength = self.frame_length or self.porcupineClient.frame_length
                 porcupine_pcm = self.porcupineStream.read(frameLength)
@@ -84,10 +84,9 @@ class Action(Thread):
             print("Error Opening Wake Stream", error,  self.wakeWordFile)
 
         try:
-            if self.porcupineStream:
-                
-                self.porcupineStream.stop_stream()
-                self.porcupineStream.close()
+        
+            self.porcupineStream.stop_stream()
+            self.porcupineStream.close()
             
         except Exception as error:
             print("Error Closing Wake Stream", error, self.wakeWordFile)
