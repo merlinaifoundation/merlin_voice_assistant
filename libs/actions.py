@@ -1,5 +1,4 @@
 import os
-import sys
 from threading import Thread
 import struct
 import time
@@ -9,19 +8,46 @@ import pyaudio
 
 class Action(Thread):
 
-    def __init__(self, pv_access_key, wakeWordFile):
+    def __init__(self, pv_access_key, wakeWordFile, channels , frame_length, rate):
         super().__init__()
-        self.wake_pa = pyaudio.PyAudio()
+        self._wake_pa = pyaudio.PyAudio()
+        default_input_device = self._wake_pa.get_default_input_device_info()
+        print(f"Default Input Device: {default_input_device['name']}")
+        
         self._stop = True
         self._invoked = False
         self.wakeWordFile = wakeWordFile
         rootPath = os.path.dirname(__file__)
-        keyword_path = os.path.join(rootPath, self.wakeWordFile)
+        self._keyword_path = os.path.join(rootPath, self.wakeWordFile)
+        self._apiKey = str(pv_access_key)
+        self._createClient( channels, frame_length, rate)
+        
+        print("\nWakeWord Routine from: ", self.wakeWordFile)
+        
 
-        self.porcupine = pvporcupine.create(
-            access_key=pv_access_key, keyword_paths=[keyword_path]
+
+    def _createClient(self,  channels,  frame_length, rate):
+        self.porcupineClient = pvporcupine.create(
+            access_key=self._apiKey, keyword_paths=[self._keyword_path]
         )
-        self.porcupine_audio_stream =None
+        self._channels = channels or 1
+        self.frame_length = frame_length  or self.porcupineClient.frame_length
+        self.rate = rate or self.porcupineClient.sample_rate
+        print("Actions params at: ", (self._channels, self.frame_length, self.rate)) #  (1, 512, 16000) or defaults
+        
+        
+
+    def _openStream(self):
+        
+        self.porcupineStream = self._wake_pa.open(
+            rate=self.rate ,
+            channels=self._channels , # does not work stereo
+            format=pyaudio.paInt16,
+            input=True,
+            frames_per_buffer=self.frame_length
+            
+        )
+        
 
     def StartListening(self):
 
@@ -40,44 +66,36 @@ class Action(Thread):
     def run(self):
 
         try:
-
-            self.porcupine_audio_stream = self.wake_pa.open(
-                rate=self.porcupine.sample_rate,
-                channels=1,
-                format=pyaudio.paInt16,
-                input=True,
-                frames_per_buffer=self.porcupine.frame_length,
-            )
-            print("\nWakeWord Routine from: ", self.wakeWordFile)
-
-            #devnull = os.open(os.devnull, os.O_WRONLY)
-            #time.sleep(0.05)
-
-            #old_stderr = os.dup(2)
-            #sys.stderr.flush()
-            #os.dup2(devnull, 2)
-            #os.close(devnull)
-
+            self._openStream()
+            
             while not self._stop:
                 time.sleep(0.001)
-                frameLength = self.porcupine.frame_length
-                porcupine_pcm = self.porcupine_audio_stream.read(frameLength)
+                frameLength = self.frame_length or self.porcupineClient.frame_length
+                porcupine_pcm = self.porcupineStream.read(frameLength)
                 porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
-                porcupine_keyword_index = self.porcupine.process(porcupine_pcm)
+                porcupine_keyword_index = self.porcupineClient.process(porcupine_pcm)
 
                 if porcupine_keyword_index >= 0:
-                    
+
                     self.SetInvoked(True)
-                    
-                    #os.dup2(old_stderr, 2)
-                    #os.close(old_stderr)
-
                     print("\nAction Phrase Detected as in file: ", self.wakeWordFile)
-                    
 
-            #self.porcupine.delete()
-            self.porcupine_audio_stream.stop_stream()
-            self.porcupine_audio_stream.close()
+        except Exception as error:
+            print("Error Opening Wake Stream", error,  self.wakeWordFile)
+
+        try:
+        
+            self.porcupineStream.stop_stream()
+            self.porcupineStream.close()
             
         except Exception as error:
-            print("Error:", error)
+            print("Error Closing Wake Stream", error, self.wakeWordFile)
+        
+        try:
+        
+            self.porcupineClient.delete()
+            self._wake_pa.terminate()
+            
+        except Exception as error:
+            print("Error Terminating Wake Clients", error, self.wakeWordFile)
+        

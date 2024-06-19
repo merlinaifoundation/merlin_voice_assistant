@@ -1,3 +1,4 @@
+import sys
 from threading import Thread
 import time
 from decouple import config
@@ -23,10 +24,19 @@ class Greeter(Thread):
         self.stopAction = None
         self.iteration = 0
 
+
+        self._actionVoiceFrameLength = int(config("WAKE_WORD_FRAME_LENGTH")) or None
+        self._activationVoiceRate =  int(config("WAKE_WORD_FRAME_RATE")) or None
+        self._activationVoiceChannels =  int(config("WAKE_WORD_CHANNELS")) or None
+
+
+
         self._greeted = False
         self._aiResponse = None
 
+
         self.voiceMaker = VoiceMaker()
+        self._stop = False
 
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Greeter Creation in seconds: ", diff)
@@ -80,13 +90,15 @@ class Greeter(Thread):
     def run(self):
 
         self.initStopper()
+        time.sleep(0.001)
         self.initWaker()
-        time.sleep(0.02)
+        time.sleep(0.001)
         self.forceWake()
+        time.sleep(0.001)
 
-        while True:
+        while not self._stop:
 
-            time.sleep(0.01)
+            time.sleep(0.001)
             self.countIteration()
             # print("Doing nothing, Iter:", self.greeter.count)
 
@@ -98,6 +110,8 @@ class Greeter(Thread):
 
             if self.UserInvoked():
                 self._awakening()
+                
+        #sys.exit(None)
 
     def resetWaker(self):
         self.wakeAction = None
@@ -109,7 +123,7 @@ class Greeter(Thread):
         timeNow = time.time()
 
         if self.wakeAction is None:
-            self.wakeAction = Action(self._pv_access_key, self.wakeWordFile)
+            self.wakeAction = Action(self._pv_access_key, self.wakeWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
             self.wakeAction.StartListening()
 
             diff = round(time.time() - timeNow, 2)
@@ -118,7 +132,7 @@ class Greeter(Thread):
     def initStopper(self):
         timeNow = time.time()
         if self.stopAction is None:
-            self.stopAction = Action(self._pv_access_key, self.stopWordFile)
+            self.stopAction = Action(self._pv_access_key, self.stopWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
             self.stopAction.StartListening()
             diff = round(time.time() - timeNow, 2)
             self._prRed("Init Stopper in seconds: ", diff)
@@ -162,6 +176,8 @@ class Greeter(Thread):
 
     def StartThread(self):
         self.start()
+    def StopThread(self):
+        self._stop = True
 
     def VoiceResponse(self, response):
 

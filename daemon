@@ -6,12 +6,12 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/home/ubuntu/merlin_voice_assistant/
-ExecStart=/bin/bash /home/ubuntu/merlin_voice_assistant/merlin.sh
-TimeoutStartSec=0
-RemainAfterExit=yes
+WorkingDirectory=/home/merlin/Documents/Merlin/merlin_voice_assistant/
+ExecStart=/bin/bash /home/merlin/Documents/Merlin/merlin_voice_assistant/merlin.sh
+TimeoutStartSec=15
+RemainAfterExit=no
 Restart=always
-RestartSec=3
+RestartSec=15
 
 [Install]
 WantedBy=default.target

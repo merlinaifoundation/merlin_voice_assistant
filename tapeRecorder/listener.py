@@ -48,6 +48,8 @@ class Listener(Thread):
             frameLength = self._cobra.frame_length
 
             while self._cancelled is False:
+                time.sleep(0.001)
+
                 listen_pcm = listen_audio_stream.read(frameLength)
                 listen_pcm = struct.unpack_from("h" * frameLength, listen_pcm)
                 listenValue = self._cobra.process(listen_pcm)
@@ -97,6 +99,8 @@ class Listener(Thread):
             frameLength = self._cobra.frame_length
 
             while self._cancelled is False:
+                time.sleep(0.001)
+
                 cobra_pcm = cobra_audio_stream.read(frameLength)
                 cobra_pcm = struct.unpack_from("h" * frameLength, cobra_pcm)
 

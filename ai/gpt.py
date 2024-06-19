@@ -1,3 +1,4 @@
+import time
 import openai
 from threading import Thread
 from decouple import config
@@ -22,7 +23,7 @@ class ChatGPT(Thread):
             config("GPT_MODEL1"),
             config("GPT_MODEL2"),
         ]
-
+        self._stop = False
         # print("Using OPENAI KEY", OPENAI_API_KEY)
         print("Using Merlin Default Prompt: ")
         print(CHAT_LOG)
@@ -148,8 +149,10 @@ class ChatGPT(Thread):
     def run(self):
 
 
-        while True:
+        while not self._stop :
 
+            time.sleep(0.001)
+            
             if self._hasRecordedStuff and self._isIdle:
                 
                 self._isIdle = False
@@ -185,6 +188,8 @@ class ChatGPT(Thread):
                     #self._aiResponse = None
                 
                 self._isIdle = True
+        
+        #sys.exit(None)
 
     def SetQuery(self, recordedStuff):
         self._hasRecordedStuff = recordedStuff
@@ -208,3 +213,5 @@ class ChatGPT(Thread):
 
     def StartThread(self):
         self.start()
+    def StopThread(self):
+        self._stop = True

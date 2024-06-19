@@ -1,11 +1,10 @@
 import os
+import time
 import pygame
 from threading import Thread
 
 # from gtts import gTTS
-from time import sleep
 from os import environ
-from pip._vendor.rich import status
 
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from decouple import config
@@ -22,7 +21,7 @@ class TextToSpeech(Thread):
         self._fileName = str(random.randint(0, 1000000)) + ".mp3"
         self._setFilePath()
         self.mixer = pygame.mixer
-        
+
         self._forceStopObj = None
         self._autoremoveFile = False
         self._shouldPrepareFile = False
@@ -30,10 +29,9 @@ class TextToSpeech(Thread):
         self.language = language or str(config("OUTPUT_SPEECH_LANG"))
 
         apiKey = config("OPENAI_API_KEY")
-
+        self._silentMode = int(config("SILENT_MODE")) or 0
         self.client = OpenAI(api_key=str(apiKey))
         self._cancelled = False
-
 
     def _setFilePath(self):
         self._output_file = os.path.join(
@@ -65,20 +63,23 @@ class TextToSpeech(Thread):
         try:
             self.mixer.init()
             self.mixer.music.load(self._output_file)
-            self.mixer.music.play()
-            while self.mixer.music.get_busy():
 
-                if self._cancelled:
-                    break
-
-                sleep(0.1)
+            if self._silentMode == 0:
+                self.mixer.music.play()
+                while self.mixer.music.get_busy():
+                    if self._cancelled:
+                        break
+                    time.sleep(0.002)
+            else:
+                # is in Silent Mode
+                time.sleep(0.1)
 
         except Exception as error:
             print("Error Playing File TTS:", error)
 
     def _stopPlay(self):
         try:
-            #self.mixer.music.stop()
+            # self.mixer.music.stop()
             self.mixer.quit()
         except Exception as error:
             print("Error When Stoping TTS:", error)
