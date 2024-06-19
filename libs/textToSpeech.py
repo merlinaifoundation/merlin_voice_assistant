@@ -69,7 +69,7 @@ class TextToSpeech(Thread):
                 while self.mixer.music.get_busy():
                     if self._cancelled:
                         break
-                    time.sleep(0.02)
+                    time.sleep(0.002)
             else:
                 # is in Silent Mode
                 time.sleep(0.1)

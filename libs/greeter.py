@@ -90,13 +90,15 @@ class Greeter(Thread):
     def run(self):
 
         self.initStopper()
+        time.sleep(0.001)
         self.initWaker()
-        time.sleep(0.02)
+        time.sleep(0.001)
         self.forceWake()
+        time.sleep(0.001)
 
         while not self._stop:
 
-            time.sleep(0.01)
+            time.sleep(0.001)
             self.countIteration()
             # print("Doing nothing, Iter:", self.greeter.count)
 

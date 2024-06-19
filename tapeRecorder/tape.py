@@ -43,7 +43,7 @@ class TapeRecorder(Thread):
 
         while not self._stop:
 
-            time.sleep(0.01)
+            time.sleep(0.001)
 
             # check if voice finished to start recording again
             if self._isOpenMic:

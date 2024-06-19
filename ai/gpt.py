@@ -151,7 +151,7 @@ class ChatGPT(Thread):
 
         while not self._stop :
 
-            time.sleep(0.01)
+            time.sleep(0.001)
             
             if self._hasRecordedStuff and self._isIdle:
                 

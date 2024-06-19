@@ -45,7 +45,7 @@ class Wizard(Thread):
 
             while not self._stop:
 
-                time.sleep(0.01)
+                time.sleep(0.001)
 
                 enabled = self.Greeter.UserInvoked()
                 cancelled = self.Greeter.UserCancelled()
