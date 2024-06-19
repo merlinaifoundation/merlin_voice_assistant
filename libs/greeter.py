@@ -23,8 +23,16 @@ class Greeter(Thread):
         self.stopAction = None
         self.iteration = 0
 
+
+        self._actionVoiceFrameLength = int(config("WAKE_WORD_FRAME_LENGTH")) or None
+        self._activationVoiceRate =  int(config("WAKE_WORD_FRAME_RATE")) or None
+        self._activationVoiceChannels =  int(config("WAKE_WORD_CHANNELS")) or None
+
+
+
         self._greeted = False
         self._aiResponse = None
+
 
         self.voiceMaker = VoiceMaker()
 
@@ -109,7 +117,7 @@ class Greeter(Thread):
         timeNow = time.time()
 
         if self.wakeAction is None:
-            self.wakeAction = Action(self._pv_access_key, self.wakeWordFile)
+            self.wakeAction = Action(self._pv_access_key, self.wakeWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
             self.wakeAction.StartListening()
 
             diff = round(time.time() - timeNow, 2)
@@ -118,7 +126,7 @@ class Greeter(Thread):
     def initStopper(self):
         timeNow = time.time()
         if self.stopAction is None:
-            self.stopAction = Action(self._pv_access_key, self.stopWordFile)
+            self.stopAction = Action(self._pv_access_key, self.stopWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
             self.stopAction.StartListening()
             diff = round(time.time() - timeNow, 2)
             self._prRed("Init Stopper in seconds: ", diff)
