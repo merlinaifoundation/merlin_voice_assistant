@@ -1,5 +1,6 @@
 from threading import Thread
 import time
+import keyboard
 
 # from decouple import config
 
@@ -77,7 +78,9 @@ class Wizard(Thread):
                     if self.Greeter.IsIdle():
                         self.TapeRecorder.Reset()
                         
-                    
+                if keyboard.is_pressed('q'):
+                    print('Quitting...')
+                    break          
 
         except Exception as error:
             self._prRed("\nExiting Wizard Thread...", error)
