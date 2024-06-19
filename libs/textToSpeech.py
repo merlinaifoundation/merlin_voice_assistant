@@ -30,7 +30,7 @@ class TextToSpeech(Thread):
         self.language = language or str(config("OUTPUT_SPEECH_LANG"))
 
         apiKey = config("OPENAI_API_KEY")
-
+        self._silentMode = int(config("SILENT_MODE")) or 0
         self.client = OpenAI(api_key=str(apiKey))
         self._cancelled = False
 
@@ -64,14 +64,15 @@ class TextToSpeech(Thread):
 
         try:
             self.mixer.init()
-            self.mixer.music.load(self._output_file)
-            self.mixer.music.play()
-            while self.mixer.music.get_busy():
-
-                if self._cancelled:
-                    break
-
-                sleep(0.1)
+            if self._silentMode == 0:
+                self.mixer.music.load(self._output_file)
+                self.mixer.music.play()
+                while self.mixer.music.get_busy():
+                    if self._cancelled:
+                        break
+                    sleep(0.02)
+            else:
+                sleep(0.01)
 
         except Exception as error:
             print("Error Playing File TTS:", error)
