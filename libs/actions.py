@@ -21,10 +21,7 @@ class Action(Thread):
         self._keyword_path = os.path.join(rootPath, self.wakeWordFile)
         self._apiKey = str(pv_access_key)
         self._createClient( channels, frame_length, rate)
-        
-        print("\nWakeWord Routine from: ", self.wakeWordFile)
-        
-
+        self._openStream()
 
     def _createClient(self,  channels,  frame_length, rate):
         self.porcupineClient = pvporcupine.create(
@@ -47,7 +44,7 @@ class Action(Thread):
             frames_per_buffer=self.frame_length
             
         )
-        
+        print("\nWakeWord Routine from: ", self.wakeWordFile)
 
     def StartListening(self):
 
@@ -66,8 +63,7 @@ class Action(Thread):
     def run(self):
 
         try:
-            self._openStream()
-            
+
             while not self._stop:
                 time.sleep(0.001)
                 frameLength = self.frame_length or self.porcupineClient.frame_length
