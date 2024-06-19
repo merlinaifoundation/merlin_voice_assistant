@@ -10,7 +10,7 @@ class Action(Thread):
 
     def __init__(self, pv_access_key, wakeWordFile, channels , frame_length, rate):
         super().__init__()
-        self.wake_pa = pyaudio.PyAudio()
+        self._wake_pa = pyaudio.PyAudio()
         self._stop = True
         self._invoked = False
         self.wakeWordFile = wakeWordFile
@@ -33,7 +33,7 @@ class Action(Thread):
 
     def _openStream(self):
         
-        self.porcupineStream = self.wake_pa.open(
+        self.porcupineStream = self._wake_pa.open(
             rate=self.rate ,
             channels=self._channels , # does not work stereo
             format=pyaudio.paInt16,
@@ -87,7 +87,7 @@ class Action(Thread):
         try:
         
             self.porcupineClient.delete()
-            self.wake_pa.terminate()
+            self._wake_pa.terminate()
             
         except Exception as error:
             print("Error Terminating Wake Clients", error, self.wakeWordFile)
