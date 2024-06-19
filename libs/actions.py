@@ -69,7 +69,7 @@ class Action(Thread):
             self._openStream()
             
             while not self._stop:
-                time.sleep(0.01)
+                time.sleep(0.001)
                 frameLength = self.frame_length or self.porcupineClient.frame_length
                 porcupine_pcm = self.porcupineStream.read(frameLength)
                 porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
