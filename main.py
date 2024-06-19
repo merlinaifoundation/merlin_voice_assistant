@@ -1,7 +1,7 @@
 # NEW LIBS
 import sys
 from wizard.wizard import Wizard
-from pynput.keyboard import Key, Listener
+#from pynput.keyboard import Key, Listener
 
 wizard = Wizard()
 
@@ -11,22 +11,20 @@ def on_press(key):
 
 def on_release(key):
     #print(f"{key} released")
-    if key == Key.esc:
+    #if key == Key.esc:
         wizard.StopThread()
-        listener.stop()
-        #exit(None)
-        # listener.stop()
+        #listener.stop()
         sys.exit(None)
 
-listener = Listener(on_press=on_press, on_release=on_release)
+#listener = Listener(on_press=on_press, on_release=on_release)
 
 try:
     
     wizard.StartThread()
 
-    listener.start()
+    #listener.start()
 
-    listener.join()
+    #listener.join()
 
 
 except Exception as error:
