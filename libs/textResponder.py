@@ -1,5 +1,5 @@
 from threading import Thread
-from time import sleep
+import time 
 import textwrap
 
 
@@ -19,7 +19,7 @@ class TextDisplay(Thread):
                 paragraphs = self.chat.split("\n")
                 wrapped_chat = "\n".join([wrapper.fill(p) for p in paragraphs])
                 for word in wrapped_chat:
-                    sleep(0.055)
+                    time.sleep(0.055)
                     print(word, end="", flush=True)
                 print("\n")
 

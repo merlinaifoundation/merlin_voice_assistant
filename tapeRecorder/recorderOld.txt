@@ -34,6 +34,8 @@ class Recorder(Thread):
         self._recorder.start()
         print("Recording...", self.file_path)
         while self._is_recording:
+            time.sleep(0.001)
+
             # read
             reading = self._recorder.read()
             # if more data than limit, clean buffer
@@ -91,6 +93,8 @@ class Recorder(Thread):
     def StopRecording(self):
         self._is_recording = False
         while not self._stop:
+            time.sleep(0.001)
+
             # print('.', end='')
             pass
 

@@ -1,4 +1,4 @@
-import sys
+import time
 import openai
 from threading import Thread
 from decouple import config
@@ -151,6 +151,8 @@ class ChatGPT(Thread):
 
         while not self._stop :
 
+            time.sleep(0.01)
+            
             if self._hasRecordedStuff and self._isIdle:
                 
                 self._isIdle = False

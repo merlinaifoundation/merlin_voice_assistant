@@ -1,6 +1,7 @@
 import os
 import random
 from threading import Thread
+import time
 from decouple import config
 
 import pyaudio
@@ -68,6 +69,8 @@ class Recorder(Thread):
         )
 
         while self._is_recording:
+            time.sleep(0.01)
+
             # read
 
             reading = flujo.read(CHUNK)
@@ -134,6 +137,7 @@ class Recorder(Thread):
     def StopRecording(self):
         self._is_recording = False
         while not self._stop:
+            time.sleep(0.001)
             # print('.', end='')
             pass
 
