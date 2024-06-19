@@ -21,7 +21,6 @@ class VoiceMaker(Thread):
         self._waitInnerFile = "WaitVoice.mp3"
         self._initInnerFile = "InitVoice.mp3"
         self._processInnerFile = "ProcessVoice.mp3"
-        self._silentMode = int(config("SILENT_MODE")) or 0
 
         self._prepareInitialVoice()
         self._prepareDefaultVoices()
@@ -82,36 +81,30 @@ class VoiceMaker(Thread):
     
     def VoiceSleeping(self):
         # self._awakeVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
+        self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
 
     def VoiceAwake(self):
         # self._awakeVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile, False)
+        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile, False)
 
     def VoiceWait(self):
         # self._waitVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._waitVoiceObj.SpeakFromFile(self._waitInnerFile, False)
+        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile, False)
 
     def VoiceProcess(self):
         # self._processVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._initVoiceObj.SpeakFromFile(self._processInnerFile, False)
+        self._initVoiceObj.SpeakFromFile(self._processInnerFile, False)
 
     def VoiceInit(self):
 
         # self._initVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._initVoiceObj.SpeakFromFile(self._initInnerFile, False)
+        self._initVoiceObj.SpeakFromFile(self._initInnerFile, False)
 
     def VoiceDefault(self, content, cancelled):
 
         # self._defaultVoiceObj = TextToSpeech()
-        if self._silentMode==0:
-            self._defaultVoiceObj.SetCancelled(cancelled)
-            self._defaultVoiceObj.SpeakFromText(content, False)
+        self._defaultVoiceObj.SetCancelled(cancelled)
+        self._defaultVoiceObj.SpeakFromText(content, False)
 
     def IsIdle(self):
         condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
