@@ -11,6 +11,9 @@ class Action(Thread):
     def __init__(self, pv_access_key, wakeWordFile, channels , frame_length, rate):
         super().__init__()
         self._wake_pa = pyaudio.PyAudio()
+        default_input_device = self._wake_pa.get_default_input_device_info()
+        print(f"Default Input Device: {default_input_device['name']}")
+        
         self._stop = True
         self._invoked = False
         self.wakeWordFile = wakeWordFile
@@ -20,6 +23,8 @@ class Action(Thread):
         self._createClient( channels, frame_length, rate)
         self.porcupineStream = None
         print("\nWakeWord Routine from: ", self.wakeWordFile)
+        
+
 
     def _createClient(self,  channels,  frame_length, rate):
         self.porcupineClient = pvporcupine.create(
