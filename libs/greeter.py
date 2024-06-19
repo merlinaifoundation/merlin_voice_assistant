@@ -1,4 +1,3 @@
-import sys
 from threading import Thread
 import time
 from decouple import config
@@ -20,15 +19,12 @@ class Greeter(Thread):
         self.stopWordFile = config("STOP_WORD_FILE")
 
         self._stopMode = 1
-        self.wakeAction = None
-        self.stopAction = None
         self.iteration = 0
 
 
         self._actionVoiceFrameLength = int(config("WAKE_WORD_FRAME_LENGTH")) or None
         self._activationVoiceRate =  int(config("WAKE_WORD_FRAME_RATE")) or None
         self._activationVoiceChannels =  int(config("WAKE_WORD_CHANNELS")) or None
-
 
 
         self._greeted = False
@@ -38,6 +34,10 @@ class Greeter(Thread):
         self.voiceMaker = VoiceMaker()
         self._stop = False
 
+        self.initWaker()
+        self.initStopper()
+            
+            
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Greeter Creation in seconds: ", diff)
 
@@ -50,7 +50,7 @@ class Greeter(Thread):
     def _reset(self):
 
         print("Flushing...")
-        self.resetWaker()
+        self.wakeAction.StopListening()
         # mode sleeping
         if self._stopMode == 1:
             print("Sleeping...")
@@ -61,10 +61,10 @@ class Greeter(Thread):
             self.voiceMaker.VoiceProcess()
 
         # tapeRecorder.Reset()
-        print("Restarting...")
-        self.resetStopper()
-
-        self.initWaker()
+        
+        self.stopAction.StopListening()
+        
+        self.wakeAction.StartListening()
         # mode sleeping
         if self._stopMode == 1:
             self.setHasGreeted(False)
@@ -72,7 +72,10 @@ class Greeter(Thread):
         if self._stopMode == 2:
             self.forceWake()
 
-        self.initStopper()
+        self.stopAction.StartListening()
+        print("Waiting for user...")
+        
+        
 
     def _awakening(self):
 
@@ -89,9 +92,9 @@ class Greeter(Thread):
 
     def run(self):
 
-        self.initStopper()
+        self.stopAction.StartListening()
         time.sleep(0.001)
-        self.initWaker()
+        self.wakeAction.StartListening()
         time.sleep(0.001)
         self.forceWake()
         time.sleep(0.001)
@@ -113,29 +116,28 @@ class Greeter(Thread):
                 
         #sys.exit(None)
 
-    def resetWaker(self):
-        self.wakeAction = None
 
-    def resetStopper(self):
-        self.stopAction = None
+
+
 
     def initWaker(self):
+
         timeNow = time.time()
 
-        if self.wakeAction is None:
-            self.wakeAction = Action(self._pv_access_key, self.wakeWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
-            self.wakeAction.StartListening()
-
-            diff = round(time.time() - timeNow, 2)
-            self._prRed("Init Waker in seconds: ", diff)
+        self.wakeAction = Action(self._pv_access_key, self.wakeWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
+        self.wakeAction.StartThread()
+        diff = round(time.time() - timeNow, 2)
+        self._prRed("Init Waker in seconds: ", diff)
+            
 
     def initStopper(self):
         timeNow = time.time()
-        if self.stopAction is None:
-            self.stopAction = Action(self._pv_access_key, self.stopWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
-            self.stopAction.StartListening()
-            diff = round(time.time() - timeNow, 2)
-            self._prRed("Init Stopper in seconds: ", diff)
+        self.stopAction = Action(self._pv_access_key, self.stopWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
+        self.stopAction.StartThread()
+        diff = round(time.time() - timeNow, 2)
+        self._prRed("Init Stopper in seconds: ", diff)
+    
+
 
     def forceWake(self):
         if self.wakeAction:

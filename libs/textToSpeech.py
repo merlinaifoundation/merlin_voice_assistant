@@ -69,10 +69,10 @@ class TextToSpeech(Thread):
                 while self.mixer.music.get_busy():
                     if self._cancelled:
                         break
-                    time.sleep(0.002)
+                    time.sleep(0.02)
             else:
                 # is in Silent Mode
-                time.sleep(0.1)
+                time.sleep(0.2)
 
         except Exception as error:
             print("Error Playing File TTS:", error)

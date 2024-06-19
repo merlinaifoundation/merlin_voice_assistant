@@ -44,7 +44,7 @@ try:
             
             tapeRecorder.resetTape()
             
-            print("Restarting...")
+            print("Restarting Waker...")
             
             
             greeter.initWaker()

@@ -20,8 +20,12 @@ class Action(Thread):
         rootPath = os.path.dirname(__file__)
         self._keyword_path = os.path.join(rootPath, self.wakeWordFile)
         self._apiKey = str(pv_access_key)
+        self._stopThread = False
+        self.porcupineStream = None
         self._createClient( channels, frame_length, rate)
-        self._openStream()
+        #self._openStream()
+        print("\nWakeWord Routine from: ", self.wakeWordFile)
+        
 
     def _createClient(self,  channels,  frame_length, rate):
         self.porcupineClient = pvporcupine.create(
@@ -36,21 +40,35 @@ class Action(Thread):
 
     def _openStream(self):
         
-        self.porcupineStream = self._wake_pa.open(
-            rate=self.rate ,
-            channels=self._channels , # does not work stereo
-            format=pyaudio.paInt16,
-            input=True,
-            frames_per_buffer=self.frame_length
-            
-        )
-        print("\nWakeWord Routine from: ", self.wakeWordFile)
+        if self.porcupineStream is None:
+            self.porcupineStream = self._wake_pa.open(
+                rate=self.rate ,
+                channels=self._channels , # does not work stereo
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=self.frame_length
+                
+            )
+        
 
+    def StartThread(self):
+        self.start()
+    def StopThread(self):
+        self._stopThread = True
     def StartListening(self):
+        print("Restarting Listen Action")
 
         if not self._invoked:
             self._stop = False
-            self.start()
+        
+        
+            
+            
+    def StopListening(self):
+        print("Stoping Listen Action...")
+        self._stop = True
+        self._invoked = False
+        
 
     def IsInvoked(self):
         return self._invoked
@@ -62,30 +80,51 @@ class Action(Thread):
 
     def run(self):
 
-        try:
-
-            while not self._stop:
-                time.sleep(0.001)
-                frameLength = self.frame_length or self.porcupineClient.frame_length
-                porcupine_pcm = self.porcupineStream.read(frameLength)
-                porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
-                porcupine_keyword_index = self.porcupineClient.process(porcupine_pcm)
-
-                if porcupine_keyword_index >= 0:
-
-                    self.SetInvoked(True)
-                    print("\nAction Phrase Detected as in file: ", self.wakeWordFile)
-
-        except Exception as error:
-            print("Error Opening Wake Stream", error,  self.wakeWordFile)
-
-        try:
-        
-            self.porcupineStream.stop_stream()
-            self.porcupineStream.close()
+        while not self._stopThread :
             
-        except Exception as error:
-            print("Error Closing Wake Stream", error, self.wakeWordFile)
+            time.sleep(0.001)
+            try:
+
+                
+                
+                
+                while not self._stop:
+                    
+                    self._openStream()
+                    
+                    time.sleep(0.001)
+                    
+                    if self.porcupineStream:
+                        
+                        frameLength = self.frame_length or self.porcupineClient.frame_length
+                        porcupine_pcm = self.porcupineStream.read(frameLength)
+                        porcupine_pcm = struct.unpack_from("h" * frameLength, porcupine_pcm)
+                        porcupine_keyword_index = self.porcupineClient.process(porcupine_pcm)
+
+                        if porcupine_keyword_index >= 0:
+
+                            self.SetInvoked(True)
+                            print("\nAction Phrase Detected as in file: ", self.wakeWordFile)
+
+
+                try:
+                    
+                    if self.porcupineStream:       
+                        self.porcupineStream.stop_stream()
+                        self.porcupineStream.close()
+                        self.porcupineStream = None
+                    
+                except Exception as error:
+                    print("Error Closing Wake Stream", error, self.wakeWordFile)
+                    break
+                                
+            
+            except Exception as error:
+                print("Error Opening Wake Stream", error,  self.wakeWordFile)
+                break
+
+            
+        
         
         try:
         

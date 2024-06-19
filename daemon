@@ -8,10 +8,10 @@ Type=simple
 User=root
 WorkingDirectory=/home/merlin/Documents/Merlin/merlin_voice_assistant/
 ExecStart=/bin/bash /home/merlin/Documents/Merlin/merlin_voice_assistant/merlin.sh
-TimeoutStartSec=15
+TimeoutStartSec=5
 RemainAfterExit=no
 Restart=always
-RestartSec=15
+RestartSec=2
 
 [Install]
 WantedBy=default.target
