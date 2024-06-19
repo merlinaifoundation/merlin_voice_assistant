@@ -1,10 +1,7 @@
-import sys
 from threading import Thread
 import time
 
 # import keyboard
-from pynput.keyboard import Key
-
 # from decouple import config
 
 from tapeRecorder.tape import TapeRecorder
