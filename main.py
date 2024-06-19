@@ -6,6 +6,7 @@ from pynput.keyboard import Key, Listener
 wizard = Wizard()
 
 def on_press(key):
+    pass
     #print(f"{key} pressed")
 
 def on_release(key):
