@@ -17,10 +17,10 @@ class Action(Thread):
         rootPath = os.path.dirname(__file__)
         self._keyword_path = os.path.join(rootPath, self.wakeWordFile)
         self._apiKey = str(pv_access_key)
-        self._createStream( channels, frame_length, rate)
+        self._createClient( channels, frame_length, rate)
         self._openStream()
 
-    def _createStream(self,  channels,  frame_length, rate):
+    def _createClient(self,  channels,  frame_length, rate):
         self.porcupineClient = pvporcupine.create(
             access_key=self._apiKey, keyword_paths=[self._keyword_path]
         )
@@ -28,6 +28,7 @@ class Action(Thread):
         self.frame_length = frame_length  or self.porcupineClient.frame_length
         self.rate = rate or self.porcupineClient.sample_rate
         print("Actions params at: ", (self._channels, self.frame_length, self.rate)) #  (1, 512, 16000) or defaults
+        
         
 
     def _openStream(self):
@@ -76,9 +77,18 @@ class Action(Thread):
             print("Error Opening Wake Stream", error,  self.wakeWordFile)
 
         try:
+        
             self.porcupineStream.stop_stream()
             self.porcupineStream.close()
-            self.porcupineClient.delete()
+            
         except Exception as error:
             print("Error Closing Wake Stream", error, self.wakeWordFile)
+        
+        try:
+        
+            self.porcupineClient.delete()
+            self.wake_pa.terminate()
+            
+        except Exception as error:
+            print("Error Terminating Wake Clients", error, self.wakeWordFile)
         
