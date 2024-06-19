@@ -1,3 +1,4 @@
+import sys
 from threading import Thread
 import time
 from decouple import config
@@ -27,6 +28,8 @@ class TapeRecorder(Thread):
         self._isOpenMic = False
         self._bypassFilter = False
         self._cancelled = False
+
+        self._stop = False
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Tape Recorder Creation in seconds: ", diff)
 
@@ -38,10 +41,10 @@ class TapeRecorder(Thread):
 
     def run(self):
 
-        while True:
+        while not self._stop:
 
             time.sleep(0.01)
-            
+
             # check if voice finished to start recording again
             if self._isOpenMic:
                 # print("GreeterVoice Finished. Flushing...")
@@ -49,13 +52,14 @@ class TapeRecorder(Thread):
                 self.initialize()
                 self.startTape()
                 self.stopTape()
-                
+
                 self.filterTape()
 
             else:
                 self.Reset()
-
-
+        
+        #sys.exit(None)        
+        
 
     def filterTape(self):
         userRecordedInputSize = 0
@@ -73,13 +77,13 @@ class TapeRecorder(Thread):
                 else:
                     print("Discarding short Recording:", userRecordedInputSize)
                     self.Reset()
-        
+
     def Reset(self):
         timeNow = time.time()
-        
-        #if self.fileRecording is not None:
-            #self.fileRecording = None
-        
+
+        # if self.fileRecording is not None:
+        # self.fileRecording = None
+
         if self.Recorder and self.Recorder.Finished():
             self._prGreen("Flushing Recording...", "Once")
             self.Recorder.StopRecording()
@@ -89,22 +93,21 @@ class TapeRecorder(Thread):
             diff = round(time.time() - timeNow, 2)
             self._prRed("Reset Recorder in seconds: ", diff)
 
-    
     def initialize(self):
         timeNow = time.time()
         if self.Recorder is None:
             self.Recorder = Recorder(None)
             diff = round(time.time() - timeNow, 2)
             self._prRed("Initialized Recorder in seconds: ", diff)
-    
+
     def startTape(self):
 
         timeNow = time.time()
-        
+
         if self.Recorder:
-            
+
             if not self.Recorder.Finished():
-                
+
                 print("Starting OpenMic...")
                 #
                 self.Recorder.StartRecording()
@@ -117,8 +120,8 @@ class TapeRecorder(Thread):
                 #
                 diff = round(time.time() - timeNow, 2)
                 self._prRed("Listening for seconds: ", diff)
-            #else:
-                #self.Reset()
+            # else:
+            # self.Reset()
 
     def stopTape(self):
         timeNow = time.time()
@@ -129,20 +132,27 @@ class TapeRecorder(Thread):
 
     def StartThread(self):
         self.start()
+
+    def StopThread(self):
+        self._stop = True
+        self.SetCancelled(True)
+        self.Reset()
         
+        
+
     def SetOpenMic(self, isOpenMic):
         self._isOpenMic = isOpenMic
-    
+
     def SetTape(self, obj):
         self._fileRecording = obj
+
     def GetTape(self):
         return self._fileRecording
-    
+
     def SetCancelled(self, status):
         self._cancelled = status
         self.Listener.SetCancelled(self._cancelled)
         #
-        
+
     def SetBypassFilter(self, status):
         self._bypassFilter = status
-    

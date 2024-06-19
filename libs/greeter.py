@@ -1,3 +1,4 @@
+import sys
 from threading import Thread
 import time
 from decouple import config
@@ -35,6 +36,7 @@ class Greeter(Thread):
 
 
         self.voiceMaker = VoiceMaker()
+        self._stop = False
 
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Greeter Creation in seconds: ", diff)
@@ -92,7 +94,7 @@ class Greeter(Thread):
         time.sleep(0.02)
         self.forceWake()
 
-        while True:
+        while not self._stop:
 
             time.sleep(0.01)
             self.countIteration()
@@ -106,6 +108,8 @@ class Greeter(Thread):
 
             if self.UserInvoked():
                 self._awakening()
+                
+        #sys.exit(None)
 
     def resetWaker(self):
         self.wakeAction = None
@@ -170,6 +174,8 @@ class Greeter(Thread):
 
     def StartThread(self):
         self.start()
+    def StopThread(self):
+        self._stop = True
 
     def VoiceResponse(self, response):
 

@@ -1,6 +1,9 @@
+import sys
 from threading import Thread
 import time
-import keyboard
+
+# import keyboard
+from pynput.keyboard import Key
 
 # from decouple import config
 
@@ -25,7 +28,7 @@ class Wizard(Thread):
 
         self.Brain = ChatGPT()
 
-        self._cancelled = False
+        self._stop = False
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Wizard Creation in seconds: ", diff)
 
@@ -35,11 +38,15 @@ class Wizard(Thread):
     def _prGreen(self, skk, number):
         print("\033[92m {}\033[00m".format(skk), number)
 
+    def StopThread(self):
+        self._stop = True
+        #sys.exit(None)
+
     def run(self):
 
         try:
 
-            while True:
+            while not self._stop:
 
                 time.sleep(0.01)
 
@@ -72,30 +79,35 @@ class Wizard(Thread):
                 aiResponse = self.Brain.GetResponse()
                 self.Greeter.VoiceResponse(aiResponse)
 
-                #idle = self.Greeter.IsIdle()
+                # idle = self.Greeter.IsIdle()
                 if aiResponse:
                     self.Brain.SetResponse(None)
                     if self.Greeter.IsIdle():
                         self.TapeRecorder.Reset()
-                        
-                if keyboard.is_pressed('q'):
-                    print('Quitting...')
-                    break          
+
+                # if keyboard.is_pressed('q'):
+                # raise Exception('Quitting...')
+
+            self.Greeter.StopThread()
+            self.Brain.StopThread()
+            self.TapeRecorder.StopThread()
 
         except Exception as error:
             self._prRed("\nExiting Wizard Thread...", error)
 
+        #sys.exit(None)
+        
     def StartThread(self):
 
         timeNow = time.time()
-        
+
         self.Greeter.StartThread()
-        
+
         self.Brain.StartThread()
 
         self.TapeRecorder.StartThread()
-        
+
         self.start()
-        
+
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Wizard Thread Start in seconds: ", diff)

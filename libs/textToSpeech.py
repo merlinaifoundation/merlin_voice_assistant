@@ -65,15 +65,16 @@ class TextToSpeech(Thread):
         try:
             self.mixer.init()
             self.mixer.music.load(self._output_file)
+            
             if self._silentMode == 0:
                 self.mixer.music.play()
+                while self.mixer.music.get_busy():
+                    if self._cancelled:
+                        break
+                    sleep(0.02)
             else:
                 sleep(0.1)
             
-            while self.mixer.music.get_busy():
-                if self._cancelled:
-                    break
-                sleep(0.02)
 
         except Exception as error:
             print("Error Playing File TTS:", error)
