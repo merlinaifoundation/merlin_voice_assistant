@@ -74,7 +74,8 @@ class TapeRecorder(Thread):
                     self._prRed("Stoping OpenMic for seconds: ", diff)
 
             else:
-                self.Recorder.StopRecording(True)
+                pass
+                #self.Recorder.StopRecording(True)
                 
                 
             
@@ -87,11 +88,11 @@ class TapeRecorder(Thread):
     def FilterTape(self):
         userRecordedInput = self.Recorder.GetRecordingObj()
         userRecordedInputSize = len(userRecordedInput)
-        print(
+        if userRecordedInputSize > 0:
+            print(
                 "Recording Size: ",
                 userRecordedInputSize,
             )
-        if userRecordedInputSize > 0:
             if userRecordedInputSize > 93 or self._bypassFilter:
                     self._cummulativeFiltered.append(userRecordedInput)
                     print("Passed the filter: ", userRecordedInputSize)

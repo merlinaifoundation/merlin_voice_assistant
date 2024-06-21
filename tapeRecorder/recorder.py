@@ -22,13 +22,13 @@ class Recorder(Thread):
         super().__init__()
         self._buffer = []
         self._result = []
-        self._is_recording = True
+        self._is_recording = False
 
         cfgLimit = config("REC_BUFFER_LIMIT")
         self._cutLength = int(config("LISTEN_LENGTH"))
 
         self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
-        self._finalized = False
+        self._finalized = True
         self._pyAudio = pyaudio.PyAudio()
         print(
             "Recording Buffer Limit set at: ",
@@ -39,8 +39,8 @@ class Recorder(Thread):
         self._assignFileName()
         self._cummulative = []
         self._stream = None
-        self._stop = False
-        self._discardLast = False
+        self._stopThread = False
+        self._discardLast = True
 
     def _assignFileName(self):
         rootPath = os.path.dirname(__file__)
@@ -56,7 +56,7 @@ class Recorder(Thread):
         if self._stream is None:
             print("Recording...", self._output_file)
 
-            self._buffer = []
+            #self._buffer = []
 
             self._stream = self._pyAudio.open(
                 format=FORMATO,
@@ -86,7 +86,7 @@ class Recorder(Thread):
         self.start()
 
     def StopThread(self):
-        self._stop = True
+        self._stopThread = True
 
     def _buffering(self):
 
@@ -110,7 +110,7 @@ class Recorder(Thread):
 
     def run(self):
 
-        while not self._stop:
+        while not self._stopThread:
 
             time.sleep(0.001)
 
@@ -130,21 +130,23 @@ class Recorder(Thread):
                     aux = self._buffer.copy()
                     if len(aux):
                         self._cummulative.append(aux.copy())
-                self._discardLast = False
+                        self._discardLast = True
+                self._buffer = []
                 self._finalized = True
 
         self._pyAudio.terminate()
 
     def StartRecording(self):
-        if not self._is_recording and self._finalized:
+        #executes once
+        if self._finalized and not self._is_recording :
             
-            self._buffer = []
-            
-            self._finalized = False
-            
-            self._openStream()
+            #self._buffer = []
             
             self._is_recording = True
+            self._openStream()
+            
+            self._finalized = False
+            self._discardLast = False
             # self._buffer = []
 
     def IsRecording(self):
