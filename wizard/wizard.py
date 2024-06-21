@@ -53,8 +53,8 @@ class Wizard(Thread):
                 openMicOn = not cancelled and idle and enabled
                 bypassFilter = cancelled
 
-                # status = int(enabled), int(cancelled), int(idle), int(openMicOn)
-                # print("\nSTATUS", status)
+                #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
+                #print("STATUS", status)
 
                 # not finished the flags-implementation
                 # bypass filter when cancelling!
@@ -63,24 +63,26 @@ class Wizard(Thread):
 
                 # to start recording session
                 self.TapeRecorder.SetOpenMic(openMicOn)
+                self.TapeRecorder.FilterTape()
+                filteredTape = self.TapeRecorder.GetFilteredTape()
+                if filteredTape:
+                    self.TapeRecorder.SaveTape(filteredTape)
+                
+                
+                fileRecording = self.TapeRecorder.GetSavedTape()
+                if fileRecording:
+                    cancelled = self.Greeter.UserCancelled()
+                    self.Brain.SetCancelled(cancelled)
+                    self.Brain.SetQuery(fileRecording)
 
                 cancelled = self.Greeter.UserCancelled()
+                if not cancelled: 
+                    idle = self.Greeter.IsIdle()
+                    if idle:
+                        aiResponse = self.Brain.GetResponse()
+                        if aiResponse:
+                            self.Greeter.VoiceResponse(aiResponse)
 
-                fileRecording = self.TapeRecorder.GetTape()
-
-                # has record to process for answers?
-                self.Brain.SetCancelled(cancelled)
-                self.Brain.SetQuery(fileRecording)
-                self.TapeRecorder.SetTape(None)
-
-                aiResponse = self.Brain.GetResponse()
-                self.Greeter.VoiceResponse(aiResponse)
-
-                # idle = self.Greeter.IsIdle()
-                if aiResponse:
-                    self.Brain.SetResponse(None)
-                    if self.Greeter.IsIdle():
-                        self.TapeRecorder.Reset()
 
                 # if keyboard.is_pressed('q'):
                 # raise Exception('Quitting...')
