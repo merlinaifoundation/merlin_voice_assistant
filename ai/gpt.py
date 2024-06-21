@@ -45,10 +45,10 @@ class ChatGPT(Thread):
             {"role": "system", "content": CHAT_LOG},
         ]
         self._cancelled = False
-        self._aiResponse = None
+        self._cummulativeResponse = []
         self._hasRecordedStuff = None
 
-        self.cummulative = []
+        self._cummulativeChat = []
         self._isIdle = True
 
     def getModel(self):
@@ -62,7 +62,7 @@ class ChatGPT(Thread):
             {"role": role, "content": query},
         ]
         # create the query to be sent
-        send_query = self.chat_log + self.cummulative + user_query
+        send_query = self.chat_log + self._cummulativeChat + user_query
         return send_query
 
     def sendQueryObj(self, model, send_query):
@@ -80,15 +80,18 @@ class ChatGPT(Thread):
         return str.strip(str(answer))
 
     def clearCummulativeList(self):
-        self.cummulative = []
+        self._cummulativeChat = []
 
+    def clearCummulativeResponse(self):
+        self._cummulativeResponse = []
+        
     def appendToConversation(self, questionOrAnswer, role, maximum):
-        QAs = len(self.cummulative)
+        QAs = len(self._cummulativeChat)
         if QAs > maximum:
             print("Clearing Cumm List", QAs)
             self.clearCummulativeList()
         if questionOrAnswer is not None:
-            self.cummulative.append({"role": role, "content": questionOrAnswer})
+            self._cummulativeChat.append({"role": role, "content": questionOrAnswer})
 
     def getBrieferCommand(self):
         return self.CHAT_LOG_LAST
@@ -162,7 +165,7 @@ class ChatGPT(Thread):
                 if not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
                     
-                    print("Transcript:", userTranscript)
+                    print("\nTranscript:", userTranscript)
                 else:
                     userTranscript = self.getBrieferCommand()
                     role = "system"
@@ -170,22 +173,23 @@ class ChatGPT(Thread):
                 self._hasRecordedStuff = None
                 
                 aiResponse = self.query(userTranscript, role)
-                self._aiResponse = aiResponse
+                self._cummulativeResponse.append( aiResponse)
 
                 if not self._cancelled:
                     self.appendToConversation(userTranscript, "user", 20)
                     self.appendToConversation(aiResponse, "assistant", 20)
-                    #self._aiResponse = aiResponse
-
                 else:
                     self.clearCummulativeList()
-                    self._aiResponse = "Our last conversation was about: " + str(aiResponse)
+                    self.clearCummulativeResponse()
+                    aiResponse = "Our last conversation was about: " + str(aiResponse)
                     self.appendToConversation(
-                        self._aiResponse,
+                        aiResponse,
                         "system",
                         20,
                     )
-                    #self._aiResponse = None
+                
+                print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
+                print("Current Cumm Chat: ", len(self._cummulativeChat),  )
                 
                 self._isIdle = True
         
@@ -197,11 +201,12 @@ class ChatGPT(Thread):
     def SetCancelled(self, cancelled):
         self._cancelled = cancelled
 
-    def SetResponse(self, response):
-        self._aiResponse = response
+    
 
     def GetResponse(self):
-        return self._aiResponse
+        if len(self._cummulativeResponse) > 0:
+            return self._cummulativeResponse.pop(0)
+        return None
 
     # to be tested
     def SwitchModel(self):

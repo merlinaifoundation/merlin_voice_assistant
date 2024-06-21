@@ -24,8 +24,9 @@ class TextToSpeech(Thread):
 
         self._forceStopObj = None
         self._autoremoveFile = False
-        self._shouldPrepareFile = False
-        self._shouldPlayFile = True
+        self._mustPrepareFile = False
+        self._mustPlayFile = True
+        self._isBusy = False
         self.language = language or str(config("OUTPUT_SPEECH_LANG"))
 
         apiKey = config("OPENAI_API_KEY")
@@ -59,16 +60,23 @@ class TextToSpeech(Thread):
     def _play(self):
 
         self._setFilePath()
-
+        
+        self._isBusy = True
+        
         try:
+            
             self.mixer.init()
+            
             self.mixer.music.load(self._output_file)
-
+            
             if self._silentMode == 0:
+                
                 self.mixer.music.play()
                 while self.mixer.music.get_busy():
+                    
                     if self._cancelled:
                         break
+                    
                     time.sleep(0.02)
             else:
                 # is in Silent Mode
@@ -77,6 +85,8 @@ class TextToSpeech(Thread):
         except Exception as error:
             print("Error Playing File TTS:", error)
 
+        self._isBusy = False
+        
     def _stopPlay(self):
         try:
             # self.mixer.music.stop()
@@ -107,7 +117,7 @@ class TextToSpeech(Thread):
 
     def run(self):
 
-        if self._shouldPrepareFile:
+        if self._mustPrepareFile:
             self._prepareFile()
         self.PlayFile()
 
@@ -126,7 +136,7 @@ class TextToSpeech(Thread):
 
         self._chat = chat
         if asThread:
-            self._shouldPlayFile = False
+            self._mustPlayFile = False
             self.start()
         else:
             self._prepareFile()
@@ -135,7 +145,7 @@ class TextToSpeech(Thread):
         if (self._stop) and (chat is not None):
             self._stop = False
             self._chat = chat
-            self._shouldPrepareFile = True
+            self._mustPrepareFile = True
             self._autoremoveFile = True
             if asThread:
                 self.start()
@@ -157,4 +167,4 @@ class TextToSpeech(Thread):
                 self.PlayFile()
 
     def Finished(self):
-        return (self._stop) and (self._chat is not None)
+        return not self._isBusy
