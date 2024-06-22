@@ -69,42 +69,42 @@ class VoiceMaker(Thread):
 
     def CreateWakeVoice(self, txt, force = False):
         if self._awakeVoiceObj.SetFile(self._awakeInnerFile) is False or force:
-            self._awakeVoiceObj.PrepareFileFromText(txt, False)
+            self._awakeVoiceObj.PrepareFileFromText(txt)
             print("Created Wake Audio File...")
             
             #self._awakeVoiceObj = TextToSpeech()
     def CreateSleepVoice(self, txt,  force = False):
         if self._awakeVoiceObj.SetFile(self._sleepingInnerFile) is False or force:
-            self._awakeVoiceObj.PrepareFileFromText(txt, False)
+            self._awakeVoiceObj.PrepareFileFromText(txt)
             print("Created Stop Audio File...")
             #self._awakeVoiceObj = TextToSpeech()
     
     def VoiceSleeping(self):
         # self._awakeVoiceObj = TextToSpeech()
-        self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile, False)
+        self._awakeVoiceObj.SpeakFromFile(self._sleepingInnerFile)
 
     def VoiceAwake(self):
         # self._awakeVoiceObj = TextToSpeech()
-        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile, False)
+        self._awakeVoiceObj.SpeakFromFile(self._awakeInnerFile)
 
     def VoiceWait(self):
         # self._waitVoiceObj = TextToSpeech()
-        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile, False)
+        self._waitVoiceObj.SpeakFromFile(self._waitInnerFile)
 
     def VoiceProcess(self):
         # self._processVoiceObj = TextToSpeech()
-        self._initVoiceObj.SpeakFromFile(self._processInnerFile, False)
+        self._initVoiceObj.SpeakFromFile(self._processInnerFile)
 
     def VoiceInit(self):
 
         # self._initVoiceObj = TextToSpeech()
-        self._initVoiceObj.SpeakFromFile(self._initInnerFile, False)
+        self._initVoiceObj.SpeakFromFile(self._initInnerFile)
 
     def VoiceDefault(self, content, cancelled):
 
         # self._defaultVoiceObj = TextToSpeech()
         self._defaultVoiceObj.SetCancelled(cancelled)
-        self._defaultVoiceObj.SpeakFromText(content, False)
+        self._defaultVoiceObj.SpeakFromText(content)
 
     def IsIdle(self):
         condition1 = self._defaultVoiceObj and self._defaultVoiceObj.Finished()

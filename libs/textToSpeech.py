@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Literal
 import pygame
 from threading import Thread
 
@@ -28,12 +29,14 @@ class TextToSpeech(Thread):
         self._mustPlayFile = True
         self._isBusy = False
         self.language = language or str(config("OUTPUT_SPEECH_LANG"))
-
+        self._ttsModel = str(config('TTS_MODEL'))
+        self._ttsVoiceModel =config('TTS_VOICE_MODEL')
         apiKey = config("OPENAI_API_KEY")
         self._silentMode = int(config("SILENT_MODE")) or 0
         self.client = OpenAI(api_key=str(apiKey))
         self._cancelled = False
 
+ 
     def _setFilePath(self):
         self._output_file = os.path.join(
             self._rootPath,
@@ -43,14 +46,14 @@ class TextToSpeech(Thread):
 
     def _prepareFile(self):
 
-        self._setFilePath()
+        
         try:
-
-            # You can specify other languages by changing the 'lang' parameter
-            # tts = gTTS(text=self.chat, lang=self.lang)
-            # tts.save(self.output_file)
+            self._setFilePath()
+            # defVoice  : Literal['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
             with self.client.audio.speech.with_streaming_response.create(
-                model="tts-1", voice="alloy", input=str(self._chat)
+                model=self._ttsModel, 
+                voice= 'alloy', #self._ttsVoiceModel , 
+                input=str(self._chat)
             ) as tts_response:
                 tts_response.stream_to_file(self._output_file)
 
@@ -58,7 +61,6 @@ class TextToSpeech(Thread):
             print("\nError Preparing File TTS:", error)
 
     def _play(self):
-
         
         try:
             
@@ -130,28 +132,21 @@ class TextToSpeech(Thread):
         self._setFilePath()
         return os.path.isfile(self._output_file)
 
-    def PrepareFileFromText(self, chat, asThread=False):
+    def PrepareFileFromText(self, chat):
 
         self._chat = chat
-        if asThread:
-            self._mustPlayFile = False
-            self.start()
-        else:
-            self._prepareFile()
+        self._prepareFile()
 
-    def SpeakFromText(self, chat, asThread=False):
+    def SpeakFromText(self, chat):
         if (self._stop) and (chat is not None):
             self._stop = False
             self._chat = chat
             self._mustPrepareFile = True
             self._autoremoveFile = True
-            if asThread:
-                self.start()
-            else:
-                self._prepareFile()
-                self.PlayFile()
+            self._prepareFile()
+            self.PlayFile()
 
-    def SpeakFromFile(self, file, asThread=False):
+    def SpeakFromFile(self, file):
         if (self._stop) and (file is not None):
             self._stop = False
             if file is not None:
@@ -159,10 +154,7 @@ class TextToSpeech(Thread):
 
             # some content to mark Finished(), in this case the filename as default
             self._chat = self._fileName
-            if asThread:
-                self.start()
-            else:
-                self.PlayFile()
+            self.PlayFile()
 
     def Finished(self):
         if not self._isBusy:

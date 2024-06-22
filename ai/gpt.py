@@ -12,12 +12,16 @@ class ChatGPT(Thread):
     def __init__(self):
         super().__init__()
 
-        OPENAI_API_KEY = config("OPENAI_API_KEY")
-        CHAT_LOG = config("CHAT_LOG")
+        OPENAI_API_KEY = str(config("OPENAI_API_KEY"))
+        CHAT_LOG = str(config("CHAT_LOG"))
         self.CHAT_LOG_LAST = str(config("CHAT_LOG_LAST"))
 
-        self.frequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
-        self.temperature = float(config("CHATGPT_TEMPERATURE"))
+        self._chatFrequencyPenalty = float(config("CHATGPT_FREQUENCY_PENALTY"))
+        self._chatTemperature = float(config("CHATGPT_TEMPERATURE"))
+
+        self._whisperTemperature = float(config("WHISPER_TEMPERATURE"))
+        self._whisperModel = str(config("WHISPER_MODEL"))
+
 
         self.defaultModel = 0
         self.GPT_MODELS = [
@@ -54,9 +58,14 @@ class ChatGPT(Thread):
         self._cummulativeChat = []
         self._isIdle = True
 
-    def getModel(self):
+    def getChatModel(self):
         model = str(self.GPT_MODELS[self.defaultModel])
         print("Using GPT_MODEL", model)
+        return model
+    
+    def getWhisperModel(self):
+        model = self._whisperModel
+        print("Using Whisper_MODEL", model)
         return model
 
     def makeQueryObj(self, query, role):
@@ -74,8 +83,8 @@ class ChatGPT(Thread):
         response = self.client.chat.completions.create(
             model=model,
             messages=send_query,
-            temperature=self.temperature,
-            frequency_penalty=self.frequencyPenalty,
+            temperature=self._chatTemperature,
+            frequency_penalty=self._chatFrequencyPenalty,
         )
         # get OpenAI answer!
         answer = response.choices[0].message.content
@@ -117,11 +126,12 @@ class ChatGPT(Thread):
 
             if file:
                 with open(file, "rb") as audio_file:
+                    model = self.getWhisperModel()
                     transcription = self.client.audio.transcriptions.create(
-                        model="whisper-1",
+                        model=model,
                         file=audio_file,
                         response_format=response_format,
-                        temperature=0,
+                        temperature=self._whisperTemperature,
                     )
 
                     if transcription:
@@ -144,7 +154,7 @@ class ChatGPT(Thread):
 
         try:
 
-            model = self.getModel()
+            model = self.getChatModel()
             queryToSend = self.makeQueryObj(query, role)
             response = self.sendQueryObj(model, queryToSend)
         except openai.error.APIError as e:
@@ -234,8 +244,6 @@ class ChatGPT(Thread):
                 
 
                 # self._isIdle = True
-
-        # sys.exit(None)
 
     def printCummulative(self):
         print(
