@@ -155,7 +155,7 @@ class ChatGPT(Thread):
                     ratio = matcher.ratio()
                     self.lastAiResponse =None
                     print("Typical Identical Ratio:"  ,ratio)
-                    if ratio> 0.50:
+                    if ratio> 0.75:
                         print("ABORT! Too similar to last response" ,)
                         return True
         return False 
