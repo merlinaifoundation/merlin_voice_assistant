@@ -56,7 +56,7 @@ class Wizard(Thread):
                 # bypass filter when cancelling!
                 bypassFilter = cancelled
                 self.TapeRecorder.SetBypassFilter(bypassFilter)
-                self.TapeRecorder.SetCancelled(cancelled)
+                self.TapeRecorder.SetCancelled(cancelled or not idle)
                 
                 self.TapeRecorder.SetOpenMic(openMicOn)
                 

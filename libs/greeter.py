@@ -111,7 +111,25 @@ class Greeter(Thread):
                 # continue
 
             if self.UserInvoked():
+                
                 self._awakening()
+                
+                if self._aiResponse is not None:
+                    cancelled = self.UserCancelled()
+                    isIdle = self.IsIdle()
+                    enabled = self.UserInvoked()
+                    if isIdle:
+                        if enabled and not cancelled:
+                            if len(self._aiResponse) > 300:
+                                self.VoiceMaker.VoiceWait()
+                            self._prGreen("\nDisplay Response: ", self._aiResponse)
+                            self._stopMode = 2
+                            self.VoiceMaker.VoiceDefault(self._aiResponse, cancelled)
+                            self._aiResponse = None
+                    # greeter.UseDisplay(aiResponse)
+            
+
+        
         
         #exit...
         self.StopAction.StopListening()
@@ -188,19 +206,4 @@ class Greeter(Thread):
 
         self._aiResponse = response
 
-        if self._aiResponse is not None:
-            cancelled = self.UserCancelled()
-            isIdle = self.IsIdle()
-            enabled = self.UserInvoked()
-
-            if isIdle:
-                if enabled and not cancelled:
-                    if len(self._aiResponse) > 300:
-                        self.VoiceMaker.VoiceWait()
-                    self._prGreen("\nDisplay Response: ", self._aiResponse)
-                    self._stopMode = 2
-                    self.VoiceMaker.VoiceDefault(self._aiResponse, cancelled)
-                    # greeter.UseDisplay(aiResponse)
-            
-
-        self._aiResponse = None
+        

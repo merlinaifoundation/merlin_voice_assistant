@@ -78,7 +78,7 @@ class Recorder(Thread):
         getIndex = len(stored)
 
         if getIndex > self._cutLength:
-            print("Cutting at index =", getIndex)
+            print("\nCutting at index =", getIndex)
             stored = stored[getIndex - self._cutLength : getIndex]
             self.SetBufferObj(stored)
 
@@ -133,7 +133,7 @@ class Recorder(Thread):
                     self._finalized = True
                 
             except Exception as error:
-                print("Error in Recorder", error)
+                print("\nError in Recorder", error)
 
         self._pyAudio.terminate()
 
@@ -173,7 +173,7 @@ class Recorder(Thread):
                 print("Removing Recording: ", self._output_file)
 
         except Exception as error:
-            print("Error Removing Recording", error)
+            print("\nError Removing Recording", error)
 
     def StopRecording(self, discard_result = False):
         #set flag
@@ -198,6 +198,6 @@ class Recorder(Thread):
                 return self._output_file
 
         except Exception as error:
-            print("Error Saving Recording: ", error)
+            print("\nError Saving Recording: ", error)
 
         return None

@@ -84,7 +84,7 @@ class Recorder(Thread):
             #os.remove(self.file_path)
 
         except Exception as error:
-            print("Error Removing Recording", error)
+            print("\nError Removing Recording", error)
 
     def CleanRecording(self):
         self._result = []

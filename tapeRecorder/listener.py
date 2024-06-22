@@ -28,7 +28,9 @@ class Listener(Thread):
         self._cancelled = False
 
     def SetCancelled(self, cancelled):
+        
         self._cancelled = cancelled
+        
     def Listen(self):
 
         self._stop = False
@@ -75,12 +77,14 @@ class Listener(Thread):
                     break
                 else:
                     print(".", end="")
-                
+            
+            if self._cancelled:
+                print("+", end='')
             listen_audio_stream.stop_stream()
             listen_audio_stream.close()
 
         except Exception as error:
-            print("Error Listening:", error)
+            print("\nError Listening:", error)
 
     def DetectSilence(self):
 
@@ -142,12 +146,13 @@ class Listener(Thread):
                         # self._cobra.delete()
                         last_voice_time = None
                         break
-            
+            if self._cancelled:
+                print("+", end='')
             cobra_audio_stream.stop_stream()
             cobra_audio_stream.close()
             
         except Exception as error:
-            print("Error Detecting Silence:", error)
+            print("\nError Detecting Silence:", error)
 
         self._stop = True
         self._invoked = True

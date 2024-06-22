@@ -115,12 +115,12 @@ class Action(Thread):
                         self.porcupineStream = None
                     
                 except Exception as error:
-                    print("Error Closing Wake Stream", error, self.wakeWordFile)
+                    print("\nError Closing Wake Stream", error, self.wakeWordFile)
                     break
                                 
             
             except Exception as error:
-                print("Error Opening Wake Stream", error,  self.wakeWordFile)
+                print("\nError Opening Wake Stream", error,  self.wakeWordFile)
                 break
 
             
@@ -132,5 +132,5 @@ class Action(Thread):
             self._wake_pa.terminate()
             
         except Exception as error:
-            print("Error Terminating Wake Clients", error, self.wakeWordFile)
+            print("\nError Terminating Wake Clients", error, self.wakeWordFile)
         

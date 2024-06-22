@@ -55,44 +55,42 @@ class TextToSpeech(Thread):
                 tts_response.stream_to_file(self._output_file)
 
         except Exception as error:
-            print("Error Preparing File TTS:", error)
+            print("\nError Preparing File TTS:", error)
 
     def _play(self):
 
-        self._setFilePath()
-        
-        self._isBusy = True
         
         try:
             
-            self.mixer.init()
-            
-            self.mixer.music.load(self._output_file)
-            
-            if self._silentMode == 0:
-                
-                self.mixer.music.play()
-                while self.mixer.music.get_busy():
-                    
-                    if self._cancelled:
-                        break
-                    
-                    time.sleep(0.02)
-            else:
-                # is in Silent Mode
-                time.sleep(0.2)
+            if not self._isBusy: 
+                self._isBusy = True
+                self._setFilePath()
+                self.mixer.init()
+                self.mixer.music.load(self._output_file)
+                if self._silentMode == 0:
+                    self.mixer.music.play()
+                    while self.mixer.music.get_busy():
+                        if self._cancelled:
+                            break
+                        time.sleep(0.02)
+                else:
+                    # is in Silent Mode
+                    time.sleep(0.2)
 
         except Exception as error:
-            print("Error Playing File TTS:", error)
+            print("\nError Playing File TTS:", error)
 
-        self._isBusy = False
+        
         
     def _stopPlay(self):
         try:
             # self.mixer.music.stop()
-            self.mixer.quit()
+            if self._isBusy: 
+                self.mixer.quit()
         except Exception as error:
-            print("Error When Stoping TTS:", error)
+            print("\nError When Stoping TTS:", error)
+            
+        self._isBusy = False
         self._stop = True
         # self._chat = None
 
@@ -106,7 +104,7 @@ class TextToSpeech(Thread):
                 print("\nRemoving Voice File TTS: ", self._output_file)
 
         except Exception as error:
-            print("Error Voice File TTS:", error)
+            print("\nError Voice File TTS:", error)
 
     def PlayFile(self):
 
@@ -167,4 +165,7 @@ class TextToSpeech(Thread):
                 self.PlayFile()
 
     def Finished(self):
-        return not self._isBusy
+        if not self._isBusy:
+            return True
+        #print("VOICE IS BUSY")
+        return False

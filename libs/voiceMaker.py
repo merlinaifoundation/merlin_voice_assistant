@@ -107,10 +107,10 @@ class VoiceMaker(Thread):
         self._defaultVoiceObj.SpeakFromText(content, False)
 
     def IsIdle(self):
-        condition1 = (self._defaultVoiceObj is not None) and self._defaultVoiceObj.Finished()
-        condition2 = (self._awakeVoiceObj is not None) and self._awakeVoiceObj.Finished()
-        condition3 = (self._waitVoiceObj is not None) and self._waitVoiceObj.Finished()
-        condition4 = (self._initVoiceObj is not None) and self._initVoiceObj.Finished()
+        condition1 = self._defaultVoiceObj and self._defaultVoiceObj.Finished()
+        condition2 = self._awakeVoiceObj  and self._awakeVoiceObj.Finished()
+        condition3 = self._waitVoiceObj  and self._waitVoiceObj.Finished()
+        condition4 = self._initVoiceObj  and self._initVoiceObj.Finished()
 
         #print(condition1, condition2)
         return condition1 and condition2 and condition3 and condition4

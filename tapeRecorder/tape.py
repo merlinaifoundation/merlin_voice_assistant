@@ -69,11 +69,12 @@ class TapeRecorder(Thread):
                         
                         self.Recorder.StopRecording()
                         diff = round(time.time() - timeNow, 2)
-                        self._prRed("OpenMic Listening for seconds: ", diff)
+                        self._prRed("\nOpenMic Listening for seconds: ", diff)
                 else:
                     self.Recorder.StopRecording(True)
+                    #pass
             except Exception as error:
-                self._prRed("Error on Tape:", error)
+                self._prRed("\nError on Tape:", error)
 
         self.Recorder.StopRecording(True)
         self.Recorder.StopThread()
@@ -147,6 +148,7 @@ class TapeRecorder(Thread):
         
         self.Listener.SetCancelled(self._cancelled)
         self._cancelled = status
+
         #
 
     def SetBypassFilter(self, status):

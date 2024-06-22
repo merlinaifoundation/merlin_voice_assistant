@@ -24,7 +24,7 @@ class TextDisplay(Thread):
                 print("\n")
 
         except Exception as error:
-            print("Error:", error)
+            print("\nError:", error)
 
         self._stop = True
 

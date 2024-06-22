@@ -112,7 +112,7 @@ class ChatGPT(Thread):
                     transcription = str(transcription)
 
         except Exception as e:
-            print("Error", e)
+            print("\nError", e)
 
         return transcription
 
@@ -220,7 +220,7 @@ class ChatGPT(Thread):
 
     def printCummulative(self):
         print(
-            "Current Cumm Responses: ",
+            "\nCurrent Cumm Responses: ",
             len(self._cummulativeResponse),
         )
         print(
