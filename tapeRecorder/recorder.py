@@ -139,16 +139,14 @@ class Recorder(Thread):
 
     def StartRecording(self):
         #executes once
-        if self._finalized and not self._is_recording :
-            
-            #self._buffer = []
-            
-            self._is_recording = True
-            self._openStream()
+        if self._finalized  :
             
             self._finalized = False
             self._discardLast = False
-            # self._buffer = []
+            self._buffer = []
+            
+            self._is_recording = True
+            self._openStream()
 
     def IsRecording(self):
         return self._is_recording
@@ -195,7 +193,7 @@ class Recorder(Thread):
                 wf.writeframes(b"".join(obj))
                 wf.close()
                 # audio_segment.export(self.file_path, format="mp3")
-                print(f"Recording saved to {self._output_file}")
+                print(f"\nRecording saved to {self._output_file}")
                 # audio_segment = None
                 return self._output_file
 

@@ -48,40 +48,31 @@ class TapeRecorder(Thread):
 
             try:
 
-                # check if voice finished to start recording again
-
-                time.sleep(0.001)
-
                 if self._isOpenMic:
 
-                    self.Recorder.StartRecording()
-
+                    time.sleep(0.001)
+                    timeNow = time.time()
+                    
+                    if not self.Recorder.IsRecording():
+                        self.Recorder.StartRecording()
                     #
                     if self.Recorder.IsRecording():
 
-                        print("Starting OpenMic...")
-                        #
-                        timeNow = time.time()
-
+                        self._prRed("\nStarting OpenMic...", timeNow)
                         self.Listener.Listen()
-                        #
+                        ###################################################
+                        
                         self.Recorder.TrimLeftRecording()
-                        #
+                        
                         self.Listener.DetectSilence()
-
-                        diff = round(time.time() - timeNow, 2)
-                        self._prRed("Listening for seconds: ", diff)
-
+                        ###################################################
+                        
                         self.Recorder.StopRecording()
                         diff = round(time.time() - timeNow, 2)
-                        self._prRed("Stoping OpenMic for seconds: ", diff)
-
-                else:
-                    pass
-                    # self.Recorder.StopRecording(True)
+                        self._prRed("OpenMic Listening for seconds: ", diff)
 
             except Exception as error:
-                print("Error on Tape:", error)
+                self._prRed("Error on Tape:", error)
 
         self.Recorder.StopRecording(True)
         self.Recorder.StopThread()
@@ -95,11 +86,11 @@ class TapeRecorder(Thread):
                 "Recording Size: ",
                 userRecordedInputSize,
             )
-            if userRecordedInputSize > 93 or self._bypassFilter:
+            if userRecordedInputSize > 60 or self._bypassFilter:
                 self._cummulativeFiltered.append(userRecordedInput)
-                print("Passed the filter: ", userRecordedInputSize)
+                self._prGreen("Passed the filter: ", userRecordedInputSize)
             else:
-                print("Discarding short Recording: ", userRecordedInputSize)
+                self._prGreen("Discarding short Recording: ", userRecordedInputSize)
                 self.Recorder.StopRecording(True)
 
     def SaveTape(self, obj):
@@ -152,8 +143,9 @@ class TapeRecorder(Thread):
         return None
 
     def SetCancelled(self, status):
-        self._cancelled = status
+        
         self.Listener.SetCancelled(self._cancelled)
+        self._cancelled = status
         #
 
     def SetBypassFilter(self, status):

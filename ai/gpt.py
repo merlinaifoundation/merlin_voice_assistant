@@ -5,6 +5,7 @@ from decouple import config
 from openai import OpenAI
 from difflib import SequenceMatcher
 
+
 class ChatGPT(Thread):
 
     def __init__(self):
@@ -85,7 +86,7 @@ class ChatGPT(Thread):
 
     def clearCummulativeResponse(self):
         self._cummulativeResponse = []
-        
+
     def appendToConversation(self, questionOrAnswer, role, maximum):
         QAs = len(self._cummulativeChat)
         if QAs > maximum:
@@ -99,7 +100,6 @@ class ChatGPT(Thread):
 
     def speechToText(self, file, response_format):
 
-        
         transcription = None
         try:
             audio_file = open(file, "rb")
@@ -151,27 +151,29 @@ class ChatGPT(Thread):
 
     def isRedundancy(self, userTranscript):
         if userTranscript and self.lastAiResponse:
-                    matcher = SequenceMatcher(isjunk=None, a=userTranscript, b= self.lastAiResponse, autojunk=True)
-                    ratio = matcher.ratio()
-                    self.lastAiResponse =None
-                    print("Typical Identical Ratio:"  ,ratio)
-                    if ratio> 0.75:
-                        print("ABORT! Too similar to last response" ,)
-                        return True
-        return False 
-    
-                 
+            matcher = SequenceMatcher(
+                isjunk=None, a=userTranscript, b=self.lastAiResponse, autojunk=True
+            )
+            ratio = matcher.ratio()
+            self.lastAiResponse = None
+            print("Typical Identical Ratio:", ratio)
+            if ratio > 0.75:
+                print(
+                    "ABORT! Too similar to last response",
+                )
+                return True
+        return False
+
     def run(self):
 
-
-        while not self._stop :
+        while not self._stop:
 
             time.sleep(0.001)
-            
+
             if self._isIdle:
-                
+
                 self._isIdle = False
-                
+
                 if self._hasRecordedStuff and not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
                     print("\nTranscript:", userTranscript)
@@ -181,16 +183,26 @@ class ChatGPT(Thread):
                         role = "user"
                         self.lastAiResponse = self.query(userTranscript, role)
                         if self.lastAiResponse:
-                            self._cummulativeResponse.append( self.lastAiResponse)
-                            if not self._cancelled :
+                            self._cummulativeResponse.append(self.lastAiResponse)
+                            if not self._cancelled:
                                 if userTranscript:
-                                    self.appendToConversation(userTranscript, "user", 20)
-                                self.appendToConversation(self.lastAiResponse, "assistant", 20)
-             
-                    print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
-                    print("Current Cumm Chat: ", len(self._cummulativeChat),  )            
-                    
-                else :
+                                    self.appendToConversation(
+                                        userTranscript, "user", 20
+                                    )
+                                self.appendToConversation(
+                                    self.lastAiResponse, "assistant", 20
+                                )
+
+                    print(
+                        "Current Cumm Responses: ",
+                        len(self._cummulativeResponse),
+                    )
+                    print(
+                        "Current Cumm Chat: ",
+                        len(self._cummulativeChat),
+                    )
+
+                else:
                     if self._cancelled:
                         userTranscript = self.getBrieferCommand()
                         role = "system"
@@ -198,33 +210,33 @@ class ChatGPT(Thread):
                         if self.lastAiResponse:
                             self.clearCummulativeList()
                             self.clearCummulativeResponse()
-                            aiResponse = "Our last conversation was about: " + str(self.lastAiResponse)
+                            aiResponse = "Our last conversation was about: " + str(
+                                self.lastAiResponse
+                            )
                             self.appendToConversation(
                                 aiResponse,
                                 "system",
                                 20,
                             )
-                            self.lastAiResponse  = aiResponse
-                        print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
-                        print("Current Cumm Chat: ", len(self._cummulativeChat),  )
-                        
-                            
+                            self.lastAiResponse = aiResponse
+                        print(
+                            "Current Cumm Responses: ",
+                            len(self._cummulativeResponse),
+                        )
+                        print(
+                            "Current Cumm Chat: ",
+                            len(self._cummulativeChat),
+                        )
+
                 self._isIdle = True
-                
-                
-                
-                
-                
-        
-        #sys.exit(None)
+
+        # sys.exit(None)
 
     def SetQuery(self, recordedStuff):
         self._hasRecordedStuff = recordedStuff
 
     def SetCancelled(self, cancelled):
         self._cancelled = cancelled
-
-    
 
     def GetResponse(self):
         if len(self._cummulativeResponse) > 0:
@@ -241,5 +253,6 @@ class ChatGPT(Thread):
 
     def StartThread(self):
         self.start()
+
     def StopThread(self):
         self._stop = True

@@ -103,7 +103,7 @@ class TextToSpeech(Thread):
             self._setFilePath()
             if os.path.isfile(self._output_file):
                 os.remove(self._output_file)
-                print("Removing Voice File TTS: ", self._output_file)
+                print("\nRemoving Voice File TTS: ", self._output_file)
 
         except Exception as error:
             print("Error Voice File TTS:", error)
