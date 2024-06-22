@@ -1,3 +1,4 @@
+import os
 import time
 import openai
 from threading import Thread
@@ -98,18 +99,35 @@ class ChatGPT(Thread):
     def getBrieferCommand(self):
         return self.CHAT_LOG_LAST
 
+    def removeFile(self, file):
+        try:
+            if file and os.path.isfile(file):
+                os.remove(file)
+                print("\nAI Erasing File: ", file)
+                return True
+
+        except Exception as error:
+            print("\nError AI Erasing File", error)
+        return False
+
     def speechToText(self, file, response_format):
 
         transcription = None
         try:
 
             if file:
-                audio_file = open(file, "rb")
-                transcription = self.client.audio.transcriptions.create(
-                    model="whisper-1", file=audio_file, response_format=response_format
-                )
-                if transcription:
-                    transcription = str(transcription)
+                with open(file, "rb") as audio_file:
+                    transcription = self.client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=audio_file,
+                        response_format=response_format,
+                        temperature=0,
+                    )
+
+                    if transcription:
+                        transcription = str(transcription)
+
+                self.removeFile(file)
 
         except Exception as e:
             print("\nError", e)
@@ -176,8 +194,8 @@ class ChatGPT(Thread):
 
             # self._isIdle = False
 
-            if self._hasRecordedStuff:
-                if not self._cancelled:
+            if not self._cancelled:
+                if self._hasRecordedStuff:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
                     self._hasRecordedStuff = None
                     print("\nTranscript:", userTranscript)
@@ -193,26 +211,27 @@ class ChatGPT(Thread):
                                 )
                                 if userTranscript:
                                     self.appendToConversation(userTranscript, role, 20)
-                self.printCummulative()
-
+                    self.printCummulative()
+                    
             else:
-                if self._cancelled:
+                if len(self._cummulativeChat) > 1:
                     userTranscript = self.getBrieferCommand()
                     role = "system"
                     self.lastAiResponse = self.query(userTranscript, role)
                     if self.lastAiResponse:
                         self.clearCummulativeList()
                         self.clearCummulativeResponse()
-                        aiResponse = "Our last conversation was about: " + str(
+                        self.lastAiResponse = "Our last conversation was about: " + str(
                             self.lastAiResponse
                         )
                         self.appendToConversation(
-                            aiResponse,
+                            self.lastAiResponse,
                             role,
                             20,
                         )
-                        self.lastAiResponse = aiResponse
+                        self._cummulativeResponse.append(self.lastAiResponse)
                     self.printCummulative()
+                
 
                 # self._isIdle = True
 

@@ -7,6 +7,7 @@ import time
 from tapeRecorder.tape import TapeRecorder
 from ai.gpt import ChatGPT
 from libs.greeter import Greeter
+from tapeRecorder.openMic import OpenMic
 
 
 class Wizard(Thread):
@@ -22,6 +23,7 @@ class Wizard(Thread):
         self.Greeter = Greeter()
 
         self.TapeRecorder = TapeRecorder()
+        self.OpenMic = OpenMic()
 
         self.Brain = ChatGPT()
 
@@ -37,7 +39,7 @@ class Wizard(Thread):
 
     def StopThread(self):
         self._stop = True
-        #sys.exit(None)
+        # sys.exit(None)
 
     def run(self):
 
@@ -51,39 +53,47 @@ class Wizard(Thread):
                 cancelled = self.Greeter.UserCancelled()
                 idle = self.Greeter.IsIdle()
                 openMicOn = not cancelled and idle and enabled
-                #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
-                #print("STATUS", status)
-                # bypass filter when cancelling!
-                bypassFilter = cancelled
-                self.TapeRecorder.SetBypassFilter(bypassFilter)
-                self.TapeRecorder.SetCancelled(cancelled or not idle)
-                
-                self.TapeRecorder.SetOpenMic(openMicOn)
-                
+                # status = int(enabled), int(cancelled), int(idle), int(openMicOn)
+                # print("STATUS", status)
+
+                self.OpenMic.SetCancelled(cancelled or not idle)
+                self.OpenMic.SetOpenMic(openMicOn)
+
                 time.sleep(0.001)
                 # to start recording session
-                self.TapeRecorder.FilterTape()
-                filteredTape = self.TapeRecorder.TakeFilteredTape()
-                
-                if filteredTape:
-                    time.sleep(0.001)
-                    self.TapeRecorder.SaveTape(filteredTape)
-                    time.sleep(0.001)
-                
-                fileRecording = self.TapeRecorder.TakeSavedTape()
-                
+
+                rawBuffer = self.OpenMic.TakeBuffer()
+
+                cancelled = self.Greeter.UserCancelled()
+                bypassFilter = cancelled
+                self.TapeRecorder.SetBypassFilter(bypassFilter)
+                self.TapeRecorder.SetCancelled(cancelled)
+                self.TapeRecorder.FilterTapeBuffer(rawBuffer)
+
+                time.sleep(0.001)
+
+                filteredTapeBuffer = self.TapeRecorder.TakeFilteredBuffer()
+
+                time.sleep(0.001)
+
+                fileRecording = self.OpenMic.SaveBufferFile(filteredTapeBuffer)
+                self.TapeRecorder.SaveTapeURL(fileRecording)
+
+                time.sleep(0.001)
+
+                tapeFile = self.TapeRecorder.TakeSavedTapeFile()
+
                 cancelled = self.Greeter.UserCancelled()
                 self.Brain.SetCancelled(cancelled)
-                self.Brain.SetQuery(fileRecording)
-                
-                
-                
+                self.Brain.SetQuery(tapeFile)
+
+                time.sleep(0.001)
+
                 aiResponse = self.Brain.TakeResponse()
-                
+
                 if aiResponse:
-                    
                     time.sleep(0.001)
-                    
+
                     cancelled = self.Greeter.UserCancelled()
                     if cancelled:
                         self.Greeter.VoiceMaker.CreateWakeVoice(aiResponse, True)
@@ -91,26 +101,25 @@ class Wizard(Thread):
                         self.Greeter.VoiceResponse(aiResponse)
 
                 time.sleep(0.001)
-                
+
         except Exception as error:
             self._prRed("\nExiting Wizard Thread...", error)
-            
+
         self.Greeter.StopThread()
         self.Brain.StopThread()
+        self.OpenMic.StopThread()
         self.TapeRecorder.StopThread()
 
-        #sys.exit(None)
-        
+        # sys.exit(None)
+
     def StartThread(self):
 
         timeNow = time.time()
 
         self.Greeter.StartThread()
-
         self.Brain.StartThread()
-
         self.TapeRecorder.StartThread()
-
+        self.OpenMic.StartThread()
         self.start()
 
         diff = round(time.time() - timeNow, 2)

@@ -22,25 +22,24 @@ class Recorder(Thread):
         super().__init__()
         self._buffer = []
         self._result = []
-        self._is_recording = False
+        self._isRecording = False
 
-        cfgLimit = config("REC_BUFFER_LIMIT")
-        self._cutLength = int(config("LISTEN_LENGTH"))
-
-        self._bufferLimit = bufferLimit or int(cfgLimit) or 1e7
+        REC_BUFFER_LIMIT = config("REC_BUFFER_LIMIT")
+        self._LISTEN_LENGTH = int(config("LISTEN_LENGTH"))
+        self._REC_BUFFER_LIMIT = bufferLimit or int(REC_BUFFER_LIMIT) or 1e7
         self._finalized = True
-        self._pyAudio = pyaudio.PyAudio()
+        self._pyAudioObj = pyaudio.PyAudio()
         print(
             "Recording Buffer Limit set at: ",
-            self._bufferLimit,
-            self._pyAudio.get_sample_size(FORMATO),
+            self._REC_BUFFER_LIMIT,
+            self._pyAudioObj.get_sample_size(FORMATO),
         )
 
         self._assignFileName()
-        self._cummulative = []
-        self._stream = None
+        self._cummulativeBuffers = []
+        self._audiostream = None
         self._stopThread = False
-        self._discardLast = True
+        self._discardLastBuffer = True
 
     def _assignFileName(self):
         rootPath = os.path.dirname(__file__)
@@ -53,12 +52,10 @@ class Recorder(Thread):
 
     def _openStream(self):
 
-        if self._stream is None:
+        if self._audiostream is None:
             print("Recording...", self._output_file)
 
-            #self._buffer = []
-
-            self._stream = self._pyAudio.open(
+            self._audiostream = self._pyAudioObj.open(
                 format=FORMATO,
                 channels=CANALES,
                 rate=TASA_MUESTREO,
@@ -67,20 +64,20 @@ class Recorder(Thread):
             )
 
     def _closeStream(self):
-        if self._stream:
-            self._stream.stop_stream()
-            self._stream.close()
-            self._stream = None
+        if self._audiostream:
+            self._audiostream.stop_stream()
+            self._audiostream.close()
+            self._audiostream = None
 
     def TrimLeftRecording(self):
         # DETECT WHEN VOICE ACTIVATES AND STORE RECORDING FROM THERE - BIAS (cut length)
-        stored = self.GetBufferObj()
+        stored = self._buffer
         getIndex = len(stored)
 
-        if getIndex > self._cutLength:
+        if getIndex > self._LISTEN_LENGTH:
             print("\nCutting at index =", getIndex)
-            stored = stored[getIndex - self._cutLength : getIndex]
-            self.SetBufferObj(stored)
+            stored = stored[getIndex - self._LISTEN_LENGTH : getIndex]
+            self._buffer = stored
 
     def StartThread(self):
         self.start()
@@ -88,13 +85,23 @@ class Recorder(Thread):
     def StopThread(self):
         self._stopThread = True
 
+    def _appendToList(self):
+        if not self._finalized:
+            if not self._discardLastBuffer:
+                aux = self._buffer.copy()
+                if len(aux):
+                    self._cummulativeBuffers.append(aux.copy())
+                    self._discardLastBuffer = True
+            self._buffer = []
+            self._finalized = True
+
     def _buffering(self):
 
         # read
-        if self._stream:
-            reading = self._stream.read(CHUNK)
+        if self._audiostream:
+            reading = self._audiostream.read(CHUNK)
             # if more data than limit, clean buffer
-            if len(self._buffer) > self._bufferLimit:
+            if len(self._buffer) > self._REC_BUFFER_LIMIT:
                 print(
                     "\nRecorder Buffer Limit was Hit",
                     len(self._buffer),
@@ -113,84 +120,68 @@ class Recorder(Thread):
         while not self._stopThread:
 
             time.sleep(0.001)
-
             try:
-                
-                while self._is_recording:
 
+                while self._isRecording:
                     time.sleep(0.001)
                     self._buffering()
 
                 self._closeStream()
+                self._appendToList()
 
-                if not self._finalized: 
-                    if not self._discardLast:
-                        aux = self._buffer.copy()
-                        if len(aux):
-                            self._cummulative.append(aux.copy())
-                            self._discardLast = True
-                    self._buffer = []
-                    self._finalized = True
-                
             except Exception as error:
                 print("\nError in Recorder", error)
 
-        self._pyAudio.terminate()
+        self._pyAudioObj.terminate()
 
     def StartRecording(self):
-        #executes once
-        if self._finalized  :
-            
-            self._finalized = False
-            self._discardLast = False
+        # executes once
+        if self._finalized:
+
             self._buffer = []
-            
-            self._is_recording = True
+            self._finalized = False
+            self._discardLastBuffer = False
+
+            self._isRecording = True
             self._openStream()
 
     def IsRecording(self):
-        return self._is_recording
+        return self._isRecording
 
     # def Finished(self):
     # return  self._finalized
 
-    def GetBufferObj(self):
-        return self._buffer
+    def TakeRecordingBuffer(self):
 
-    def SetBufferObj(self, obj):
-        self._buffer = obj
-
-    def GetRecordingObj(self):
-
-        if len(self._cummulative) > 0:
-            return self._cummulative.pop(0)
+        if len(self._cummulativeBuffers) > 0:
+            return self._cummulativeBuffers.pop(0)
         return []
 
-    def RemoveRecording(self):
+    def DeleteRecordingFile(self, file):
         try:
-            if os.path.isfile(self._output_file):
-                os.remove(self._output_file)
-                print("Removing Recording: ", self._output_file)
-
+            if file and os.path.isfile(file):
+                os.remove(file)
+                print("\nDeleting Recording: ", file)
+                return True
         except Exception as error:
-            print("\nError Removing Recording", error)
+            print("\nError Deleting Recording", error)
+        return False
+    def StopRecording(self, discard_result=False):
+        # set flag
+        self._discardLastBuffer = discard_result
+        # stop process
+        self._isRecording = False
 
-    def StopRecording(self, discard_result = False):
-        #set flag
-        self._discardLast = discard_result
-        #stop process
-        self._is_recording = False
-
-    def SaveRecordingObj(self, obj):
+    def SaveRecordingFile(self, aBuffer):
         try:
-            if len(obj) > 0:
+            if aBuffer and len(aBuffer) > 0:
                 self._assignFileName()
                 # Convert the buffer to a numpy array
                 wf = wave.open(self._output_file, "wb")
                 wf.setnchannels(CANALES)
-                wf.setsampwidth(self._pyAudio.get_sample_size(FORMATO))
+                wf.setsampwidth(self._pyAudioObj.get_sample_size(FORMATO))
                 wf.setframerate(TASA_MUESTREO)
-                wf.writeframes(b"".join(obj))
+                wf.writeframes(b"".join(aBuffer))
                 wf.close()
                 # audio_segment.export(self.file_path, format="mp3")
                 print(f"\nRecording saved to {self._output_file}")
