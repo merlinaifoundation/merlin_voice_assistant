@@ -55,7 +55,6 @@ class Wizard(Thread):
 
                 #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 #print("STATUS", status)
-                # not finished the flags-implementation
                 # bypass filter when cancelling!
                 bypassFilter = cancelled
                 self.TapeRecorder.SetBypassFilter(bypassFilter)
@@ -69,30 +68,27 @@ class Wizard(Thread):
                 if filteredTape:
                     self.TapeRecorder.SaveTape(filteredTape)
                 
-                fileRecording = self.TapeRecorder.GetSavedTape()
-                if fileRecording:
-                    cancelled = self.Greeter.UserCancelled()
-                    self.Brain.SetCancelled(cancelled)
-                    self.Brain.SetQuery(fileRecording)
-
                 cancelled = self.Greeter.UserCancelled()
-                if not cancelled: 
-                    idle = self.Greeter.IsIdle()
-                    enabled = self.Greeter.UserInvoked()
-                    if idle and enabled:
-                        aiResponse = self.Brain.GetResponse()
-                        if aiResponse:
-                            self.Greeter.VoiceResponse(aiResponse)
+                self.Brain.SetCancelled(cancelled)
+                
+                fileRecording = self.TapeRecorder.GetSavedTape()
+                self.Brain.SetQuery(fileRecording)
+                
+                aiResponse = self.Brain.GetResponse()
+                if aiResponse:
+                    cancelled = self.Greeter.UserCancelled()
+                    if cancelled:
+                        self.Greeter.VoiceMaker.CreateWakeVoice(aiResponse, True)
+                    else:
+                        self.Greeter.VoiceResponse(aiResponse)
 
-                # if keyboard.is_pressed('q'):
-                # raise Exception('Quitting...')
-
-            self.Greeter.StopThread()
-            self.Brain.StopThread()
-            self.TapeRecorder.StopThread()
-
+                
         except Exception as error:
             self._prRed("\nExiting Wizard Thread...", error)
+            
+        self.Greeter.StopThread()
+        self.Brain.StopThread()
+        self.TapeRecorder.StopThread()
 
         #sys.exit(None)
         

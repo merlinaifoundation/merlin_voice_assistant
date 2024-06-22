@@ -201,7 +201,6 @@ class Greeter(Thread):
                     self._stopMode = 2
                     self.VoiceMaker.VoiceDefault(self._aiResponse, cancelled)
                     # greeter.UseDisplay(aiResponse)
-            if cancelled:
-                self.VoiceMaker.CreateWakeVoice(self._aiResponse, True)
+            
 
         self._aiResponse = None

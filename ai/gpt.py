@@ -99,21 +99,20 @@ class ChatGPT(Thread):
 
     def speechToText(self, file, response_format):
 
-        transcriptionTxt = ""
+        
         transcription = None
         try:
             audio_file = open(file, "rb")
             transcription = self.client.audio.transcriptions.create(
                 model="whisper-1", file=audio_file, response_format=response_format
             )
-            transcriptionTxt = str(transcription)
+            if transcription:
+                transcription = str(transcription)
 
         except Exception as e:
             print("Error", e)
 
-        transcription = None
-
-        return transcriptionTxt
+        return transcription
 
     def query(self, query, role):
 
@@ -150,6 +149,18 @@ class ChatGPT(Thread):
             print(e)
         return response
 
+    def isRedundancy(self, userTranscript):
+        if userTranscript and self.lastAiResponse:
+                    matcher = SequenceMatcher(isjunk=None, a=userTranscript, b= self.lastAiResponse, autojunk=True)
+                    ratio = matcher.ratio()
+                    self.lastAiResponse =None
+                    print("Typical Identical Ratio:"  ,ratio)
+                    if ratio> 0.50:
+                        print("ABORT! Too similar to last response" ,)
+                        return True
+        return False 
+    
+                 
     def run(self):
 
 
@@ -157,49 +168,34 @@ class ChatGPT(Thread):
 
             time.sleep(0.001)
             
-            if self._hasRecordedStuff and self._isIdle:
+            if self._isIdle:
                 
                 self._isIdle = False
                 
-                userTranscript = None
-                
-                role = "user"
-                
-                abortResearch = False
-                
-                if not self._cancelled:
+                if self._hasRecordedStuff and not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
                     print("\nTranscript:", userTranscript)
+                    self._hasRecordedStuff = None
+                    abortResearch = self.isRedundancy(userTranscript)
+                    if userTranscript and not abortResearch:
+                        role = "user"
+                        self.lastAiResponse = self.query(userTranscript, role)
+                        if self.lastAiResponse:
+                            self._cummulativeResponse.append( self.lastAiResponse)
+                            if not self._cancelled :
+                                if userTranscript:
+                                    self.appendToConversation(userTranscript, "user", 20)
+                                self.appendToConversation(self.lastAiResponse, "assistant", 20)
+             
+                    print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
+                    print("Current Cumm Chat: ", len(self._cummulativeChat),  )            
                     
-
-                    
-                else:
-                    userTranscript = self.getBrieferCommand()
-                    role = "system"
-                
-                self._hasRecordedStuff = None
-                
-                if self.lastAiResponse:
-                    matcher = SequenceMatcher(isjunk=None, a=userTranscript, b= self.lastAiResponse, autojunk=True)
-                    ratio = matcher.ratio()
-                    self.lastAiResponse =None
-                    print("Typical Identical Ratio:"  ,ratio)
-                    if ratio> 0.50:
-                        print("ABORT! Too similar to last response" ,)
-                        abortResearch = True
-                            
-                
-                if not abortResearch:
-                    
-                    self.lastAiResponse = self.query(userTranscript, role)
-                    
-                    if self.lastAiResponse:
-                        self._cummulativeResponse.append( self.lastAiResponse)
-                        if not self._cancelled :
-                            if userTranscript:
-                                self.appendToConversation(userTranscript, "user", 20)
-                            self.appendToConversation(self.lastAiResponse, "assistant", 20)
-                        else:
+                else :
+                    if self._cancelled:
+                        userTranscript = self.getBrieferCommand()
+                        role = "system"
+                        self.lastAiResponse = self.query(userTranscript, role)
+                        if self.lastAiResponse:
                             self.clearCummulativeList()
                             self.clearCummulativeResponse()
                             aiResponse = "Our last conversation was about: " + str(self.lastAiResponse)
@@ -208,11 +204,17 @@ class ChatGPT(Thread):
                                 "system",
                                 20,
                             )
-                
-                print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
-                print("Current Cumm Chat: ", len(self._cummulativeChat),  )
-                
+                            self.lastAiResponse  = aiResponse
+                        print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
+                        print("Current Cumm Chat: ", len(self._cummulativeChat),  )
+                        
+                            
                 self._isIdle = True
+                
+                
+                
+                
+                
         
         #sys.exit(None)
 
