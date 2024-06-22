@@ -184,7 +184,7 @@ class ChatGPT(Thread):
                     ratio = matcher.ratio()
                     self.lastAiResponse =None
                     print("Typical Identical Ratio:"  ,ratio)
-                    if ratio> 0.6:
+                    if ratio> 0.50:
                         print("ABORT! Too similar to last response" ,)
                         abortResearch = True
                             

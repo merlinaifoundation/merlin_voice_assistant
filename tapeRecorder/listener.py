@@ -135,10 +135,10 @@ class Listener(Thread):
                             
                             suma = sum(self._averageSilenceThreshold)
                             avg = round(suma / lenghtOfArray,2)
-                            print ("\nAverage Silence Threshold: ", avg, lenghtOfArray, self._silenceThreshold )
+                            print ("Average Silence Threshold: ", avg, lenghtOfArray, self._silenceThreshold )
                             #self._silenceThreshold = 5*avg
                         
-                        print("\nTotal Silence of: ", round(silence_duration,2), " seconds")
+                        print("Total Silence of: ", round(silence_duration,2), " seconds\n")
                         # self._cobra.delete()
                         last_voice_time = None
                         break

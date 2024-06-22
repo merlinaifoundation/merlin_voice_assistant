@@ -55,12 +55,13 @@ class Wizard(Thread):
 
                 #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 #print("STATUS", status)
-                self.TapeRecorder.SetOpenMic(openMicOn)
                 # not finished the flags-implementation
                 # bypass filter when cancelling!
                 bypassFilter = cancelled
                 self.TapeRecorder.SetBypassFilter(bypassFilter)
                 self.TapeRecorder.SetCancelled(cancelled)
+                
+                self.TapeRecorder.SetOpenMic(openMicOn)
 
                 # to start recording session
                 self.TapeRecorder.FilterTape()

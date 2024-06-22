@@ -47,47 +47,42 @@ class TapeRecorder(Thread):
             time.sleep(0.001)
 
             try:
-                
-            # check if voice finished to start recording again
+
+                # check if voice finished to start recording again
+
+                time.sleep(0.001)
+
                 if self._isOpenMic:
 
-                    
                     self.Recorder.StartRecording()
-                    
+
                     #
                     if self.Recorder.IsRecording():
-                        
-                        time.sleep(0.001)
-                        
+
                         print("Starting OpenMic...")
-                    #
+                        #
                         timeNow = time.time()
-                        
+
                         self.Listener.Listen()
-                    #
+                        #
                         self.Recorder.TrimLeftRecording()
-                    #
+                        #
                         self.Listener.DetectSilence()
-                    
+
                         diff = round(time.time() - timeNow, 2)
                         self._prRed("Listening for seconds: ", diff)
-                    
-                       
+
                         self.Recorder.StopRecording()
                         diff = round(time.time() - timeNow, 2)
                         self._prRed("Stoping OpenMic for seconds: ", diff)
 
                 else:
-                    #pass
-                    self.Recorder.StopRecording(True)
-            
-            
-            except Exception as error:
-                print("Error on Tape:", error)    
-                
-            
+                    pass
+                    # self.Recorder.StopRecording(True)
 
-        
+            except Exception as error:
+                print("Error on Tape:", error)
+
         self.Recorder.StopRecording(True)
         self.Recorder.StopThread()
         # sys.exit(None)
@@ -101,29 +96,29 @@ class TapeRecorder(Thread):
                 userRecordedInputSize,
             )
             if userRecordedInputSize > 93 or self._bypassFilter:
-                    self._cummulativeFiltered.append(userRecordedInput)
-                    print("Passed the filter: ", userRecordedInputSize)
+                self._cummulativeFiltered.append(userRecordedInput)
+                print("Passed the filter: ", userRecordedInputSize)
             else:
                 print("Discarding short Recording: ", userRecordedInputSize)
                 self.Recorder.StopRecording(True)
-                
+
     def SaveTape(self, obj):
         if obj:
             fileRecording = self.Recorder.SaveRecordingObj(obj)
             if fileRecording:
                 self._cummulative.append(fileRecording)
 
-    #def Reset(self):
-        #timeNow = time.time()
+    # def Reset(self):
+    # timeNow = time.time()
 
-        # if self.Recorder.Finished():
-        #self._prGreen("Flushing Recording...", "Once")
-        #self.Recorder.StopRecording()
-        # self.Recorder.NotifyFiltered()
-        # self.Recorder.RemoveRecording()
-        # self.Recorder = None
-        #diff = round(time.time() - timeNow, 2)
-       # self._prRed("Reset Recorder in seconds: ", diff)
+    # if self.Recorder.Finished():
+    # self._prGreen("Flushing Recording...", "Once")
+    # self.Recorder.StopRecording()
+    # self.Recorder.NotifyFiltered()
+    # self.Recorder.RemoveRecording()
+    # self.Recorder = None
+    # diff = round(time.time() - timeNow, 2)
+    # self._prRed("Reset Recorder in seconds: ", diff)
 
     def _initialize(self):
         timeNow = time.time()
@@ -150,6 +145,7 @@ class TapeRecorder(Thread):
         if len(self._cummulativeFiltered) > 0:
             return self._cummulativeFiltered.pop(0)
         return None
+
     def GetSavedTape(self):
         if len(self._cummulative) > 0:
             return self._cummulative.pop(0)
