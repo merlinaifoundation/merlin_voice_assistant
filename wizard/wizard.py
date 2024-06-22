@@ -51,8 +51,6 @@ class Wizard(Thread):
                 cancelled = self.Greeter.UserCancelled()
                 idle = self.Greeter.IsIdle()
                 openMicOn = not cancelled and idle and enabled
-                
-
                 #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 #print("STATUS", status)
                 # bypass filter when cancelling!
@@ -61,27 +59,38 @@ class Wizard(Thread):
                 self.TapeRecorder.SetCancelled(cancelled)
                 
                 self.TapeRecorder.SetOpenMic(openMicOn)
-
+                
+                time.sleep(0.001)
                 # to start recording session
                 self.TapeRecorder.FilterTape()
-                filteredTape = self.TapeRecorder.GetFilteredTape()
+                filteredTape = self.TapeRecorder.TakeFilteredTape()
+                
                 if filteredTape:
+                    time.sleep(0.001)
                     self.TapeRecorder.SaveTape(filteredTape)
+                    time.sleep(0.001)
+                
+                fileRecording = self.TapeRecorder.TakeSavedTape()
                 
                 cancelled = self.Greeter.UserCancelled()
                 self.Brain.SetCancelled(cancelled)
-                
-                fileRecording = self.TapeRecorder.GetSavedTape()
                 self.Brain.SetQuery(fileRecording)
                 
-                aiResponse = self.Brain.GetResponse()
+                
+                
+                aiResponse = self.Brain.TakeResponse()
+                
                 if aiResponse:
+                    
+                    time.sleep(0.001)
+                    
                     cancelled = self.Greeter.UserCancelled()
                     if cancelled:
                         self.Greeter.VoiceMaker.CreateWakeVoice(aiResponse, True)
                     else:
                         self.Greeter.VoiceResponse(aiResponse)
 
+                time.sleep(0.001)
                 
         except Exception as error:
             self._prRed("\nExiting Wizard Thread...", error)

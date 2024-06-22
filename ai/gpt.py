@@ -102,12 +102,14 @@ class ChatGPT(Thread):
 
         transcription = None
         try:
-            audio_file = open(file, "rb")
-            transcription = self.client.audio.transcriptions.create(
-                model="whisper-1", file=audio_file, response_format=response_format
-            )
-            if transcription:
-                transcription = str(transcription)
+
+            if file:
+                audio_file = open(file, "rb")
+                transcription = self.client.audio.transcriptions.create(
+                    model="whisper-1", file=audio_file, response_format=response_format
+                )
+                if transcription:
+                    transcription = str(transcription)
 
         except Exception as e:
             print("Error", e)
@@ -170,14 +172,15 @@ class ChatGPT(Thread):
 
             time.sleep(0.001)
 
-            if self._isIdle:
+            # if self._isIdle:
 
-                self._isIdle = False
+            # self._isIdle = False
 
-                if self._hasRecordedStuff and not self._cancelled:
+            if self._hasRecordedStuff:
+                if not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
-                    print("\nTranscript:", userTranscript)
                     self._hasRecordedStuff = None
+                    print("\nTranscript:", userTranscript)
                     abortResearch = self.isRedundancy(userTranscript)
                     if userTranscript and not abortResearch:
                         role = "user"
@@ -185,52 +188,45 @@ class ChatGPT(Thread):
                         if self.lastAiResponse:
                             self._cummulativeResponse.append(self.lastAiResponse)
                             if not self._cancelled:
-                                if userTranscript:
-                                    self.appendToConversation(
-                                        userTranscript, "user", 20
-                                    )
                                 self.appendToConversation(
                                     self.lastAiResponse, "assistant", 20
                                 )
+                                if userTranscript:
+                                    self.appendToConversation(userTranscript, role, 20)
+                self.printCummulative()
 
-                    print(
-                        "Current Cumm Responses: ",
-                        len(self._cummulativeResponse),
-                    )
-                    print(
-                        "Current Cumm Chat: ",
-                        len(self._cummulativeChat),
-                    )
-
-                else:
-                    if self._cancelled:
-                        userTranscript = self.getBrieferCommand()
-                        role = "system"
-                        self.lastAiResponse = self.query(userTranscript, role)
-                        if self.lastAiResponse:
-                            self.clearCummulativeList()
-                            self.clearCummulativeResponse()
-                            aiResponse = "Our last conversation was about: " + str(
-                                self.lastAiResponse
-                            )
-                            self.appendToConversation(
-                                aiResponse,
-                                "system",
-                                20,
-                            )
-                            self.lastAiResponse = aiResponse
-                        print(
-                            "Current Cumm Responses: ",
-                            len(self._cummulativeResponse),
+            else:
+                if self._cancelled:
+                    userTranscript = self.getBrieferCommand()
+                    role = "system"
+                    self.lastAiResponse = self.query(userTranscript, role)
+                    if self.lastAiResponse:
+                        self.clearCummulativeList()
+                        self.clearCummulativeResponse()
+                        aiResponse = "Our last conversation was about: " + str(
+                            self.lastAiResponse
                         )
-                        print(
-                            "Current Cumm Chat: ",
-                            len(self._cummulativeChat),
+                        self.appendToConversation(
+                            aiResponse,
+                            role,
+                            20,
                         )
+                        self.lastAiResponse = aiResponse
+                    self.printCummulative()
 
-                self._isIdle = True
+                # self._isIdle = True
 
         # sys.exit(None)
+
+    def printCummulative(self):
+        print(
+            "Current Cumm Responses: ",
+            len(self._cummulativeResponse),
+        )
+        print(
+            "Current Cumm Chat: ",
+            len(self._cummulativeChat),
+        )
 
     def SetQuery(self, recordedStuff):
         self._hasRecordedStuff = recordedStuff
@@ -238,7 +234,7 @@ class ChatGPT(Thread):
     def SetCancelled(self, cancelled):
         self._cancelled = cancelled
 
-    def GetResponse(self):
+    def TakeResponse(self):
         if len(self._cummulativeResponse) > 0:
             return self._cummulativeResponse.pop(0)
         return None

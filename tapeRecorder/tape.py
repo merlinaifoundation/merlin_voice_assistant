@@ -70,7 +70,8 @@ class TapeRecorder(Thread):
                         self.Recorder.StopRecording()
                         diff = round(time.time() - timeNow, 2)
                         self._prRed("OpenMic Listening for seconds: ", diff)
-
+                else:
+                    self.Recorder.StopRecording(True)
             except Exception as error:
                 self._prRed("Error on Tape:", error)
 
@@ -132,12 +133,12 @@ class TapeRecorder(Thread):
 
     # def SetTape(self, obj):
     # self._fileRecording = obj
-    def GetFilteredTape(self):
+    def TakeFilteredTape(self):
         if len(self._cummulativeFiltered) > 0:
             return self._cummulativeFiltered.pop(0)
         return None
 
-    def GetSavedTape(self):
+    def TakeSavedTape(self):
         if len(self._cummulative) > 0:
             return self._cummulative.pop(0)
         return None
