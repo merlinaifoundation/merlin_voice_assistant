@@ -25,7 +25,7 @@ class OpenMic(Thread):
         )
         self._isOpenMic = False
         self._cancelled = False
-
+        self._cummulativeTapeFiles = []
         self._stopThread = False
         self._initialize()
         diff = round(time.time() - timeNow, 2)
@@ -94,7 +94,7 @@ class OpenMic(Thread):
     def SetOpenMic(self, isOpenMic):
         self._isOpenMic = isOpenMic
 
-    def TakeBuffer(self):
+    def PickBuffer(self):
         return self.Recorder.TakeRecordingBuffer()
         
     def SetCancelled(self, status):
@@ -102,8 +102,16 @@ class OpenMic(Thread):
         self.Listener.SetCancelled(self._cancelled)
         self._cancelled = status
         
-    def SaveBufferFile(self, inputBuffer):
-        return self.Recorder.SaveRecordingFile(inputBuffer)
+    def SaveBufferToFile(self, inputBuffer):
+        fileRecording = self.Recorder.SaveRecordingFile(inputBuffer)
+        if fileRecording:
+            self._cummulativeTapeFiles.append(fileRecording)
+        #return fileRecording
     
     def DeleteBufferFile(self, file):
         return self.Recorder.DeleteRecordingFile(file)
+    
+    def PickBufferFilePath(self):
+        if len(self._cummulativeTapeFiles) > 0:
+            return self._cummulativeTapeFiles.pop(0)
+        return None

@@ -13,7 +13,7 @@ class TapeRecorder(Thread):
         # self.Recorder = None
         self._bypassFilter = False
         self._cancelled = False
-        self._cummulativeTapeFiles = []
+      
         self._cummulativeFilteredBuffers = []
         self._userRecordedInput = None
 
@@ -59,13 +59,11 @@ class TapeRecorder(Thread):
         self.StopThread()
         # sys.exit(None)
 
-    def FilterTapeBuffer(self, userRecordedInput):
+    def FilterBuffer(self, userRecordedInput):
         self._userRecordedInput = userRecordedInput
         
 
-    def SaveTapeURL(self, fileRecording):
-        if fileRecording:
-            self._cummulativeTapeFiles.append(fileRecording)
+
 
     def _initialize(self):
         timeNow = time.time()
@@ -80,15 +78,12 @@ class TapeRecorder(Thread):
         self._stopThread = True
 
         
-    def TakeFilteredBuffer(self):
+    def PickFilteredBuffer(self):
         if len(self._cummulativeFilteredBuffers) > 0:
             return self._cummulativeFilteredBuffers.pop(0)
         return None
 
-    def TakeSavedTapeFile(self):
-        if len(self._cummulativeTapeFiles) > 0:
-            return self._cummulativeTapeFiles.pop(0)
-        return None
+
 
     def SetCancelled(self, status):
         

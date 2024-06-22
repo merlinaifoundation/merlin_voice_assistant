@@ -22,7 +22,7 @@ class Wizard(Thread):
         # self._silenceDuration = float(config("LISTEN_SILENCE_DURATION"))
         self.Greeter = Greeter()
 
-        self.TapeRecorder = TapeRecorder()
+        self.Filter = TapeRecorder()
         self.OpenMic = OpenMic()
 
         self.Brain = ChatGPT()
@@ -49,44 +49,36 @@ class Wizard(Thread):
 
                 time.sleep(0.001)
 
+                #activated?
                 enabled = self.Greeter.UserInvoked()
+                #cancelled?
                 cancelled = self.Greeter.UserCancelled()
+                #voice idle?
                 idle = self.Greeter.IsIdle()
-                openMicOn = not cancelled and idle and enabled
+                openMicOn =  idle and enabled and not cancelled
                 # status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 # print("STATUS", status)
-
                 self.OpenMic.SetCancelled(cancelled or not idle)
                 self.OpenMic.SetOpenMic(openMicOn)
 
                 time.sleep(0.001)
                 # to start recording session
-
-                rawBuffer = self.OpenMic.TakeBuffer()
+                
+                cancelled = self.Greeter.UserCancelled()
+                
+                rawBuffer = self.OpenMic.PickBuffer()
+                self.Filter.SetBypassFilter(cancelled)
+                self.Filter.SetCancelled(cancelled)
+                self.Filter.FilterBuffer(rawBuffer)
+                time.sleep(0.001)
+                filteredTapeBuffer = self.Filter.PickFilteredBuffer()
+                self.OpenMic.SaveBufferToFile(filteredTapeBuffer)
+                time.sleep(0.001)
 
                 cancelled = self.Greeter.UserCancelled()
-                bypassFilter = cancelled
-                self.TapeRecorder.SetBypassFilter(bypassFilter)
-                self.TapeRecorder.SetCancelled(cancelled)
-                self.TapeRecorder.FilterTapeBuffer(rawBuffer)
-
-                time.sleep(0.001)
-
-                filteredTapeBuffer = self.TapeRecorder.TakeFilteredBuffer()
-
-                time.sleep(0.001)
-
-                fileRecording = self.OpenMic.SaveBufferFile(filteredTapeBuffer)
-                self.TapeRecorder.SaveTapeURL(fileRecording)
-
-                time.sleep(0.001)
-
-                tapeFile = self.TapeRecorder.TakeSavedTapeFile()
-
-                cancelled = self.Greeter.UserCancelled()
+                tapeFilePath = self.OpenMic.PickBufferFilePath()
                 self.Brain.SetCancelled(cancelled)
-                self.Brain.SetQuery(tapeFile)
-
+                self.Brain.SetQuery(tapeFilePath)
                 time.sleep(0.001)
 
                 aiResponse = self.Brain.TakeResponse()
@@ -108,7 +100,7 @@ class Wizard(Thread):
         self.Greeter.StopThread()
         self.Brain.StopThread()
         self.OpenMic.StopThread()
-        self.TapeRecorder.StopThread()
+        self.Filter.StopThread()
 
         # sys.exit(None)
 
@@ -118,7 +110,7 @@ class Wizard(Thread):
 
         self.Greeter.StartThread()
         self.Brain.StartThread()
-        self.TapeRecorder.StartThread()
+        self.Filter.StartThread()
         self.OpenMic.StartThread()
         self.start()
 
