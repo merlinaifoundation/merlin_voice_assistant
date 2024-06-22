@@ -51,23 +51,22 @@ class Wizard(Thread):
                 cancelled = self.Greeter.UserCancelled()
                 idle = self.Greeter.IsIdle()
                 openMicOn = not cancelled and idle and enabled
-                bypassFilter = cancelled
+                
 
                 #status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 #print("STATUS", status)
-
+                self.TapeRecorder.SetOpenMic(openMicOn)
                 # not finished the flags-implementation
                 # bypass filter when cancelling!
+                bypassFilter = cancelled
                 self.TapeRecorder.SetBypassFilter(bypassFilter)
                 self.TapeRecorder.SetCancelled(cancelled)
 
                 # to start recording session
-                self.TapeRecorder.SetOpenMic(openMicOn)
                 self.TapeRecorder.FilterTape()
                 filteredTape = self.TapeRecorder.GetFilteredTape()
                 if filteredTape:
                     self.TapeRecorder.SaveTape(filteredTape)
-                
                 
                 fileRecording = self.TapeRecorder.GetSavedTape()
                 if fileRecording:
@@ -78,11 +77,11 @@ class Wizard(Thread):
                 cancelled = self.Greeter.UserCancelled()
                 if not cancelled: 
                     idle = self.Greeter.IsIdle()
-                    if idle:
+                    enabled = self.Greeter.UserInvoked()
+                    if idle and enabled:
                         aiResponse = self.Brain.GetResponse()
                         if aiResponse:
                             self.Greeter.VoiceResponse(aiResponse)
-
 
                 # if keyboard.is_pressed('q'):
                 # raise Exception('Quitting...')

@@ -3,7 +3,7 @@ import openai
 from threading import Thread
 from decouple import config
 from openai import OpenAI
-
+from difflib import SequenceMatcher
 
 class ChatGPT(Thread):
 
@@ -47,6 +47,7 @@ class ChatGPT(Thread):
         self._cancelled = False
         self._cummulativeResponse = []
         self._hasRecordedStuff = None
+        self.lastAiResponse = None
 
         self._cummulativeChat = []
         self._isIdle = True
@@ -161,32 +162,52 @@ class ChatGPT(Thread):
                 self._isIdle = False
                 
                 userTranscript = None
+                
                 role = "user"
+                
+                abortResearch = False
+                
                 if not self._cancelled:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
-                    
                     print("\nTranscript:", userTranscript)
+                    
+
+                    
                 else:
                     userTranscript = self.getBrieferCommand()
                     role = "system"
                 
                 self._hasRecordedStuff = None
                 
-                aiResponse = self.query(userTranscript, role)
-                self._cummulativeResponse.append( aiResponse)
-
-                if not self._cancelled:
-                    self.appendToConversation(userTranscript, "user", 20)
-                    self.appendToConversation(aiResponse, "assistant", 20)
-                else:
-                    self.clearCummulativeList()
-                    self.clearCummulativeResponse()
-                    aiResponse = "Our last conversation was about: " + str(aiResponse)
-                    self.appendToConversation(
-                        aiResponse,
-                        "system",
-                        20,
-                    )
+                if self.lastAiResponse:
+                    matcher = SequenceMatcher(isjunk=None, a=userTranscript, b= self.lastAiResponse, autojunk=True)
+                    ratio = matcher.ratio()
+                    self.lastAiResponse =None
+                    print("Typical Identical Ratio:"  ,ratio)
+                    if ratio> 0.6:
+                        print("ABORT! Too similar to last response" ,)
+                        abortResearch = True
+                            
+                
+                if not abortResearch:
+                    
+                    self.lastAiResponse = self.query(userTranscript, role)
+                    
+                    if self.lastAiResponse:
+                        self._cummulativeResponse.append( self.lastAiResponse)
+                        if not self._cancelled :
+                            if userTranscript:
+                                self.appendToConversation(userTranscript, "user", 20)
+                            self.appendToConversation(self.lastAiResponse, "assistant", 20)
+                        else:
+                            self.clearCummulativeList()
+                            self.clearCummulativeResponse()
+                            aiResponse = "Our last conversation was about: " + str(self.lastAiResponse)
+                            self.appendToConversation(
+                                aiResponse,
+                                "system",
+                                20,
+                            )
                 
                 print("Current Cumm Responses: ", len(self._cummulativeResponse),  )
                 print("Current Cumm Chat: ", len(self._cummulativeChat),  )

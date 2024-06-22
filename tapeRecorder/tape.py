@@ -46,37 +46,44 @@ class TapeRecorder(Thread):
 
             time.sleep(0.001)
 
+            try:
+                
             # check if voice finished to start recording again
-            if self._isOpenMic:
+                if self._isOpenMic:
 
-                print("Starting OpenMic...")
-                #
-                timeNow = time.time()
+                    
+                    self.Recorder.StartRecording()
+                    
+                    #
+                    if self.Recorder.IsRecording():
+                        
+                        time.sleep(0.001)
+                        
+                        print("Starting OpenMic...")
+                    #
+                        timeNow = time.time()
+                        
+                        self.Listener.Listen()
+                    #
+                        self.Recorder.TrimLeftRecording()
+                    #
+                        self.Listener.DetectSilence()
+                    
+                        diff = round(time.time() - timeNow, 2)
+                        self._prRed("Listening for seconds: ", diff)
+                    
+                       
+                        self.Recorder.StopRecording()
+                        diff = round(time.time() - timeNow, 2)
+                        self._prRed("Stoping OpenMic for seconds: ", diff)
 
-                self.Recorder.StartRecording()
-                
-                time.sleep(0.001)
-                
-                #
-                self.Listener.Listen()
-                #
-                self.Recorder.TrimLeftRecording()
-                #
-                self.Listener.DetectSilence()
-                
-                diff = round(time.time() - timeNow, 2)
-                self._prRed("Listening for seconds: ", diff)
-
-                if self.Recorder.IsRecording():
-                    timeNow = time.time()
-                    self.Recorder.StopRecording()
-                    diff = round(time.time() - timeNow, 2)
-                    self._prRed("Stoping OpenMic for seconds: ", diff)
-
-            else:
-                pass
-                #self.Recorder.StopRecording(True)
-                
+                else:
+                    #pass
+                    self.Recorder.StopRecording(True)
+            
+            
+            except Exception as error:
+                print("Error on Tape:", error)    
                 
             
 

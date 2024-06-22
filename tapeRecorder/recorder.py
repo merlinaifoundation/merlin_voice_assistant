@@ -115,6 +115,7 @@ class Recorder(Thread):
             time.sleep(0.001)
 
             try:
+                
                 while self._is_recording:
 
                     time.sleep(0.001)
@@ -122,17 +123,17 @@ class Recorder(Thread):
 
                 self._closeStream()
 
+                if not self._finalized: 
+                    if not self._discardLast:
+                        aux = self._buffer.copy()
+                        if len(aux):
+                            self._cummulative.append(aux.copy())
+                            self._discardLast = True
+                    self._buffer = []
+                    self._finalized = True
+                
             except Exception as error:
                 print("Error in Recorder", error)
-
-            if not self._finalized: 
-                if not self._discardLast:
-                    aux = self._buffer.copy()
-                    if len(aux):
-                        self._cummulative.append(aux.copy())
-                        self._discardLast = True
-                self._buffer = []
-                self._finalized = True
 
         self._pyAudio.terminate()
 
