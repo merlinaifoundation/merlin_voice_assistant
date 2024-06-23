@@ -9,6 +9,8 @@ class VoiceMaker(Thread):
 
     def __init__(self):
         super().__init__()
+        self.name = 'VoiceMaker'
+
         timeNow = time.time()
 
         self.sleepingVoiceTxt = config("SLEEPING_VOICE")
@@ -38,7 +40,7 @@ class VoiceMaker(Thread):
 
         self._initVoiceObj = TextToSpeech()
         if self._initVoiceObj.SetFile(self._initInnerFile) is False:
-            self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt, False)
+            self._initVoiceObj.PrepareFileFromText(self.initVoiceTxt)
         print("Initializing...")
         self.VoiceInit()
 
@@ -47,12 +49,12 @@ class VoiceMaker(Thread):
 
         #self._initVoiceObj = TextToSpeech()
         if self._initVoiceObj.SetFile(self._processInnerFile) is False:
-            self._initVoiceObj.PrepareFileFromText(self.processVoiceTxt, False)
+            self._initVoiceObj.PrepareFileFromText(self.processVoiceTxt)
             print("Created Process Audio File...")
             
         self._waitVoiceObj = TextToSpeech()
         if self._waitVoiceObj.SetFile(self._waitInnerFile) is False:
-            self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt, False)
+            self._waitVoiceObj.PrepareFileFromText(self.waitVoiceTxt)
             print("Creating Wait Audio File...")
         self.VoiceWait()
 

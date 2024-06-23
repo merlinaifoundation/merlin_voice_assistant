@@ -10,6 +10,7 @@ class Action(Thread):
 
     def __init__(self, pv_access_key, wakeWordFile, channels , frame_length, rate):
         super().__init__()
+        self.name = 'Action' + str(wakeWordFile)
         self._wake_pa = pyaudio.PyAudio()
         default_input_device = self._wake_pa.get_default_input_device_info()
         print(f"Default Input Device: {default_input_device['name']}")

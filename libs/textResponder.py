@@ -6,6 +6,7 @@ import textwrap
 class TextDisplay(Thread):
     def __init__(self):
         super().__init__()
+        self.name = 'Text Displayer'
         self.chat = None
 
         self._stop = True

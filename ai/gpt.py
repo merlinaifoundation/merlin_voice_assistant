@@ -11,6 +11,7 @@ class ChatGPT(Thread):
 
     def __init__(self):
         super().__init__()
+        self.name = 'ChatGPT'
 
         OPENAI_API_KEY = str(config("OPENAI_API_KEY"))
         CHAT_LOG = str(config("CHAT_LOG"))

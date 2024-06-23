@@ -10,6 +10,7 @@ class Listener(Thread):
 
     def __init__(self, listenThreshold=0.3, silenceDuration=1.3, _silenceThreshold=0.2):
         super().__init__()
+        self.name = 'Listener'
         self._stop = True
         self._invoked = False
         pv_access_key = str(config("PV_ACCESS_KEY"))

@@ -4,7 +4,7 @@ import time
 # import keyboard
 # from decouple import config
 
-from tapeRecorder.tape import TapeRecorder
+from tapeRecorder.tape import Filterer
 from ai.gpt import ChatGPT
 from libs.greeter import Greeter
 from tapeRecorder.openMic import OpenMic
@@ -15,6 +15,7 @@ class Wizard(Thread):
     def __init__(self):
         super().__init__()
 
+        self.name = "Wizard"
         timeNow = time.time()
         self._prRed("Wizard Start-up...", None)
 
@@ -22,7 +23,7 @@ class Wizard(Thread):
         # self._silenceDuration = float(config("LISTEN_SILENCE_DURATION"))
         self.Greeter = Greeter()
 
-        self.Filter = TapeRecorder()
+        self.Filter = Filterer()
         self.OpenMic = OpenMic()
 
         self.Brain = ChatGPT()

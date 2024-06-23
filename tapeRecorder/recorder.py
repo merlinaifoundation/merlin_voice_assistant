@@ -20,6 +20,8 @@ DURACION = 5
 class Recorder(Thread):
     def __init__(self, bufferLimit=None):
         super().__init__()
+        self.name = 'Recorder'
+
         self._buffer = []
         self._result = []
         self._isRecording = False

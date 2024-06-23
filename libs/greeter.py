@@ -11,6 +11,7 @@ class Greeter(Thread):
 
     def __init__(self):
         super().__init__()
+        self.name = 'Greeter'
 
         timeNow = time.time()
 

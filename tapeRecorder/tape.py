@@ -3,10 +3,11 @@ import time
 from decouple import config
 
 
-class TapeRecorder(Thread):
+class Filterer(Thread):
 
     def __init__(self):
         super().__init__()
+        self.name = 'Filter'
 
         timeNow = time.time()
 

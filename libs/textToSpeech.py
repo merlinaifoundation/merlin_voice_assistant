@@ -16,6 +16,8 @@ from openai import OpenAI
 class TextToSpeech(Thread):
     def __init__(self, language=None):
         super().__init__()
+        self.name = 'Text to Speech'
+
         self._chat = None
         self._stop = True
         self._rootPath = os.path.dirname(__file__)
