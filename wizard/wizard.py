@@ -83,15 +83,9 @@ class Wizard(Thread):
                 time.sleep(0.001)
 
                 aiResponse = self.Brain.TakeResponse()
-
-                if aiResponse:
-                    time.sleep(0.001)
-
-                    cancelled = self.Greeter.UserCancelled()
-                    if cancelled:
-                        self.Greeter.VoiceMaker.CreateWakeVoice(aiResponse, True)
-                    else:
-                        self.Greeter.VoiceResponse(aiResponse)
+                
+                
+                self.Greeter.VoiceResponse(aiResponse)
 
                 time.sleep(0.001)
 

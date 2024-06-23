@@ -1,6 +1,5 @@
 import os
 import time
-from typing import Literal
 import pygame
 from threading import Thread
 
@@ -28,7 +27,7 @@ class TextToSpeech(Thread):
         self._forceStopObj = None
         self._autoremoveFile = False
         self._mustPrepareFile = False
-        self._mustPlayFile = True
+        self._mustPlayFile = False
         self._isBusy = False
         self.language = language or str(config("OUTPUT_SPEECH_LANG"))
         self._ttsModel = str(config('TTS_MODEL'))
@@ -70,12 +69,11 @@ class TextToSpeech(Thread):
                 self._isBusy = True
                 self._setFilePath()
                 self.mixer.init()
+                self.mixer.music.stop()
                 self.mixer.music.load(self._output_file)
                 if self._silentMode == 0:
                     self.mixer.music.play()
-                    while self.mixer.music.get_busy():
-                        if self._cancelled:
-                            break
+                    while self.mixer.music.get_busy() and not self._cancelled:
                         time.sleep(0.02)
                 else:
                     # is in Silent Mode
@@ -90,7 +88,10 @@ class TextToSpeech(Thread):
         try:
             # self.mixer.music.stop()
             if self._isBusy: 
-                self.mixer.quit()
+                self.mixer.music.stop()
+                self.mixer.stop()
+                #self.mixer.quit()
+                #pass
         except Exception as error:
             print("\nError When Stoping TTS:", error)
             
@@ -110,21 +111,20 @@ class TextToSpeech(Thread):
         except Exception as error:
             print("\nError Voice File TTS:", error)
 
-    def PlayFile(self):
-
-        self._play()
-        self._stopPlay()
-        if self._autoremoveFile:
-            self.RemoveFile(self._fileName)
-
-    def run(self):
-
+    def _runRoutine(self):
+    
         if self._mustPrepareFile:
             self._prepareFile()
-        self.PlayFile()
-
+        if self._mustPlayFile:
+            self._play()
+            self._stopPlay()
+            if self._autoremoveFile:
+                self.RemoveFile(self._fileName)
     ####################################################################################################
-
+    def run(self):
+        
+        self._runRoutine()
+        
     def SetCancelled(self, cancelled):
         self._cancelled = cancelled
 
@@ -134,29 +134,42 @@ class TextToSpeech(Thread):
         self._setFilePath()
         return os.path.isfile(self._output_file)
 
-    def PrepareFileFromText(self, chat):
+    def PrepareFileFromText(self, chat, asThread = False):
 
         self._chat = chat
-        self._prepareFile()
+        self._mustPrepareFile = True
+        self._mustPlayFile = False
+        if asThread:
+            self.start()
+        else:
+            self._runRoutine()
 
-    def SpeakFromText(self, chat):
+    def SpeakFromText(self, chat, asThread = True):
         if (self._stop) and (chat is not None):
             self._stop = False
             self._chat = chat
             self._mustPrepareFile = True
+            self._mustPlayFile = True
             self._autoremoveFile = True
-            self._prepareFile()
-            self.PlayFile()
+            if asThread:
+                self.start()
+            else:
+                self._runRoutine()
+            
 
-    def SpeakFromFile(self, file):
+    def SpeakFromFile(self, file, asThread = False):
         if (self._stop) and (file is not None):
             self._stop = False
             if file is not None:
                 self._fileName = file
-
             # some content to mark Finished(), in this case the filename as default
+            self._mustPrepareFile = False
+            self._mustPlayFile = True
             self._chat = self._fileName
-            self.PlayFile()
+            if asThread:
+                self.start()
+            else:
+                self._runRoutine()
 
     def Finished(self):
         if not self._isBusy:

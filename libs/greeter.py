@@ -11,7 +11,7 @@ class Greeter(Thread):
 
     def __init__(self):
         super().__init__()
-        self.name = 'Greeter'
+        self.name = "Greeter"
 
         timeNow = time.time()
 
@@ -22,23 +22,19 @@ class Greeter(Thread):
         self._stopMode = 1
         self.iteration = 0
 
-
         self._actionVoiceFrameLength = int(config("WAKE_WORD_FRAME_LENGTH")) or None
-        self._activationVoiceRate =  int(config("WAKE_WORD_FRAME_RATE")) or None
-        self._activationVoiceChannels =  int(config("WAKE_WORD_CHANNELS")) or None
-
+        self._activationVoiceRate = int(config("WAKE_WORD_FRAME_RATE")) or None
+        self._activationVoiceChannels = int(config("WAKE_WORD_CHANNELS")) or None
 
         self._greeted = False
         self._aiResponse = None
-
 
         self.VoiceMaker = VoiceMaker()
         self._stop = False
 
         self.initWaker()
         self.initStopper()
-            
-            
+
         diff = round(time.time() - timeNow, 2)
         self._prGreen("Greeter Creation in seconds: ", diff)
 
@@ -52,6 +48,7 @@ class Greeter(Thread):
 
         print("Flushing...")
         self.WakeAction.StopListening()
+
         # mode sleeping
         if self._stopMode == 1:
             print("Sleeping...")
@@ -61,9 +58,15 @@ class Greeter(Thread):
             print("Processing User Interruption...")
             self.VoiceMaker.VoiceProcess()
 
-        
+        while self._aiResponse is None:
+            print("Waiting for other processes...")
+            time.sleep(0.1)
+
+        self.VoiceMaker.CreateWakeVoice(self._aiResponse, True)
+        self._aiResponse = None
+
         self.StopAction.StopListening()
-        
+
         self.WakeAction.StartListening()
         # mode sleeping
         if self._stopMode == 1:
@@ -72,10 +75,9 @@ class Greeter(Thread):
         if self._stopMode == 2:
             self.forceWake()
 
-        self.StopAction.StartListening()
         print("Waiting for user...")
-        
-        
+
+        self.StopAction.StartListening()
 
     def _awakening(self):
 
@@ -89,6 +91,19 @@ class Greeter(Thread):
         if self.VoiceMaker.IsIdle():
             # print("GreeterVoice Finished. Flushing...")
             self._stopMode = 1
+        else:
+            self._stopMode = 2
+
+        if self._aiResponse is not None:
+            if self.IsIdle():
+                text = str(self._aiResponse)
+                self._aiResponse = None
+                if not self.UserCancelled():
+                    if len(text) > 300:
+                        self.VoiceMaker.VoiceWait()
+                    self._prGreen("\nDisplay Response: ", text)
+                    self.VoiceMaker.VoiceDefault(text)
+                    # self.UseDisplay(aiResponse)
 
     def run(self):
 
@@ -105,60 +120,49 @@ class Greeter(Thread):
             self.countIteration()
             # print("Doing nothing, Iter:", self.greeter.count)
 
+            cancelled = self.UserCancelled()
+            self.VoiceMaker.SetCancelled(cancelled)
+
             # checks if user asked to Stop
-            if self.UserCancelled():
+            if cancelled:
                 self._reset()
+
                 time.sleep(0.01)
-                # continue
 
             if self.UserInvoked():
-                
                 self._awakening()
-                
-                if self._aiResponse is not None:
-                    cancelled = self.UserCancelled()
-                    isIdle = self.IsIdle()
-                    enabled = self.UserInvoked()
-                    if isIdle:
-                        if enabled and not cancelled:
-                            if len(self._aiResponse) > 300:
-                                self.VoiceMaker.VoiceWait()
-                            self._prGreen("\nDisplay Response: ", self._aiResponse)
-                            self._stopMode = 2
-                            self.VoiceMaker.VoiceDefault(self._aiResponse, cancelled)
-                            self._aiResponse = None
-                    # greeter.UseDisplay(aiResponse)
-            
 
-        
-        
-        #exit...
+        # exit...
         self.StopAction.StopListening()
-        self.WakeAction.StopListening()        
-        
-
-
-
-
+        self.WakeAction.StopListening()
 
     def initWaker(self):
 
         timeNow = time.time()
 
-        self.WakeAction = Action(self._pv_access_key, self.wakeWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
+        self.WakeAction = Action(
+            self._pv_access_key,
+            self.wakeWordFile,
+            self._activationVoiceChannels,
+            self._actionVoiceFrameLength,
+            self._activationVoiceRate,
+        )
         self.WakeAction.StartThread()
         diff = round(time.time() - timeNow, 2)
         self._prRed("Init Waker in seconds: ", diff)
-            
 
     def initStopper(self):
         timeNow = time.time()
-        self.StopAction = Action(self._pv_access_key, self.stopWordFile, self._activationVoiceChannels, self._actionVoiceFrameLength, self._activationVoiceRate)
+        self.StopAction = Action(
+            self._pv_access_key,
+            self.stopWordFile,
+            self._activationVoiceChannels,
+            self._actionVoiceFrameLength,
+            self._activationVoiceRate,
+        )
         self.StopAction.StartThread()
         diff = round(time.time() - timeNow, 2)
         self._prRed("Init Stopper in seconds: ", diff)
-    
-
 
     def forceWake(self):
         if self.WakeAction:
@@ -199,12 +203,11 @@ class Greeter(Thread):
 
     def StartThread(self):
         self.start()
+
     def StopThread(self):
         self._stop = True
 
-
     def VoiceResponse(self, response):
 
-        self._aiResponse = response
-
-        
+        if response:
+            self._aiResponse = response

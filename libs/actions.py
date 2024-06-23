@@ -15,7 +15,7 @@ class Action(Thread):
         default_input_device = self._wake_pa.get_default_input_device_info()
         print(f"Default Input Device: {default_input_device['name']}")
         
-        self._stop = True
+        self._is_stopped = True
         self._invoked = False
         self.wakeWordFile = wakeWordFile
         rootPath = os.path.dirname(__file__)
@@ -58,16 +58,15 @@ class Action(Thread):
         self._stopThread = True
     def StartListening(self):
         print("Restarting Listen Action")
-
         if not self._invoked:
-            self._stop = False
+            self._is_stopped = False
         
         
             
             
     def StopListening(self):
         print("Stoping Listen Action...")
-        self._stop = True
+        self._is_stopped = True
         self._invoked = False
         
 
@@ -77,7 +76,7 @@ class Action(Thread):
     def SetInvoked(self, finalized):
         self._invoked = finalized
         if finalized:
-            self._stop = True
+            self._is_stopped = True
 
     def run(self):
 
@@ -89,7 +88,7 @@ class Action(Thread):
                 
                 
                 
-                while not self._stop:
+                while not self._is_stopped:
                     
                     self._openStream()
                     

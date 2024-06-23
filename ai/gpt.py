@@ -11,7 +11,7 @@ class ChatGPT(Thread):
 
     def __init__(self):
         super().__init__()
-        self.name = 'ChatGPT'
+        self.name = "ChatGPT"
 
         OPENAI_API_KEY = str(config("OPENAI_API_KEY"))
         CHAT_LOG = str(config("CHAT_LOG"))
@@ -22,7 +22,6 @@ class ChatGPT(Thread):
 
         self._whisperTemperature = float(config("WHISPER_TEMPERATURE"))
         self._whisperModel = str(config("WHISPER_MODEL"))
-
 
         self.defaultModel = 0
         self.GPT_MODELS = [
@@ -55,7 +54,7 @@ class ChatGPT(Thread):
         self._cummulativeResponse = []
         self._hasRecordedStuff = None
         self.lastAiResponse = None
-
+        self._canSummarize = True
         self._cummulativeChat = []
         self._isIdle = True
 
@@ -63,7 +62,7 @@ class ChatGPT(Thread):
         model = str(self.GPT_MODELS[self.defaultModel])
         print("\nUsing GPT_MODEL", model)
         return model
-    
+
     def getWhisperModel(self):
         model = self._whisperModel
         print("\nUsing Whisper_MODEL", model)
@@ -182,17 +181,18 @@ class ChatGPT(Thread):
 
     def isRedundancy(self, userTranscript):
         if userTranscript and self.lastAiResponse:
-            matcher = SequenceMatcher(
-                isjunk=None, a=userTranscript, b=self.lastAiResponse, autojunk=True
-            )
-            ratio = matcher.ratio()
-            self.lastAiResponse = None
-            print("\nTypical Identical Ratio:", ratio)
-            if ratio > 0.75:
-                print(
-                    "\nABORT! Too similar to last response",
+            if len(userTranscript) > 0 and len(self.lastAiResponse) > 0:
+                matcher = SequenceMatcher(
+                    isjunk=None, a=userTranscript, b=self.lastAiResponse, autojunk=True
                 )
-                return True
+                ratio = matcher.ratio()
+                self.lastAiResponse = None
+                print("\nTypical Identical Ratio:", ratio)
+                if ratio > 0.75:
+                    print(
+                        "\nABORT! Too similar to last response",
+                    )
+                    return True
         return False
 
     def run(self):
@@ -223,27 +223,37 @@ class ChatGPT(Thread):
                                 if userTranscript:
                                     self.appendToConversation(userTranscript, role, 20)
                     self.printCummulative()
-                    
-            else:
-                if len(self._cummulativeChat) > 1:
-                    userTranscript = self.getBrieferCommand()
-                    role = "system"
-                    self.lastAiResponse = self.query(userTranscript, role)
-                    if self.lastAiResponse:
-                        self.clearCummulativeList()
-                        self.clearCummulativeResponse()
-                        self.lastAiResponse = "Our last conversation was about: " + str(
-                            self.lastAiResponse
-                        )
-                        self.appendToConversation(
-                            self.lastAiResponse,
-                            role,
-                            20,
-                        )
-                        self._cummulativeResponse.append(self.lastAiResponse)
-                    self.printCummulative()
-                
 
+            else:
+                if self._canSummarize:
+                    self._canSummarize = False
+                    if len(self._cummulativeChat) > 1:
+                        userTranscript = self.getBrieferCommand()
+                        role = "system"
+                        self.lastAiResponse = self.query(userTranscript, role)
+                        if self.lastAiResponse:
+                            self.clearCummulativeList()
+                            self.clearCummulativeResponse()
+                            self.lastAiResponse = (
+                                "Our last conversation was about: "
+                                + str(self.lastAiResponse)
+                            )
+                            self.appendToConversation(
+                                self.lastAiResponse,
+                                role,
+                                20,
+                            )
+                            self._cummulativeResponse.append(self.lastAiResponse)
+                        self.printCummulative()
+                    else:
+                        if len(self._cummulativeChat) == 1:
+                            self.lastAiResponse = self._cummulativeChat[0]['content']
+                            self._cummulativeResponse.append(self.lastAiResponse)
+                            self.printCummulative()
+                        else:
+                            self.lastAiResponse = "I'm awake!"
+                            self._cummulativeResponse.append(self.lastAiResponse)
+                            self.printCummulative()
                 # self._isIdle = True
 
     def printCummulative(self):
@@ -260,6 +270,9 @@ class ChatGPT(Thread):
         self._hasRecordedStuff = recordedStuff
 
     def SetCancelled(self, cancelled):
+
+        if not cancelled:
+            self._canSummarize = True
         self._cancelled = cancelled
 
     def TakeResponse(self):
