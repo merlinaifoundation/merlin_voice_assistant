@@ -60,6 +60,7 @@ class Wizard(Thread):
                 # status = int(enabled), int(cancelled), int(idle), int(openMicOn)
                 # print("STATUS", status)
                 self.OpenMic.SetCancelled(cancelled or not idle)
+                #self.OpenMic.SetCancelled(cancelled )
                 self.OpenMic.SetOpenMic(openMicOn)
 
                 time.sleep(0.001)

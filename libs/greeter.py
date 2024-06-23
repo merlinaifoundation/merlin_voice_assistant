@@ -19,48 +19,47 @@ class Greeter(Thread):
         self.wakeWordFile = config("WAKE_WORD_FILE")
         self.stopWordFile = config("STOP_WORD_FILE")
 
-        self._stopMode = 1
-        self.iteration = 0
-
         self._actionVoiceFrameLength = int(config("WAKE_WORD_FRAME_LENGTH")) or None
         self._activationVoiceRate = int(config("WAKE_WORD_FRAME_RATE")) or None
         self._activationVoiceChannels = int(config("WAKE_WORD_CHANNELS")) or None
 
         self._greeted = False
         self._aiResponse = None
-
-        self.VoiceMaker = VoiceMaker()
         self._stop = False
+        self._stopMode = 1
+        self.iteration = 0
+        
+        self.VoiceMaker = VoiceMaker()
 
         self.initWaker()
         self.initStopper()
 
         diff = round(time.time() - timeNow, 2)
-        self._prGreen("Greeter Creation in seconds: ", diff)
+        self._prGreen("\nGreeter Creation in seconds: ", diff)
 
     def _prRed(self, skk, obj):
-        print("\033[91m {}\033[00m".format(skk), obj)
+        print("\033[95m {}\033[00m".format(skk), obj, end='', flush=True)
 
     def _prGreen(self, skk, obj):
-        print("\033[92m {}\033[00m".format(skk), obj)
+        print("\033[90m {}\033[00m".format(skk), obj, end='', flush=True)
 
     def _reset(self):
 
-        print("Flushing...")
+        print("\nFlushing Greeter...")
         self.WakeAction.StopListening()
 
         # mode sleeping
         if self._stopMode == 1:
-            print("Sleeping...")
+            self._prRed("\nSleeping...", None)
             self.VoiceMaker.VoiceSleeping()
         # mode interruption when greeter is talking
         if self._stopMode == 2:
-            print("Processing User Interruption...")
+            self._prRed("\nProcessing User Interruption...", None)
             self.VoiceMaker.VoiceProcess()
 
         while self._aiResponse is None:
-            print("Waiting for other processes...")
-            time.sleep(0.1)
+            self._prRed("\nWaiting for other processes...", None)
+            time.sleep(0.05)
 
         self.VoiceMaker.CreateWakeVoice(self._aiResponse, True)
         self._aiResponse = None
@@ -75,14 +74,14 @@ class Greeter(Thread):
         if self._stopMode == 2:
             self.forceWake()
 
-        print("Waiting for user...")
-
         self.StopAction.StartListening()
+
+        self._prGreen("\nWaiting for user...", None)
 
     def _awakening(self):
 
         if not self.hasGreeted():
-            print("Welcome...")
+            self._prGreen("\nWelcome...", None)
             self.VoiceMaker.VoiceAwake()
             self.setHasGreeted(True)
             # time.sleep(1)
@@ -119,18 +118,15 @@ class Greeter(Thread):
             time.sleep(0.001)
             self.countIteration()
             # print("Doing nothing, Iter:", self.greeter.count)
-
             cancelled = self.UserCancelled()
             self.VoiceMaker.SetCancelled(cancelled)
-
             # checks if user asked to Stop
             if cancelled:
                 self._reset()
 
-                time.sleep(0.01)
-
             if self.UserInvoked():
                 self._awakening()
+
 
         # exit...
         self.StopAction.StopListening()
@@ -149,7 +145,7 @@ class Greeter(Thread):
         )
         self.WakeAction.StartThread()
         diff = round(time.time() - timeNow, 2)
-        self._prRed("Init Waker in seconds: ", diff)
+        self._prRed("\nInit Waker in seconds: ", diff)
 
     def initStopper(self):
         timeNow = time.time()
@@ -162,7 +158,7 @@ class Greeter(Thread):
         )
         self.StopAction.StartThread()
         diff = round(time.time() - timeNow, 2)
-        self._prRed("Init Stopper in seconds: ", diff)
+        self._prRed("\nInit Stopper in seconds: ", diff)
 
     def forceWake(self):
         if self.WakeAction:
