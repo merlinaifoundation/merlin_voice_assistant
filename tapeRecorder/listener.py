@@ -29,7 +29,6 @@ class Listener(Thread):
         self._cancelled = False
 
     def SetCancelled(self, cancelled):
-        
         self._cancelled = cancelled
         
     def Listen(self):
@@ -38,7 +37,7 @@ class Listener(Thread):
         self._invoked = False
 
         try:
-            print("Listening...")
+            print("\nListening...")
 
             listen_audio_stream = self._listenAudioObj.open(
                 rate=self._cobra.sample_rate,
@@ -90,7 +89,7 @@ class Listener(Thread):
     def DetectSilence(self):
 
         try:
-            print("Detecting Silence...")
+            print("\nDetecting Silence...")
 
             cobra_audio_stream = self._silenceAudioObj.open(
                 rate=self._cobra.sample_rate,

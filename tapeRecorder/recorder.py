@@ -32,7 +32,7 @@ class Recorder(Thread):
         self._finalized = True
         self._pyAudioObj = pyaudio.PyAudio()
         print(
-            "Recording Buffer Limit set at: ",
+            "\nRecording Buffer Limit set at: ",
             self._REC_BUFFER_LIMIT,
             self._pyAudioObj.get_sample_size(FORMATO),
         )
@@ -55,7 +55,7 @@ class Recorder(Thread):
     def _openStream(self):
 
         if self._audiostream is None:
-            print("Recording...", self._output_file)
+            print("\nRecording...", self._output_file)
 
             self._audiostream = self._pyAudioObj.open(
                 format=FORMATO,

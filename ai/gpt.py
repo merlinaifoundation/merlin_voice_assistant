@@ -32,7 +32,7 @@ class ChatGPT(Thread):
         ]
         self._stop = False
         # print("Using OPENAI KEY", OPENAI_API_KEY)
-        print("Using Merlin Default Prompt: ")
+        print("\nUsing Merlin Default Prompt: ")
         print(CHAT_LOG)
 
         self.prompt = [
@@ -61,12 +61,12 @@ class ChatGPT(Thread):
 
     def getChatModel(self):
         model = str(self.GPT_MODELS[self.defaultModel])
-        print("Using GPT_MODEL", model)
+        print("\nUsing GPT_MODEL", model)
         return model
     
     def getWhisperModel(self):
         model = self._whisperModel
-        print("Using Whisper_MODEL", model)
+        print("\nUsing Whisper_MODEL", model)
         return model
 
     def makeQueryObj(self, query, role):
@@ -101,7 +101,7 @@ class ChatGPT(Thread):
     def appendToConversation(self, questionOrAnswer, role, maximum):
         QAs = len(self._cummulativeChat)
         if QAs > maximum:
-            print("Clearing Cumm List", QAs)
+            print("\nClearing Cumm List", QAs)
             self.clearCummulativeList()
         if questionOrAnswer is not None:
             self._cummulativeChat.append({"role": role, "content": questionOrAnswer})
@@ -187,10 +187,10 @@ class ChatGPT(Thread):
             )
             ratio = matcher.ratio()
             self.lastAiResponse = None
-            print("Typical Identical Ratio:", ratio)
+            print("\nTypical Identical Ratio:", ratio)
             if ratio > 0.75:
                 print(
-                    "ABORT! Too similar to last response",
+                    "\nABORT! Too similar to last response",
                 )
                 return True
         return False
@@ -273,7 +273,7 @@ class ChatGPT(Thread):
         if self.defaultModel >= len(self.GPT_MODELS):
             self.defaultModel = 0
         model = str(self.GPT_MODELS[self.defaultModel])
-        print("Using Default Model", model, "from length", len(self.GPT_MODELS))
+        print("\nUsing Default Model", model, "from length", len(self.GPT_MODELS))
 
     def StartThread(self):
         self.start()
