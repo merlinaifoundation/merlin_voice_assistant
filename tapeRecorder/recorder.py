@@ -92,7 +92,7 @@ class Recorder(Thread):
             if not self._discardLastBuffer:
                 aux = self._buffer.copy()
                 if len(aux):
-                    self._cummulativeBuffers.append(aux.copy())
+                    self._cummulativeBuffers.append(aux)
                     self._discardLastBuffer = True
             self._buffer = []
             self._finalized = True
