@@ -156,7 +156,10 @@ class Recorder(Thread):
     def TakeRecordingBuffer(self):
 
         if len(self._cummulativeBuffers) > 0:
-            return self._cummulativeBuffers.pop(0)
+            #return self._cummulativeBuffers.pop(0)
+            flat_list = [x for sublist in self._cummulativeBuffers for x in sublist]
+            self._cummulativeBuffers=[]
+            return flat_list
         return []
 
     def DeleteRecordingFile(self, file):
