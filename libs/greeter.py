@@ -41,7 +41,7 @@ class Greeter(Thread):
         print("\033[95m {}\033[00m".format(skk), obj, end='', flush=True)
 
     def _prGreen(self, skk, obj):
-        print("\033[90m {}\033[00m".format(skk), obj, end='', flush=True)
+        print("\033[93m {}\033[00m".format(skk), obj, end='', flush=True)
 
     def _reset(self):
 

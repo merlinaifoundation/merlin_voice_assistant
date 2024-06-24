@@ -58,6 +58,12 @@ class ChatGPT(Thread):
         self._cummulativeChat = []
         self._isIdle = True
 
+    def _prRed(self, skk, obj):
+        print("\033[96m {}\033[00m".format(skk), obj, end='', flush=True)
+
+    def _prGreen(self, skk, obj):
+        print("\033[93m {}\033[00m".format(skk), obj, end='', flush=True)
+        
     def getChatModel(self):
         model = str(self.GPT_MODELS[self.defaultModel])
         print("\nUsing GPT_MODEL", model)
@@ -126,6 +132,7 @@ class ChatGPT(Thread):
 
             if file:
                 with open(file, "rb") as audio_file:
+                    print("\nTranslating...")
                     model = self.getWhisperModel()
                     transcription = self.client.audio.transcriptions.create(
                         model=model,
@@ -189,9 +196,9 @@ class ChatGPT(Thread):
                 self.lastAiResponse = None
                 print("\nTypical Identical Ratio:", ratio)
                 if ratio > 0.75:
-                    print(
+                    self._prRed(
                         "\nABORT! Too similar to last response",
-                    )
+                    None)
                     return True
         return False
 
@@ -209,7 +216,7 @@ class ChatGPT(Thread):
                 if self._hasRecordedStuff:
                     userTranscript = self.speechToText(self._hasRecordedStuff, "text")
                     self._hasRecordedStuff = None
-                    print("\nTranscript:", userTranscript)
+                    self._prGreen("\nTranscript:", userTranscript)
                     abortResearch = self.isRedundancy(userTranscript)
                     if userTranscript and not abortResearch:
                         role = "user"
