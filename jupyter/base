@@ -25,7 +25,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 #########################################################################
 && pip install pandas numpy plotly && echo "\nInstalled Basic Libs\n" \
 ### ERASE THIS IN THE FUTURE
-&& cp ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh ${HOME}/generate-cross-section-databases.sh
+#&& cp ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh ${HOME}/generate-cross-section-databases.sh
 
 RUN apt-get upgrade -y && apt-get autoremove -y
 
