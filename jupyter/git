@@ -8,18 +8,25 @@ USER root
 
 ARG GIT_VERSION
 RUN echo "${GIT_VERSION}"
+RUN rm -rf /var/cache/ldconfig/aux-cache
+#RUN sudo /sbin/ldconfig
+
+
+RUN apt-get --reinstall install libc-bin
+RUN apt-get install -y gettext gettext-base gettext-doc autopoint libasprintf-dev libgettextpo-dev
 RUN apt-get install -y libz-dev 
-RUN apt-get install libssl-dev
-RUN apt-get install cmake gcc
-RUN apt-get install libcurl4-gnutls-dev 
-RUN apt-get install libexpat1-dev 
-RUN apt-get install tar
+RUN apt-get install -y libssl-dev
+RUN apt-get install -y cmake gcc
+RUN apt-get install -y libcurl4-gnutls-dev 
+RUN apt-get install -y libexpat1-dev 
+RUN apt-get install -y tar
 #####GIT
 RUN cd /${HOME} \
 && curl -o git-${GIT_VERSION}.tar.gz https://mirrors.edge.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.gz
 RUN tar -zxf /${HOME}/git-${GIT_VERSION}.tar.gz 
 RUN cd git-${GIT_VERSION} && make prefix=/usr/local all && install && exec bash
-RUN rm -rf /${HOME}/git-${GIT_VERSION}.tar.gz && rm -rf /${HOME}/git-${GIT_VERSION} \
+RUN rm -rf /${HOME}/git-${GIT_VERSION}.tar.gz && rm -rf /${HOME}/git-${GIT_VERSION}
+
 #&& rm -rf git-2.38.1 \
 #### cleanup
 RUN apt-get upgrade -y && apt-get autoremove -y
