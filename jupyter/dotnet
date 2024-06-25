@@ -20,10 +20,10 @@ RUN cd /tmp && curl -LO https://dot.net/v1/dotnet-install.sh \
 && chmod +x dotnet-install.sh \
 && ./dotnet-install.sh --version $DOTNET_VERSION && rm dotnet-install.sh
 #
-RUN dotnet tool install -g x \
-&& dotnet tool install -g dotnet-script \
-&& dotnet tool install -g Microsoft.dotnet-interactive \
-&& dotnet interactive jupyter install
+RUN dotnet tool install -g x
+RUN dotnet tool install -g dotnet-script
+RUN dotnet tool install -g Microsoft.dotnet-interactive
+RUN dotnet interactive jupyter install
 
 #RUN apt-get autoremove -y
 

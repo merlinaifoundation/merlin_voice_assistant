@@ -1,13 +1,11 @@
 #!/bin/bash
 
-NODE_VERSION=v16.20.1
-  DOTNET_VERSION="7.0.305"
-  GIT_VERSION="2.38.1"
+
   #
   CONTRIBUTOR=fulviofarina
   CONTRIBUTOR_KEY=Fantasy23**
   #
-  BUNDLE=tensor-node-dotnet-matlab-latex
+  BUNDLE=git
   INPUT_PATH=input
   HOST_PORT=4083
   CONTAINER_PORT=8888
@@ -27,7 +25,7 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 echo "Building $SERVICE_NAME container image ..."
 
 IMAGE=fulviofarina
-TEST_IMAGE=test
+TEST_IMAGE=merlin
 
 echo "Building $IMAGE image"
 

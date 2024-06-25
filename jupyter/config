@@ -1,4 +1,4 @@
-ARG BUNDLE=dotnet-matlab
+ARG BUNDLE=dotnet
 
 FROM fulviofarina/merlin-${BUNDLE}:latest AS final
 
