@@ -2,8 +2,8 @@
 
 CONTRIBUTOR=fulviofarina
 CONTRIBUTOR_KEY=Fantasy23**
-GIT_VERSION="2.45.1"
-
+GIT_VERSION="2.39.5"
+#https://mirrors.edge.kernel.org/pub/software/scm/git/
 docker logout
 
 docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
