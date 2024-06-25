@@ -1,0 +1,17 @@
+[Unit]
+Description=Merlin Wifi Smartphone
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/merlin/Documents/Merlin/merlin_voice_assistant/wifi
+ExecStart=/bin/bash /home/merlin/Documents/Merlin/merlin_voice_assistant/wifi_merlin.sh
+Restart=always
+#RestartSec=3
+TimeoutStartSec=0
+#RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
