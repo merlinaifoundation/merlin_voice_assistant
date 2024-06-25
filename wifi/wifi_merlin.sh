@@ -1,6 +1,6 @@
 #!/bin/bash
 #INTERFACE="wlp0s20f3u1"
-IP="dhcp"
+IP="192.168.1.25"
 INTERFACE="wlan0"  # Replace with your wireless interface name
 
 #git stash
