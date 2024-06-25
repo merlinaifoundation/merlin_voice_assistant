@@ -25,7 +25,9 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 echo "Building $SERVICE_NAME container image ..."
 
 IMAGE=fulviofarina
+TOKEN=''
 TEST_IMAGE=merlin
+REPOSITORY=https://$TOKEN@github.com/eliastsoukatos/merlin_voice_assistant.git
 
 echo "Building $IMAGE image"
 
@@ -48,6 +50,7 @@ docker build \
 --build-arg APP_PATH=$APP_PATH \
 --build-arg APP_TOKEN=$APP_TOKEN \
 --build-arg INPUT_PATH=$INPUT_PATH \
+--build-arg REPOSITORY=$REPOSITORY \
 --build-arg DATABASE_URL=$DATABASE_URL .
 #
 #docker tag $IMAGE:$CI_COMMIT_SHA $IMAGE:latest
