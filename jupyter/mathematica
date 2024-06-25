@@ -1,7 +1,7 @@
 
 ARG BUNDLE=git
 
-FROM fulviofarina/omc-${BUNDLE}:latest AS mathematica
+FROM fulviofarina/merlin-${BUNDLE}:latest AS mathematica
 
 LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
 
