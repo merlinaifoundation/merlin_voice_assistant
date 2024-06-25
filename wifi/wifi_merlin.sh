@@ -1,6 +1,6 @@
 #!/bin/bash
 #INTERFACE="wlp0s20f3u1"
-IP="dchp"
+IP="192.168.1.25"
 INTERFACE="wlan0"  # Replace with your wireless interface name
 
 #git stash
@@ -18,7 +18,7 @@ iwconfig $INTERFACE power on
 
 iwconfig
 
-ifconfig $INTERFACE $IP start
+ifconfig $INTERFACE $IP
 ifconfig $INTERFACE up
 
 ip link set $INTERFACE down
