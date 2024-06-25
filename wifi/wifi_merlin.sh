@@ -3,6 +3,8 @@
 IP="auto"
 INTERFACE="wlan0"  # Replace with your wireless interface name
 
+git stash
+git pull
 # Bring up the interface
 ifconfig $INTERFACE down
 
