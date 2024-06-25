@@ -40,9 +40,10 @@ RUN cd /${HOME} \
 
 ##########################################################################################
 
-ARG APP_TOKEN=APP_TOKEN
-ARG DATABASE_URL=DATABASE_URL
+ARG APP_TOKEN
+ARG DATABASE_URL
 ARG CPORT=CONTAINER_PORT
+ARG REPOSITORY
 ENV DATABASE_URL="$DATABASE_URL"
 
 RUN echo "\n\n******** $CPORT $HOME $APP_PATH $APP_TOKEN *********\n\n"
@@ -50,11 +51,11 @@ RUN echo "\n\n******** $CPORT $HOME $APP_PATH $APP_TOKEN *********\n\n"
 #ARG CONTENT="--notebook-dir='/$HOME/' --ip=0.0.0.0 --allow-root --port=$CPORT --NotebookApp.token='$APP_TOKEN' --NotebookApp.allow_origin='*' --NotebookApp.show_banner=False"
 #RUN echo "\n\n******** $CONTENT *********\n\n"
 
-
+RUN  git clone ${REPOSITORY}
 #RUN ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh
 #--NotebookApp.allow_origin='*' --NotebookApp.show_banner=False --NotebookApp.enable_mathjax=True
 ##########################################################################################
-ENTRYPOINT [ "/bin/bash", "-l", "-c", "jupyter lab --notebook-dir='/root/' --ip=0.0.0.0 --allow-root --port=8888 --NotebookApp.token='omc123'" ]
+ENTRYPOINT [ "/bin/bash", "-l", "-c", "jupyter lab --notebook-dir='/' --ip=0.0.0.0 --allow-root --port=8888 --NotebookApp.token='omc123'" ]
 
 #CMD ["/bin/bash", "-l", "-c", "jupyter lab $CONTENT"]
 
