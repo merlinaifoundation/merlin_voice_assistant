@@ -1,6 +1,4 @@
 #!/bin/bash
-  NODE_VERSION=v22.3.19
-  DOTNET_VERSION="8.0.203"
   #
   CONTRIBUTOR=fulviofarina
   CONTRIBUTOR_KEY=Fantasy23**
