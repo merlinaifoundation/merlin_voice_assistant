@@ -1,5 +1,5 @@
 
-FROM debian:bullseye-slim:latest AS base
+FROM debian:bullseye-slim AS base
 
 LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
 #
