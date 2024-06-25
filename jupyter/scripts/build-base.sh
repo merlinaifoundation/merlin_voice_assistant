@@ -1,7 +1,6 @@
 #!/bin/bash
   NODE_VERSION=v22.3.19
   DOTNET_VERSION="8.0.203"
-  GIT_VERSION="2.45.1"
   #
   CONTRIBUTOR=fulviofarina
   CONTRIBUTOR_KEY=Fantasy23**

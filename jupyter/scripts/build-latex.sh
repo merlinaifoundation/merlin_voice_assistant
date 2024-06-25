@@ -15,13 +15,13 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 
 ###############################################
 
-docker build -f latex -t $CONTRIBUTOR/omc-dotnet-matlab-latex:latest --build-arg BUNDLE=dotnet-matlab .
-docker push $CONTRIBUTOR/omc-dotnet-matlab-latex:latest
+docker build -f latex -t $CONTRIBUTOR/merlin-dotnet-matlab-latex:latest --build-arg BUNDLE=dotnet-matlab .
+docker push $CONTRIBUTOR/merlin-dotnet-matlab-latex:latest
 
-docker build -f latex -t $CONTRIBUTOR/omc-node-matlab-latex:latest --build-arg BUNDLE=node-matlab .
-docker push $CONTRIBUTOR/omc-node-matlab:latest
+docker build -f latex -t $CONTRIBUTOR/merlin-node-matlab-latex:latest --build-arg BUNDLE=node-matlab .
+docker push $CONTRIBUTOR/merlin-node-matlab:latest
 
-docker build -f latex -t $CONTRIBUTOR/omc-node-dotnet-matlab-latex:latest --build-arg BUNDLE=node-dotnet-matlab .
-docker push $CONTRIBUTOR/omc-node-dotnet-matlab-latex:latest
+docker build -f latex -t $CONTRIBUTOR/merlin-node-dotnet-matlab-latex:latest --build-arg BUNDLE=node-dotnet-matlab .
+docker push $CONTRIBUTOR/merlin-node-dotnet-matlab-latex:latest
 
 

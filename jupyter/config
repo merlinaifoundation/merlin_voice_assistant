@@ -1,6 +1,6 @@
 ARG BUNDLE=dotnet-matlab
 
-FROM fulviofarina/omc-${BUNDLE}:latest AS final
+FROM fulviofarina/merlin-${BUNDLE}:latest AS final
 
 LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
 USER root
@@ -19,7 +19,7 @@ COPY ${FOLDER_PATH} /${HOME}
 #RUN echo "export PATH=$NEW_PATH" | cat - ~/.original_profile > temp && mv temp ~/.profile
 
 #put in the future
-RUN ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh
+#RUN ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh
 #generate config
 RUN jupyter notebook --generate-config && echo "\nGenerated jupyter python config file\n"
 RUN cat /root/.jupyter/jupyter_notebook_config.py

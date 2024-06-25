@@ -15,14 +15,14 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 
 ###############################################
 
-docker build -f matlab -t $CONTRIBUTOR/omc-dotnet-matlab:latest --build-arg BUNDLE=dotnet .
-docker push $CONTRIBUTOR/omc-dotnet-matlab:latest
+docker build -f matlab -t $CONTRIBUTOR/merlin-dotnet-matlab:latest --build-arg BUNDLE=dotnet .
+docker push $CONTRIBUTOR/merlin-dotnet-matlab:latest
 
-docker build -f matlab -t $CONTRIBUTOR/omc-node-matlab:latest --build-arg BUNDLE=node .
-docker push $CONTRIBUTOR/omc-node-matlab:latest
+docker build -f matlab -t $CONTRIBUTOR/merlin-node-matlab:latest --build-arg BUNDLE=node .
+docker push $CONTRIBUTOR/merlin-node-matlab:latest
 
-docker build -f matlab -t $CONTRIBUTOR/omc-node-dotnet-matlab:latest --build-arg BUNDLE=node-dotnet .
-docker push $CONTRIBUTOR/omc-node-dotnet-matlab:latest
+docker build -f matlab -t $CONTRIBUTOR/merlin-node-dotnet-matlab:latest --build-arg BUNDLE=node-dotnet .
+docker push $CONTRIBUTOR/merlin-node-dotnet-matlab:latest
 
 
 
