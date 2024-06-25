@@ -2,12 +2,14 @@
 
 docker logout
 
+
+CONTRIBUTOR=fulviofarina
+CONTRIBUTOR_KEY=Fantasy23**
+
 docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 
 : '
 '
-
-
 
 
 
