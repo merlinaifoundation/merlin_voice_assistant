@@ -1,0 +1,25 @@
+
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS mathematica
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+
+USER root
+
+####################################################################
+
+#### mathematica
+##RUN curl -LO -o wolframscript https://account.wolfram.com/products/downloads/wolframscript 
+RUN git clone https://github.com/WolframResearch/WolframLanguageForJupyter.git /tmp/wolf
+RUN cd /tmp/wolf/ && ls -lah
+
+##&& ./configure-jupyter.wls add \
+RUN cd /tmp/ \
+##&& rm -rf wolf \
+&& echo "\nInstalled Mathematica\n" \
+&& pip list \
+#
+&& apt-get upgrade -y && apt-get autoremove -y
+
+ENTRYPOINT [ "/bin/bash", "-l"]

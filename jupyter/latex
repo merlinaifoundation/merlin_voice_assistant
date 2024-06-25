@@ -1,0 +1,24 @@
+
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS lang
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+RUN apt-get install -y pandoc \ 
+&& apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic \
+&& apt-get upgrade -y \
+&& apt-get autoremove -y
+#######
+RUN git clone https://github.com/jfbercher/jupyter\_latex\_envs.git /tmp/temp \
+&& cd /tmp/temp && ls -lah && python3 setup.py install && cd /tmp && rm -rf temp
+###########
+RUN pip install jupyterlab_latex \
+&& pip install nbconvert \
+&& pip install notebook-as-pdf \
+&& pip install jupyter_latex_envs && jupyter nbextension install --py latex_envs \
+&& pip list
+
+#####################################################################
+ENTRYPOINT [ "/bin/bash", "-l"]

@@ -1,0 +1,162 @@
+ARG BUNDLE=node
+
+
+FROM openmc/openmc:latest AS base
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+#
+####################################################################################
+USER root
+#
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
+    && echo "\nUpdated apt-get\n" \
+    && apt-get install -y nano vim curl xz-utils \
+    && echo "\nInstalled nano\n"
+############
+#python stuff
+#
+RUN python3 -m pip install --upgrade pip && echo "\nUpgraded PIP\n" \
+&& pip install jupyter jupyterlab && echo "\nInstalled libraries & Jupyter\n"
+#######################################################################
+RUN pip install ipython ipykernel kotlin-jupyter-kernel jupyter_contrib_nbextensions python-dotenv && echo "\nInstalled Basic Jupyter\n"
+#########################################################################
+RUN pip install pandas numpy plotly && echo "\nInstalled Basic Libs\n"
+RUN apt-get install -y python3-matplotlib \
+    && echo "\nInstalled matplotlib\n"
+
+FROM base AS extended
+
+####################################################################
+RUN pip install jupyterlab-system-monitor jupyterlab-git jupyterlab_latex && echo "\Installed Adv Extensions\n"
+####################################################################################
+RUN pip install ipympl jupyterlab_celltagsclasses lckr-jupyterlab-variableinspector \
+ && pip install jupyterlab_templates jlab-enhanced-cell-toolbar \
+ && pip install ipywidgets aquirdturtle_collapsible_headings jupyter_bokeh nbdime \
+ && echo "\nInstalled Extra Extensions\n"
+#
+
+FROM extended AS sql
+
+###################################################################
+
+RUN pip install ipython-sql psycopg2-binary && echo "\nInstalled ipython-SQL & psycopg2 Lib\n"
+####################################################################
+
+
+#SQL ??
+RUN pip install jupyterlab_sql \
+&& jupyter serverextension enable jupyterlab_sql --py --sys-prefix
+#RUN jupyter lab build --dev-build=False --minimize=False
+
+
+
+FROM sql AS lang
+
+RUN pip install jupyterlab-lsp
+RUN pip install "python-lsp-server[all]"
+RUN pip list
+
+# ###################################################################
+FROM lang AS bundle-version-tensor
+RUN pip install tensorflow jupyterlab-tensorboard-pro
+#
+RUN pip list
+####################################################################
+
+#####################################################################
+
+FROM lang AS bundle-version-node
+
+RUN echo "this is the stage that sets VAR=TRUE"
+
+ENV VAR=TRUE
+
+#NODE
+ARG NODE_VERSION="v16.4.2"
+RUN cd /opt && curl -LO https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz \
+ && tar xJf node-${NODE_VERSION}-linux-x64.tar.xz && rm node-${NODE_VERSION}-linux-x64.tar.xz
+ENV PATH="/opt/node-${NODE_VERSION}-linux-x64/bin:${PATH}"
+#
+
+#GIT
+#RUN apt-get install -y libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc
+#RUN curl -o git.tar.gz https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.38.1.tar.gz \
+#&& tar -zxf git.tar.gz && cd git-* && make prefix=/usr/local all && make prefix=/usr/local install && exec bash && git --version
+#
+
+#yarn
+#
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+&& echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+&& apt-get install -y yarn \
+&& echo "\nInstalled YARN\n" 
+
+#Javascript
+RUN npm install -g ijavascript \
+&& ijsinstall --install=global
+
+#RUN jupyter lab labextension install @jupyterlab/google-drive
+#RUN jupyter lab labextension list
+
+
+#######################################################################################
+########################################################################
+
+FROM lang AS bundle-version-dotnet
+
+RUN echo "this is the stage that sets VAR=FALSE"
+
+ENV VAR=FALSE
+
+#DOTNET
+ARG DOTNET_VERSION="7.0.305"
+#
+ENV DOTNET_INTERACTIVE_CLI_TELEMETRY_OPTOUT="1"
+ENV DOTNET_ROOT="$HOME/.dotnet"
+ENV PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+#
+RUN curl -sL https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && chmod +x ./dotnet-install.sh
+#RUN ./dotnet-install.sh --version latest
+#--runtime aspnetcore
+RUN ./dotnet-install.sh --version $DOTNET_VERSION
+#
+RUN dotnet tool install -g x \
+&& dotnet tool install -g dotnet-script \
+&& dotnet tool install -g Microsoft.dotnet-interactive \
+&& dotnet interactive jupyter install
+
+################################################################################################
+
+FROM bundle-version-${BUNDLE} AS final
+
+RUN echo "VAR is equal to ${VAR}"
+
+ARG DATABASE_URL="postgresql://ffarina:Simionomatasimio1@3.75.169.55:5436/jupyterDB"
+ENV DATABASE_URL="${DATABASE_URL}"
+######################################################################################
+#
+ARG CPORT=8888
+ARG BASE_PATH="usr"
+ARG APP_PATH="matblas"
+ARG APP_TOKEN="matblas123"
+
+#RUN echo "\n\n******** ${CPORT} ${BASE_PATH} ${APP_PATH} ${APP_TOKEN} *********\n\n"
+
+#generate config
+RUN jupyter notebook --generate-config && echo "\nGenerated jupyter python config file\n"
+#RUN cat /root/.jupyter/jupyter_notebook_config.py
+# generate config file
+#COPY jconf.py /root/.jupyter/jupyter_notebook_config.py # buildkit
+RUN cd /${BASE_PATH} \
+    && mkdir -p ${APP_PATH} \
+    && cd ${APP_PATH} \
+    && mkdir -p models
+COPY input /${BASE_PATH}/${APP_PATH}/models
+#
+##########################################################################################
+#CMD ["bash", "-l", "-c", "jupyter lab --allow-root --NotebookApp.url="/${BASE_PATH}/${APP_PATH}" --NotebookApp.ip='0.0.0.0' --NotebookApp.port='${CPORT}' --NotebookApp.token='${APP_TOKEN}' --NotebookApp.allow_origin='*'"]
+CMD ["bash", "-l", "-c", "jupyter lab --notebook-dir=/usr/matblas --ip=0.0.0.0 --allow-root --port=8888 --NotebookApp.token='matblas123' --NotebookApp.allow_origin='*' --NotebookApp.show_banner=False"]
+
+
+
+

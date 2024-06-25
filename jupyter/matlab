@@ -1,0 +1,20 @@
+
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS matlab
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+
+USER root
+
+####################################################################
+#matlab
+#pip install git+https://github.com/Calysto/matlab_kernel
+RUN pip install matlab_kernel \
+&& python3 -m pip install jupyter-matlab-proxy \
+&& echo "\nInstalled MatLab\n" \
+&& pip list \
+#
+&& apt-get upgrade -y && apt-get autoremove -y
+
+ENTRYPOINT [ "/bin/bash", "-l"]

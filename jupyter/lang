@@ -1,0 +1,12 @@
+
+ARG BUNDLE=sql
+
+FROM fulviofarina/merlin-${BUNDLE}:latest AS lang
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+RUN pip install jupyterlab-lsp && pip install "python-lsp-server[all]" && pip list
+
+#####################################################################
+ENTRYPOINT [ "/bin/bash", "-l"]

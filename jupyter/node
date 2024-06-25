@@ -1,0 +1,41 @@
+
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS bundle-version-node
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+#NODE
+ARG NODE_VERSION="v16.20.1"
+ARG FILE_PATH=node-$NODE_VERSION-linux-x64
+ARG OPT=opt
+#
+RUN cd /${OPT} \
+&& curl -LO https://nodejs.org/dist/${NODE_VERSION}/${FILE_PATH}.tar.xz \
+&& tar xJf ${FILE_PATH}.tar.xz && rm ${FILE_PATH}.tar.xz
+
+ENV NODE_PATH="/$OPT/${FILE_PATH}/bin:${PATH}"
+ENV NEW_PATH="${PATH}:$NODE_PATH"
+ENV PATH "$NEW_PATH"
+RUN echo "export PATH=$NEW_PATH" | cat - ~/.original_profile > temp && mv temp ~/.profile
+
+#yarn
+#
+RUN cd /${HOME} \
+&& curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+&& echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+&& apt-get install -y yarn \
+&& echo "\nInstalled YARN\n" \
+&& apt-get upgrade -y && apt-get autoremove -y
+
+#Javascript
+RUN npm install -g ijavascript \
+&& ijsinstall --install=global
+
+#RUN jupyter lab labextension install @jupyterlab/google-drive
+#RUN jupyter lab labextension list
+
+#######################################################################################
+
+ENTRYPOINT [ "/bin/bash", "-l"]

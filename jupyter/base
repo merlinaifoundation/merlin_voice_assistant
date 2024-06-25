@@ -1,0 +1,34 @@
+
+FROM debian:bullseye-slim:latest AS base
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+#
+####################################################################################
+USER root
+#
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
+    && echo "\nUpdated apt-get\n" \
+    && apt-get install -y nano vim curl xz-utils xvfb \
+    && echo "\nInstalled nano\n" \
+############
+#python stuff
+    && apt-get install -y python3-matplotlib \
+    && echo "\nInstalled matplotlib\n" \
+######
+&& apt-get upgrade -y && apt-get autoremove -y \
+# jupyter_server
+&& python3 -m pip install --upgrade pip && echo "\nUpgraded PIP\n" \
+&& pip install jupyter jupyter_server notebook ipyparallel jupyterlab && echo "\nInstalled libraries & Jupyter\n" \
+#######################################################################
+&& pip install ipython ipykernel \
+&& pip install python-dotenv && echo "\nInstalled Basic Jupyter\n" \
+#########################################################################
+&& pip install pandas numpy plotly && echo "\nInstalled Basic Libs\n" \
+### ERASE THIS IN THE FUTURE
+&& cp ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh ${HOME}/generate-cross-section-databases.sh
+
+RUN apt-get upgrade -y && apt-get autoremove -y
+
+RUN echo "\n" | cat - ~/.profile > temp && mv temp ~/.original_profile
+
+ENTRYPOINT [ "/bin/bash", "-l"]

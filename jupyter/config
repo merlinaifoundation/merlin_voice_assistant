@@ -1,0 +1,63 @@
+ARG BUNDLE=dotnet-matlab
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS final
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+ARG APP_PATH="WORKSPACE"
+ARG INPUT_PATH=input
+ARG FOLDER_PATH=extras
+
+#RUN rm -rf /${USER}/OpenMC/openmc
+COPY ${INPUT_PATH} /${HOME}/${APP_PATH}
+
+##FILE THAT GENERATES CROSSSECTIONS .sh
+COPY ${FOLDER_PATH} /${HOME}
+
+##########################################################################################
+#RUN echo "export PATH=$NEW_PATH" | cat - ~/.original_profile > temp && mv temp ~/.profile
+
+#put in the future
+RUN ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh
+#generate config
+RUN jupyter notebook --generate-config && echo "\nGenerated jupyter python config file\n"
+RUN cat /root/.jupyter/jupyter_notebook_config.py
+# generate config file
+COPY jconf.py /root/.jupyter/jupyter_notebook_config.py 
+# buildkit
+RUN cd /${HOME} \
+    && mkdir -p ${APP_PATH} \
+    && cd ${APP_PATH}
+
+   # && mkdir -p models
+
+
+##########################################################################################
+
+##RUN apt-get upgrade -y && apt-get autoremove -y \
+##&& pip list
+
+##########################################################################################
+
+ARG APP_TOKEN=APP_TOKEN
+ARG DATABASE_URL=DATABASE_URL
+ARG CPORT=CONTAINER_PORT
+ENV DATABASE_URL="$DATABASE_URL"
+
+RUN echo "\n\n******** $CPORT $HOME $APP_PATH $APP_TOKEN *********\n\n"
+
+#ARG CONTENT="--notebook-dir='/$HOME/' --ip=0.0.0.0 --allow-root --port=$CPORT --NotebookApp.token='$APP_TOKEN' --NotebookApp.allow_origin='*' --NotebookApp.show_banner=False"
+#RUN echo "\n\n******** $CONTENT *********\n\n"
+
+
+#RUN ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh
+#--NotebookApp.allow_origin='*' --NotebookApp.show_banner=False --NotebookApp.enable_mathjax=True
+##########################################################################################
+ENTRYPOINT [ "/bin/bash", "-l", "-c", "jupyter lab --notebook-dir='/root/' --ip=0.0.0.0 --allow-root --port=8888 --NotebookApp.token='omc123'" ]
+
+#CMD ["/bin/bash", "-l", "-c", "jupyter lab $CONTENT"]
+
+
+
+

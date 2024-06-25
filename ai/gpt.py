@@ -269,7 +269,7 @@ class ChatGPT(Thread):
             len(self._cummulativeResponse),
         )
         print(
-            "Current Cumm Chat: ",
+            "\nCurrent Cumm Chat: ",
             len(self._cummulativeChat),
         )
 

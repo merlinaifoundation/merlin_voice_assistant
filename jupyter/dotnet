@@ -1,0 +1,33 @@
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS bundle-version-dotnet
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+#DOTNET
+#
+ENV DOTNET_INTERACTIVE_CLI_TELEMETRY_OPTOUT="1"
+ENV DOTNET_ROOT="$HOME/.dotnet"
+ENV DOTNET_PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools"
+ENV NEW_PATH="${PATH}:$DOTNET_PATH"
+ENV PATH "$NEW_PATH"
+RUN echo "export PATH=$NEW_PATH" | cat - ~/.original_profile > temp && mv temp ~/.profile
+
+
+ARG DOTNET_VERSION="7.0.305"
+RUN cd /tmp && curl -LO https://dot.net/v1/dotnet-install.sh \
+&& chmod +x dotnet-install.sh \
+&& ./dotnet-install.sh --version $DOTNET_VERSION && rm dotnet-install.sh
+#
+RUN dotnet tool install -g x \
+&& dotnet tool install -g dotnet-script \
+&& dotnet tool install -g Microsoft.dotnet-interactive \
+&& dotnet interactive jupyter install
+
+#RUN apt-get autoremove -y
+
+#RUN pip list
+
+################################################################################################
+ENTRYPOINT [ "/bin/bash", "-l"]

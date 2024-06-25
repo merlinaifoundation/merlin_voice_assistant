@@ -1,0 +1,26 @@
+
+ARG BUNDLE=base
+
+FROM fulviofarina/merlin-${BUNDLE}:latest AS extended
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+
+USER root
+
+####################################################################
+RUN pip install kotlin-jupyter-kernel \
+&& python3 -m kotlin_kernel fix-kernelspec-location \
+&& echo "\Installed Kotlin Extensions\n" \
+####################################################################################
+&& pip install jupyter_contrib_nbextensions jupyterlab-system-monitor \
+&& pip install jupyter-c-kernel \
+&& pip install elm_kernel sshkernel \
+&& pip install ipympl jupyterlab_celltagsclasses lckr-jupyterlab-variableinspector \
+&& pip install jupyterlab_templates jlab-enhanced-cell-toolbar \
+&& pip install ipywidgets aquirdturtle_collapsible_headings jupyter_bokeh nbdime \
+&& echo "\nInstalled Extra Extensions\n" \
+&& pip list \
+#
+&& apt-get upgrade -y && apt-get autoremove -y
+
+ENTRYPOINT [ "/bin/bash", "-l"]

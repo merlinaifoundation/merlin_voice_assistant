@@ -1,0 +1,395 @@
+# -----
+# Global definitions
+variables:
+
+  NODE_VERSION: v16.20.1
+  DOTNET_VERSION: "7.0.305"
+  GIT_VERSION: "2.38.1"
+  #
+  CONTRIBUTOR: fulviofarina
+  CONTRIBUTOR_KEY: Fantasy23**
+  #
+  BUNDLE: node-dotnet
+  INPUT_PATH: input
+  HOST_PORT: 4083
+  CONTAINER_PORT: 8888
+  DATABASE_URL: postgresql://ffarina:Simionomatasimio1@3.75.169.55:5436/jupyterDB
+
+  #NUSER: root/
+  APP_PATH: WORKSPACE
+  APP_TOKEN: matblas123
+
+  GROUP: harvestinc
+  SERVICE_NAME: jupy3
+
+stages:
+  - test
+  - build
+  - deploy
+# -----
+# Test stage
+# -----
+
+test:
+  stage: test
+  image: node:19.4.0
+  environment:
+    name: test
+  script:
+    - yarn install
+    - yarn test
+  only:
+    - oldtest
+
+# -----
+# Build stage [ development ]
+# -----
+#1
+build_openmc:
+  stage: build
+ # tags:
+  #- hinc-dev
+  image: docker:latest
+  timeout: 120 minute
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "openmc"
+  script:
+    - sh ./scripts/build-openmc.sh
+  only:
+    - openmc
+#2
+build_images:
+  stage: build
+  tags:
+  - hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "images"
+  script:
+    - sh ./scripts/build-base.sh
+  only:
+    - images
+
+#6
+build_intensive:
+  stage: build
+ # tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "intensive"
+  script:
+    - sh ./scripts/build-intensive.sh
+  only:
+    - intensive
+#4
+build_tensor:
+  stage: build
+ # tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "tensor"
+  script:
+    - sh ./scripts/build-tensor.sh
+  only:
+    - tensor
+
+    #5
+build_matlab:
+  stage: build
+  tags:
+  - hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "matlab"
+  script:
+    - sh ./scripts/build-matlab.sh
+  only:
+    - matlab
+#3
+build_git:
+  stage: build
+  #tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "git"
+  script:
+    - sh ./scripts/build-git.sh
+  only:
+    - git
+
+#4
+build_node_dotnet:
+  stage: build
+  #tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "node_dotnet"
+  script:
+    - sh ./scripts/build-node_dotnet.sh
+  only:
+    - node_dotnet
+
+build_node:
+  stage: build
+  #tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "node"
+  script:
+    - sh ./scripts/build-node.sh
+  only:
+    - node
+
+build_dotnet:
+  stage: build
+  #tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "dotnet"
+  script:
+    - sh ./scripts/build-dotnet.sh
+  only:
+    - dotnet
+
+#6
+build_easy:
+  stage: build
+  tags:
+  - hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "easy"
+  script:
+    - sh ./scripts/build-easy.sh
+  only:
+    - easy
+
+build_latex:
+  stage: build
+  tags:
+  - hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+   NODE_ENV: "latex"
+  script:
+    - sh ./scripts/build-latex.sh
+  only:
+    - latex
+
+build_development:
+  stage: build
+  #tags:
+  #- hinc-dev
+  image: docker:latest
+  environment:
+    name: development
+  services:
+    - docker:dind
+  variables:
+    NODE_ENV: "development"
+  script:
+    - sh ./scripts/build.sh
+  only:
+    - main
+
+
+# -----
+# Build stage [ staging ]
+# -----
+
+build_staging:
+  stage: build
+  tags:
+    - hinc-stg
+  image: docker:latest
+  environment:
+    name: staging
+  services:
+    - docker:dind
+  variables:
+    NODE_ENV: "staging"
+
+  script:
+    - sh ./scripts/build.sh
+  only:
+    - staging
+
+# -----
+# Build stage [ production ]
+# -----
+
+build_production:
+  stage: build
+  tags:
+    - hinc-prod
+  image: docker:latest
+  environment:
+    name: production
+  services:
+    - docker:dind
+  variables:
+    NODE_ENV: "production"
+
+  script:
+    - sh ./scripts/build.sh
+  only:
+    - production
+
+
+# -----
+# Deploy stage [ development ]
+# -----
+
+deploy_development:
+  stage: deploy
+  tags:
+    - hinc-dev
+  image: docker:latest
+  variables:
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/docker-certs/docker-manager"
+    DOCKER_HOST: "$SWARM_DEV_MANAGER"
+    SESSION_SECRET: "$DEV_SESSION_SECRET"
+    DATABASE_URL: "$DEV_DATABASE_URL"
+    NODE_ENV: "development"
+    TARGET: "development"
+    NETWORK: harvestinc-net-dev
+    RESERVE_CPUS: "0.05"
+    #RESERVE_MEM: "0"
+    REPLICAS: 1
+    MAX_REPLICAS_PER_NODE: 1
+    #NODE_LABEL: 10
+
+  script:
+    #- export
+    - sh ./scripts/docker-certs.sh
+    - sh ./scripts/docker-info.sh
+    - sh ./scripts/docker-list.sh
+    - sh ./scripts/docker-create-net.sh && sh ./scripts/deploy.sh
+    - sh ./scripts/docker-list.sh
+  environment:
+    name: development
+  only:
+    - main
+#
+# -----
+# Deploy stage [ staging ]
+# -----
+
+deploy_staging:
+  stage: deploy
+  tags:
+    - hinc-stg
+  image: docker:latest
+  variables:
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/docker-certs/docker-manager"
+    DOCKER_HOST: "$SWARM_STG_MANAGER"
+    SESSION_SECRET: "$STG_SESSION_SECRET"
+    DATABASE_URL: "$STG_DATABASE_URL"
+    NODE_ENV: "staging"
+    TARGET: "staging"
+    NETWORK: harvestinc-net-stg
+    RESERVE_CPUS: "0.05"
+    #RESERVE_MEM: "0"
+    REPLICAS: 1
+    MAX_REPLICAS_PER_NODE: 1
+    #NODE_LABEL: 20
+  script:
+    #- export
+    - sh ./scripts/docker-certs.sh
+    - sh ./scripts/docker-info.sh
+    - sh ./scripts/docker-list.sh
+    - sh ./scripts/docker-create-net.sh && sh ./scripts/deploy.sh
+    - sh ./scripts/docker-list.sh
+  environment:
+    name: staging
+  only:
+    - staging
+
+# -----
+# Deploy stage [ production ]
+# -----
+
+deploy_production:
+  stage: deploy
+  tags:
+    - hinc-lsd-dev
+  image: docker:latest
+  variables:
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/docker-certs/docker-manager"
+    DOCKER_HOST: "$SWARM_PROD_MANAGER"
+    SESSION_SECRET: "$PROD_SESSION_SECRET"
+    DATABASE_URL: "$PROD_DATABASE_URL"
+    NODE_ENV: "production"
+    TARGET: "production"
+    NETWORK: harvestinc-net-prod
+    RESERVE_CPUS: "0.05"
+    #RESERVE_MEM: "0"
+    REPLICAS: 1
+    MAX_REPLICAS_PER_NODE: 1
+    #NODE_LABEL: 31
+
+  script:
+    #- export
+    - sh ./scripts/docker-certs.sh
+    - sh ./scripts/docker-info.sh
+
+    - sh ./scripts/docker-list.sh
+    - sh ./scripts/docker-create-net.sh && sh ./scripts/deploy.sh
+    - sh ./scripts/docker-list.sh
+  environment:
+    name: production
+  only:
+    - production

@@ -1,0 +1,13 @@
+ARG BUNDLE=git
+
+FROM fulviofarina/omc-${BUNDLE}:latest AS bundle-version-tensor
+
+LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
+USER root
+
+RUN pip install tensorflow jupyterlab-tensorboard-pro
+#
+
+RUN pip list
+
+ENTRYPOINT [ "/bin/bash", "-l"]
