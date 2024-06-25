@@ -18,11 +18,11 @@ RUN apt-get install tar
 RUN cd /${HOME} \
 && curl -o git-${GIT_VERSION}.tar.gz https://mirrors.edge.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.gz
 RUN tar -zxf /${HOME}/git-${GIT_VERSION}.tar.gz 
-RUN cd git-${GIT_VERSION} && make prefix=/usr/local all && make prefix=/usr/local install && exec bash
+RUN cd git-${GIT_VERSION} && make prefix=/usr/local all && install && exec bash
 RUN rm -rf /${HOME}/git-${GIT_VERSION}.tar.gz && rm -rf /${HOME}/git-${GIT_VERSION} \
 #&& rm -rf git-2.38.1 \
 #### cleanup
-&& apt-get upgrade -y && apt-get autoremove -y
+RUN apt-get upgrade -y && apt-get autoremove -y
 ###### pip git
 RUN pip install jupyterlab-git && pip list
 

@@ -5,6 +5,7 @@ docker logout
 
 CONTRIBUTOR=fulviofarina
 CONTRIBUTOR_KEY=Fantasy23**
+DOTNET_VERSION="8.0.203"
 
 docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 
