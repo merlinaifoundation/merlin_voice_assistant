@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONTRIBUTOR=fulviofarina
-CONTRIBUTOR_KEY=Fantasy23**
+CONTRIBUTOR_KEY=$1
 GIT_VERSION="2.39.5"
 #https://mirrors.edge.kernel.org/pub/software/scm/git/
 docker logout

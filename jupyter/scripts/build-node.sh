@@ -4,7 +4,7 @@ docker logout
 
 
 CONTRIBUTOR=fulviofarina
-CONTRIBUTOR_KEY=Fantasy23**
+CONTRIBUTOR_KEY=$1
 NODE_VERSION=v22.3.19
 
 docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY

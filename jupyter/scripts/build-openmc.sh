@@ -2,7 +2,7 @@
 
   #
   CONTRIBUTOR=fulviofarina
-  CONTRIBUTOR_KEY=Fantasy23**
+  CONTRIBUTOR_KEY=$1
 
 
 docker logout

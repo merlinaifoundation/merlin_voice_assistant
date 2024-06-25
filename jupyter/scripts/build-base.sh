@@ -1,7 +1,7 @@
 #!/bin/bash
   #
   CONTRIBUTOR=fulviofarina
-  CONTRIBUTOR_KEY=Fantasy23**
+  CONTRIBUTOR_KEY=$1
   #
   BUNDLE=node-dotnet
   INPUT_PATH=input

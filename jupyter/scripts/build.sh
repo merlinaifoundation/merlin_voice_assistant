@@ -3,7 +3,7 @@
 
   #
   CONTRIBUTOR=fulviofarina
-  CONTRIBUTOR_KEY=Fantasy23**
+  CONTRIBUTOR_KEY=$1
   #
   BUNDLE=git
   INPUT_PATH=input
@@ -25,7 +25,7 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 echo "Building $SERVICE_NAME container image ..."
 
 IMAGE=fulviofarina
-TOKEN=$1
+TOKEN=$2
 TEST_IMAGE=merlin
 REPOSITORY=https://$TOKEN@github.com/eliastsoukatos/merlin_voice_assistant.git
 
