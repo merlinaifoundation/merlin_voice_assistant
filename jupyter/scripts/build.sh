@@ -25,7 +25,7 @@ docker login -u $CONTRIBUTOR -p $CONTRIBUTOR_KEY
 echo "Building $SERVICE_NAME container image ..."
 
 IMAGE=fulviofarina
-TOKEN=''
+TOKEN=$1
 TEST_IMAGE=merlin
 REPOSITORY=https://$TOKEN@github.com/eliastsoukatos/merlin_voice_assistant.git
 
