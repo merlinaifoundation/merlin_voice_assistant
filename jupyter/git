@@ -20,7 +20,7 @@ RUN apt-get install -y cmake gcc
 RUN apt-get install -y libcurl4-gnutls-dev 
 RUN apt-get install -y libexpat1-dev 
 RUN apt-get install -y tar
-RUN apt-get install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-CPAN perl-devel
+#RUN apt-get install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-CPAN perl-devel
 
 #####GIT
 RUN cd /${HOME} \
