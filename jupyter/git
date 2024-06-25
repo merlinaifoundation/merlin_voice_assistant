@@ -27,9 +27,7 @@ RUN cd /${HOME} \
 && curl -o git-${GIT_VERSION}.tar.gz https://mirrors.edge.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.gz
 RUN tar -zxf /${HOME}/git-${GIT_VERSION}.tar.gz 
 RUN cd git-${GIT_VERSION}
-RUN make configure ./configure --prefix=/usr/local --with-python=`which python3`
-RUN PYTHON_PATH=`which python3` NO_TCLTK=1 make all
-RUN make install
+RUN cd git-${GIT_VERSION} && make prefix=/usr/local all && make prefix=/usr/local install
 RUN rm -rf /${HOME}/git-${GIT_VERSION}.tar.gz && rm -rf /${HOME}/git-${GIT_VERSION}
 
 #&& rm -rf git-2.38.1 \
