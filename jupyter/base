@@ -6,6 +6,14 @@ LABEL FULVIO_FARINA=<fulviofarina@gmail.com>
 ####################################################################################
 USER root
 #
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+        python3-pip python-is-python3 wget git build-essential cmake \
+        mpich libmpich-dev libhdf5-serial-dev libhdf5-mpich-dev \
+        libpng-dev && \
+    apt-get autoremove
+    
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
     && echo "\nUpdated apt-get\n" \
     && apt-get install -y nano vim curl xz-utils xvfb \
@@ -26,7 +34,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 && pip install pandas numpy plotly && echo "\nInstalled Basic Libs\n" \
 ### ERASE THIS IN THE FUTURE
 #&& cp ${HOME}/OpenMC/openmc/tools/ci/download-xs.sh ${HOME}/generate-cross-section-databases.sh
-
 RUN apt-get upgrade -y && apt-get autoremove -y
 
 RUN echo "\n" | cat - ~/.profile > temp && mv temp ~/.original_profile
